@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 
-const Create = () => {
+export default function create(){
   const [idname, setCategoryid] = useState('')
   const [name, setCategoryname] = useState('')
   const router = useRouter()
@@ -70,5 +70,3 @@ const Create = () => {
     </div>
   )
 }
-
-export default Create

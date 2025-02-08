@@ -16,7 +16,7 @@ model Asset {
   id        Int      @id @default(autoincrement())
   name     String
   img   String?
-  assetid String
+  assetid String @unique
   categoryId String
   category   Category @relation(fields: [categoryId], references: [idname], onDelete: Cascade)
   availableValue Int @default(0)
