@@ -27,9 +27,9 @@ export default function create(){
         <div>
           <label
             htmlFor="Category"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            Category id
+            Category ID
           </label>
           <input
             type="text"
@@ -44,9 +44,9 @@ export default function create(){
         <div>
           <label
             htmlFor="content"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            Category name
+            Category Name
           </label>
           <textarea
             name="name"

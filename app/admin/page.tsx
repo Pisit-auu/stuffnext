@@ -86,7 +86,7 @@ export default function Admin() {
             <div className="flex gap-4">
               <input
                 type="text"
-                placeholder="Search by title..."
+                placeholder="Search by Asset Name..."
                 value={searchAsset}
                 onChange={(e) => setSearchAsset(e.target.value)}
                 className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -94,7 +94,7 @@ export default function Admin() {
               <select
                 value={category}
                 onChange={(e) => setSelectCategory(e.target.value)}
-                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
               >
                 <option value="">Select Category</option>
                 {categorys.map((cat: any) => (
@@ -106,7 +106,7 @@ export default function Admin() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
               >
                 <option value="desc">Latest</option>
                 <option value="asc">Oldest</option>
@@ -139,7 +139,7 @@ export default function Admin() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200 text-slate-800">
                 {asset.map((Asset: any) => (
                   <tr key={Asset.assetid}>
                     <td className="px-6 py-4 whitespace-nowrap">{Asset.name}</td>
@@ -171,13 +171,13 @@ export default function Admin() {
         <div className="max-w-6xl mx-auto px-4 py-8">
         <input
               type="text"
-              placeholder="Search by title..."
+              placeholder="Search by Category Name..."
               value={searchCategory}
               onChange={(e) => setSearchCategory(e.target.value)}
               className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           <h1 className="text-2xl font-semibold mb-6">Category</h1>
-          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
 
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">

@@ -8,10 +8,10 @@ const Create = () => {
   const [assetid, setAssetid] = useState('')
   const [name, setAssetname] = useState('')
   const [img, setImg] = useState('')
-  const [categoryId, setCategory] = useState('')
+  const [categoryId, setCategory] = useState('ก')
   const [listcategory, setlistCategory] = useState([])
-  const [availableValue, setAvailableValue] = useState('')
-  const [unavailableValue, setunAvailableValue] = useState('')
+  const [availableValue, setAvailableValue] = useState(0)
+  const [unavailableValue, setunAvailableValue] = useState(0)
  
 
   const router = useRouter()
@@ -46,7 +46,7 @@ const Create = () => {
         <div>
           <label
             htmlFor="Asset"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             Asset Name
           </label>
@@ -63,7 +63,7 @@ const Create = () => {
         <div>
           <label
             htmlFor="Assetid"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             Asset_Id
           </label>
@@ -81,7 +81,7 @@ const Create = () => {
         <div>
           <label
             htmlFor="Category"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             Image
           </label>
@@ -112,7 +112,7 @@ const Create = () => {
         <div>
           <label
             htmlFor="Available"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             จำนวนที่พร้อมใช้งาน
           </label>
@@ -130,7 +130,7 @@ const Create = () => {
         <div>
           <label
             htmlFor="unavailable"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             จำนวนที่เสีย
           </label>

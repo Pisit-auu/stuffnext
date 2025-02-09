@@ -60,7 +60,7 @@ export default function Edit() {
         <div>
           <label
             htmlFor="Asset"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             Asset Name
           </label>
@@ -77,9 +77,9 @@ export default function Edit() {
         <div>
           <label
             htmlFor="Assetid"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            Asset_Id
+            Asset ID
           </label>
           <input
             type="text"
@@ -95,7 +95,7 @@ export default function Edit() {
         <div>
           <label
             htmlFor="Category"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
             Image
           </label>
@@ -126,9 +126,9 @@ export default function Edit() {
         <div>
           <label
             htmlFor="Available"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            จำนวนที่พร้อมใช้งาน
+            Available Quantity
           </label>
           <input
             type="number"
@@ -144,9 +144,9 @@ export default function Edit() {
         <div>
           <label
             htmlFor="unavailable"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            จำนวนที่เสีย
+            Unvailable Quantity
           </label>
           <input
             type="number"

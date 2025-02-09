@@ -41,14 +41,14 @@ export default function Edit() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">Edit  Category</h1>
+      <h1 className="text-2xl font-semibold mb-6">Edit Category</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="title"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            Id name
+            ID Name
           </label>
           <input
             type="text"
@@ -63,9 +63,9 @@ export default function Edit() {
         <div>
           <label
             htmlFor="content"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate"
           >
-            Name
+            Category Name
           </label>
           <textarea
             name="content"
