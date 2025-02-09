@@ -41,14 +41,14 @@ export default function Edit() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">Edit Category</h1>
+      <h1 className="text-2xl font-semibold mb-6">แก้ไข ประเภทครุภัณฑ์</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="title"
             className="block text-sm font-medium text-slate"
           >
-            ID Name
+            รหัสตัวแรกของประเภทครุภัณฑ์
           </label>
           <input
             type="text"
@@ -65,7 +65,7 @@ export default function Edit() {
             htmlFor="content"
             className="block text-sm font-medium text-slate"
           >
-            Category Name
+            ชื่อประเภทครุภัณฑ์
           </label>
           <textarea
             name="content"
@@ -82,7 +82,7 @@ export default function Edit() {
             type="submit"
             className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Update
+            อัพเดต
           </button>
         </div>
       </form>

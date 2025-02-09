@@ -55,14 +55,14 @@ export default function Edit() {
   }
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">Edit  Asset</h1>
+      <h1 className="text-2xl font-semibold mb-6">แก้ไข ครุภัณฑ์</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="Asset"
             className="block text-sm font-medium text-slate"
           >
-            Asset Name
+            ชื่อครุภัณฑ์
           </label>
           <input
             type="text"
@@ -79,7 +79,7 @@ export default function Edit() {
             htmlFor="Assetid"
             className="block text-sm font-medium text-slate"
           >
-            Asset ID
+            รหัสครุภัณฑ์
           </label>
           <input
             type="text"
@@ -97,7 +97,7 @@ export default function Edit() {
             htmlFor="Category"
             className="block text-sm font-medium text-slate"
           >
-            Image
+            รูปภาพ
           </label>
           <input
             type="text"
@@ -111,8 +111,10 @@ export default function Edit() {
         </div>
 
         <div>
-          <label>Category</label>
-          <select
+  
+          <label className='mr-8'>ประเภทครุภัณฑ์</label>
+          
+          <select className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
             value={categoryId.name}
             onChange={(e) => setCategory(JSON.parse(e.target.value))}  >
             <option  key={categoryId.idname} value={categoryId}>{categoryId.name}</option>
@@ -128,7 +130,7 @@ export default function Edit() {
             htmlFor="Available"
             className="block text-sm font-medium text-slate"
           >
-            Available Quantity
+            จำนวนที่พร้อมใช้งาน
           </label>
           <input
             type="number"
@@ -146,7 +148,7 @@ export default function Edit() {
             htmlFor="unavailable"
             className="block text-sm font-medium text-slate"
           >
-            Unvailable Quantity
+            จำนวนที่เสีย
           </label>
           <input
             type="number"
@@ -164,7 +166,7 @@ export default function Edit() {
             type="submit"
             className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Submit
+            แก้ไข
           </button>
         </div>
       </form>

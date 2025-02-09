@@ -21,11 +21,17 @@ model Asset {
   category   Category @relation(fields: [categoryId], references: [idname], onDelete: Cascade)
   availableValue Int @default(0)
   unavailableValue Int @default(0)
-  bb DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 model Category {
   id    Int    @id @default(autoincrement())
   idname  String @unique
   name String
   asset Asset[]
+}
+model Location{
+  id    Int    @id @default(autoincrement())
+  namelocation String @unique
+  nameteacher String?
+
 }
