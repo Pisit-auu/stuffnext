@@ -12,6 +12,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        thai: ['Noto Sans Thai', 'sans-serif'],
+      },
     },
   },
   plugins: [],

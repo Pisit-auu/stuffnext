@@ -11,7 +11,34 @@ export default function Edit() {
   const [listcategory, setlistCategory] = useState([])
   const [availableValue, setAvailableValue] = useState('')
   const [unavailableValue, setunAvailableValue] = useState('')
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const router = useRouter()
+
+  const [file, setFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setIsUploading(true); // ตั้งสถานะว่ากำลังอัปโหลด
+
+    try {
+      // ทำการอัปโหลดไฟล์ที่เลือก
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // ใส่คำสั่ง API ของคุณที่นี่เพื่ออัปโหลดไฟล์
+      // ตัวอย่างนี้เป็นเพียงคำสั่งที่ส่งไฟล์ไปยัง API
+      const res = await axios.post("/api/uploadimg", formData);
+      
+      // แสดง URL ของรูปภาพที่อัปโหลดแล้ว
+      setImg(res.data.url); 
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setIsUploading(false); // ปิดสถานะการอัปโหลด
+    }
+  };
   const fetchPost = async (id:string) => {
     try {
       const resasset = await axios.get(`/api/asset/${id}`)
@@ -36,7 +63,6 @@ export default function Edit() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log(categoryId.idname)
 
     try {
       await axios.put(`/api/asset/${id}`, {
@@ -98,16 +124,29 @@ export default function Edit() {
             className="block text-sm font-medium text-slate"
           >
             รูปภาพ
-          </label>
-          <input
-            type="text"
-            name="Category"
-            id="Category"
-            required
-            value={img}
-            onChange={(e) => setImg(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            <div className="p-5">
+           
+            <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            disabled={isUploading} // ปิดการใช้งานการเลือกไฟล์ระหว่างการอัปโหลด
           />
+               <button
+            type="button"
+            onClick={handleUpload}
+            className="bg-blue-500 text-white p-2 rounded"
+            disabled={isUploading} // ปิดการใช้งานปุ่ม "อัปโหลด" ระหว่างการอัปโหลด
+          >
+            {isUploading ? "กำลังอัปโหลด..." : "อัปโหลด"}
+          </button>
+            </div>
+          </label>
+          {img && img !== "" && (
+          <div className="mt-5">
+            <img src={img} alt="Uploaded" className="w-48 h-48 object-cover" />
+          </div>
+        )}
         </div>
 
         <div>

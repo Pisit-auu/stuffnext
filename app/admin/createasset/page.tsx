@@ -1,62 +1,90 @@
-'use client'
+'use client';
 
-import React, { useState,useEffect } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
+export default function CreateAsset() {
+  const [assetid, setAssetid] = useState('');
+  const [name, setAssetname] = useState('');
+  const [img, setImg] = useState('');
+  const [categoryId, setCategory] = useState('');
+  const [listcategory, setlistCategory] = useState([]);
+  const [availableValue, setAvailableValue] = useState<number>(0);
+  const [unavailableValue, setunAvailableValue] = useState<number>(0);
+  const router = useRouter();
+  const [file, setFile] = useState(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false); // สถานะการอัปโหลด
 
-const Create = () => {
-  const [assetid, setAssetid] = useState('')
-  const [name, setAssetname] = useState('')
-  const [img, setImg] = useState('')
-  const [categoryId, setCategory] = useState('')
-  const [listcategory, setlistCategory] = useState([])
-  const [availableValue, setAvailableValue] = useState(0)
-  const [unavailableValue, setunAvailableValue] = useState(0)
- 
+  const handleUpload = async () => {
+    if (!file) return;
 
-  const router = useRouter()
+    setIsUploading(true); // ตั้งสถานะว่ากำลังอัปโหลด
+
+    try {
+      // ทำการอัปโหลดไฟล์ที่เลือก
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // ใส่คำสั่ง API ของคุณที่นี่เพื่ออัปโหลดไฟล์
+      // ตัวอย่างนี้เป็นเพียงคำสั่งที่ส่งไฟล์ไปยัง API
+      const res = await axios.post("/api/uploadimg", formData);
+      
+      // แสดง URL ของรูปภาพที่อัปโหลดแล้ว
+      setImg(res.data.url); 
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setIsUploading(false); // ปิดสถานะการอัปโหลด
+    }
+  };
+
   useEffect(() => {
-    fetchCategorys()
-    
-  }, [])
+    fetchCategories();
+  }, []);
 
-  const fetchCategorys = async () => {
+  const fetchCategories = async () => {
     try {
-      const rescategoty = await axios.get('/api/category')
-      setlistCategory(rescategoty.data)
+      const res = await axios.get('/api/category');
+      setlistCategory(res.data);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if(!categoryId){
-        alert("เลือกประเภทครุภัณฑ์")
+    e.preventDefault();
+    if (!categoryId) {
+      alert('เลือกประเภทครุภัณฑ์');
+      return;
     }
-    console.log(categoryId)
+
     try {
-      await axios.post('/api/asset', { name,img, assetid,categoryId,availableValue,unavailableValue})
-      router.push('/admin')
+      await axios.post('/api/asset', {
+        name,
+        img,
+        assetid,
+        categoryId,
+        availableValue,
+        unavailableValue,
+      });
+      router.push('/admin');
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold mb-6">เพิ่มครุภัณฑ์</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
+        {/* ชื่อครุภัณฑ์ */}
         <div>
-          <label
-            htmlFor="Asset"
-            className="block text-sm font-medium text-slate"
-          >
+          <label htmlFor="Asset" className="block text-sm font-medium text-gray-700">
             ชื่อครุภัณฑ์
           </label>
           <input
             type="text"
-            name="Asset"
             id="Asset"
             required
             value={name}
@@ -64,16 +92,14 @@ const Create = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
+
+        {/* รหัสครุภัณฑ์ */}
         <div>
-          <label
-            htmlFor="Assetid"
-            className="block text-sm font-medium text-slate"
-          >
+          <label htmlFor="Assetid" className="block text-sm font-medium text-gray-700">
             รหัสครุภัณฑ์
           </label>
           <input
             type="text"
-            name="Assetid"
             id="Assetid"
             required
             value={assetid}
@@ -81,89 +107,95 @@ const Create = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
-       
+
+        {/* รูปภาพ */}
         <div>
-          <label
-            htmlFor="Category"
-            className="block text-sm font-medium text-slate"
-          >
-            รูปภาพ
-          </label>
-          <input
-            type="text"
-            name="Category"
-            id="Category"
-            required
-            value={img}
-            onChange={(e) => setImg(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          <label className="block text-sm font-medium text-gray-700">รูปภาพ</label>
+          <div className="p-5">
+            <div className="flex flex-col gap-3">
+            <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            disabled={isUploading} // ปิดการใช้งานการเลือกไฟล์ระหว่างการอัปโหลด
           />
-        </div>
-
-        <div>
-          <label className='mr-8'>ประเภทครุภัณฑ์</label>
-
-          <select
-                value={categoryId}
-                onChange={(e) => setCategory(e.target.value)}
-                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-              >
-                <option value="">เลือกประเภทครุภัณฑ์</option>
-                {listcategory.map((categorys: any) => (
-                  <option key={categorys.idname} value={categorys.idname}>
-                    {categorys.name}
-                  </option>
-                ))}
-              </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="Available"
-            className="block text-sm font-medium text-slate"
+          <button
+            type="button"
+            onClick={handleUpload}
+            className="bg-blue-500 text-white p-2 rounded"
+            disabled={isUploading} // ปิดการใช้งานปุ่ม "อัปโหลด" ระหว่างการอัปโหลด
           >
+            {isUploading ? "กำลังอัปโหลด..." : "อัปโหลด"}
+          </button>
+            </div>
+
+            {img && (
+              <div className="mt-5">
+                <h2 className="text-lg font-bold">รูปที่อัปโหลด:</h2>
+                <img src={img} alt="Uploaded" className="w-64 h-64 object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ประเภทครุภัณฑ์ */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">ประเภทครุภัณฑ์</label>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
+          >
+            <option value="">เลือกประเภทครุภัณฑ์</option>
+            {listcategory.map((category: any) => (
+              <option key={category.idname} value={category.idname}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* จำนวนที่พร้อมใช้งาน */}
+        <div>
+          <label htmlFor="Available" className="block text-sm font-medium text-gray-700">
             จำนวนที่พร้อมใช้งาน
           </label>
           <input
             type="number"
-            name="Available"
             id="Available"
             required
             value={availableValue}
-            onChange={(e) => setAvailableValue(e.target.value)}
+            onChange={(e) => setAvailableValue(parseInt(e.target.value, 10))}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
 
+        {/* จำนวนที่เสีย */}
         <div>
-          <label
-            htmlFor="unavailable"
-            className="block text-sm font-medium text-slate"
-          >
+          <label htmlFor="unavailable" className="block text-sm font-medium text-gray-700">
             จำนวนที่เสีย
           </label>
           <input
             type="number"
-            name="unavailable"
             id="unavailable"
             required
             value={unavailableValue}
-            onChange={(e) => setunAvailableValue(e.target.value)}
+            onChange={(e) => setunAvailableValue(parseInt(e.target.value, 10))}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
-        
+
+        {/* ปุ่มเพิ่ม */}
         <div>
           <button
             type="submit"
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            onClick={handleSubmit}
+            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
           >
             เพิ่ม
           </button>
         </div>
-      </form>
+      </div>
     </div>
-  )
+  );
 }
-
-export default Create

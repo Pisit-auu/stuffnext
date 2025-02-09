@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Flex } from 'antd';
+
 export default function Admin() {
     const [categorys, setCategory] = useState([])
     const [asset, setAsset] = useState([])
@@ -17,13 +18,13 @@ export default function Admin() {
     useEffect(() => {
       fetchCategory()
     }, [searchCategory])
-    useEffect(() => {
-      fetchLocation()
-    }, [searchLocation])
+
     useEffect(() => {
       fetchAsset()
     }, [searchAsset, category, sort])
-
+    useEffect(() => {
+      fetchLocation()
+    }, [searchLocation])
     const fetchLocation = async () => {
       try {
         const query = new URLSearchParams({ search: searchLocation }).toString()
@@ -78,8 +79,8 @@ export default function Admin() {
       }
     }
 
+  
     const deleteAsset = async (id: string) => {
-
       try { 
        await axios.delete(`/api/asset/${id}`)
         fetchCategory()
