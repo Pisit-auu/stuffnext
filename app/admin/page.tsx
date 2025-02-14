@@ -286,6 +286,11 @@ export default function Admin() {
                           แก้ไข
                        </Button>
                       </Link>
+                      <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/manageroom/${location.namelocation}`}>
+                      <Button type="primary" ghost>
+                          จัดการของในห้อง
+                       </Button>
+                      </Link>
                       <Popconfirm
                         title="Delete the task"
                         description="ยืนยันที่จะลบหรือไม่?"

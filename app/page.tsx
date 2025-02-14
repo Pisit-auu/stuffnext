@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-
+import { Button } from 'antd';
 export default function Home() {
   const [locations, setLocation] = useState([]);
   const [searchLocation, setSearchLocation] = useState('');
@@ -48,7 +48,11 @@ export default function Home() {
             className="shadow-sm hover:shadow-xl transition-all duration-300 rounded-lg"
           >
             <p className="text-gray-700 px-6 py-4">ผู้รับผิดชอบ: {location.nameteacher}</p>
+            <Button /* onClick={}*/ type="primary" className="w-full">
+              ดู
+            </Button>
           </Card>
+          
         ))}
       </div>
     </div>

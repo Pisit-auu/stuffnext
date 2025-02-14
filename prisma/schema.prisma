@@ -22,6 +22,8 @@ model Asset {
   availableValue Int @default(0)
   unavailableValue Int @default(0)
   createdAt DateTime @default(now())
+
+  locations AssetLocation[]
 }
 model Category {
   id    Int    @id @default(autoincrement())
@@ -34,4 +36,18 @@ model Location{
   namelocation String @unique
   nameteacher String?
 
+  assets AssetLocation[]
+
+}
+model AssetLocation {
+  id         Int   @id @default(autoincrement())
+  assetId    String
+  locationId String
+  inRoomavailableValue Int @default(1)
+  inRoomaunavailableValue Int @default(0)
+
+  asset   Asset   @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [namelocation], onDelete: Cascade)
+
+  @@unique([assetId, locationId]) // ป้องกัน asset ซ้ำใน location เดิม
 }

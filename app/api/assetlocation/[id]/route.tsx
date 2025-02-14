@@ -8,9 +8,9 @@ export async function GET(
     // ✅ ต้องใช้ await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
 
-    const result = await prisma.asset.findUnique({
-        where: { assetid: id },
-        include: { category: true },
+    const result = await prisma.assetLocation.findUnique({
+        where: {id:parseInt(id) },
+        include: { asset: true ,location:true},
     });
 
     return Response.json(result);
@@ -21,14 +21,13 @@ export async function PUT(
     context: { params: { id: string } }
 ) {
     try {
-        const { name, img, assetid, categoryId, availableValue, unavailableValue } =
-            await request.json();
+        const {assetId, locationId, inRoomavailableValue, inRoomaunavailableValue} = await request.json();
+        
+        // ✅ ดึง params id
+        const { id } = await context.params;  // ใช้ await ในการเข้าถึง params
 
-        // ✅ ต้อง await ก่อนเข้าถึงค่า params
-        const { id } = await context.params;
-
-        const availableValueNumber = Number(availableValue);
-        const unavailableValueNumber = Number(unavailableValue);
+        const availableValueNumber = Number(inRoomavailableValue);
+        const unavailableValueNumber = Number(inRoomaunavailableValue);
 
         if (isNaN(availableValueNumber) || isNaN(unavailableValueNumber)) {
             return new Response(JSON.stringify({ error: "Invalid number format" }), {
@@ -36,20 +35,22 @@ export async function PUT(
             });
         }
 
-        const update = await prisma.asset.update({
-            where: { assetid: id },
+        // อัปเดตข้อมูลใน assetLocation
+        const update = await prisma.assetLocation.update({
+            where: { id: parseInt(id) },
             data: {
-                name,
-                img,
-                assetid,
-                categoryId,
-                availableValue: availableValueNumber,
-                unavailableValue: unavailableValueNumber,
+                assetId,
+                locationId,
+                inRoomavailableValue: availableValueNumber,
+                inRoomaunavailableValue: unavailableValueNumber,
             },
         });
-
-        return Response.json(update);
+        return new Response(JSON.stringify({ update }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
     } catch (error) {
+        console.error(error);
         return new Response(JSON.stringify({ error: "Internal Server Error" }), {
             status: 500,
         });
@@ -64,8 +65,8 @@ export async function DELETE(
         //  ต้อง await ก่อนเข้าถึงค่า params
         const { id } = await context.params;
 
-        const deleteAsset = await prisma.asset.delete({
-            where: { assetid: id },
+        const deleteAsset = await prisma.assetLocation.delete({
+            where: { id: parseInt(id) },
         });
 
         return Response.json(deleteAsset);

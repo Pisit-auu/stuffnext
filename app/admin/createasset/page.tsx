@@ -171,19 +171,7 @@ export default function CreateAsset() {
         </div>
 
         {/* จำนวนที่เสีย */}
-        <div>
-          <label htmlFor="unavailable" className="block text-sm font-medium text-gray-700">
-            จำนวนที่เสีย
-          </label>
-          <input
-            type="number"
-            id="unavailable"
-            required
-            value={unavailableValue}
-            onChange={(e) => setunAvailableValue(parseInt(e.target.value, 10))}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
+
 
         {/* ปุ่มเพิ่ม */}
         <div>
