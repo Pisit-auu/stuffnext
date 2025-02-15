@@ -1,4 +1,5 @@
 'use client'
+
 import Image from "next/image";
 import Link from 'next/link'
 import { Card } from 'antd';
@@ -7,12 +8,13 @@ import React, { useEffect, useState } from 'react';
 import { Button } from 'antd';
 
 export default function Allasset() {
-  const [category, setSelectCategory] = useState('')  // ตั้งค่า category
-  const [searchAsset, setSearchAsset] = useState('')  // ตั้งค่าการค้นหาสินทรัพย์
-  const [sort, setSort] = useState('desc')  // ตั้งค่าเรียงลำดับ
-  const [asset, setAsset] = useState<any[]>([])  // ประกาศ state สำหรับเก็บข้อมูลสินทรัพย์
+  const [category, setSelectCategory] = useState('')  
+  const [searchAsset, setSearchAsset] = useState('')  
+  const [sort, setSort] = useState('desc')  
+  const [asset, setAsset] = useState<any[]>([])  
+  const [assetlocation, setAssetlocation] = useState<any[]>([])  
+  const [assetCount, setAssetCount] = useState<any[]>([])  
 
-  // ฟังก์ชันดึงข้อมูลสินทรัพย์
   const fetchAsset = async () => {
     try {
       const query = new URLSearchParams({ category, search: searchAsset, sort }).toString()
@@ -23,44 +25,97 @@ export default function Allasset() {
     }
   }
 
-  // ใช้ useEffect เพื่อดึงข้อมูลเมื่อ component ถูก render
+  const fetchAssetlocation = async () => {
+    try {
+      const resasset = await axios.get(`/api/assetlocation`)
+      setAssetlocation(resasset.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const count = () => {
+    const countData = asset.map((assetItem) => {
+      const matchingLocations = assetlocation.filter((loc) => loc.assetId === assetItem.assetid)
+      let totalAvailable = 0
+      let totalUnavailable = 0
+
+      matchingLocations.forEach((loc) => {
+        totalAvailable += loc.inRoomavailableValue
+        totalUnavailable += loc.inRoomaunavailableValue
+      })
+
+      return {
+        assetId: assetItem.assetid,
+        totalAvailable,
+        totalUnavailable,
+        totalCount: totalAvailable + totalUnavailable,
+      }
+    })
+    setAssetCount(countData)
+  }
+
   useEffect(() => {
     fetchAsset()
+    fetchAssetlocation()
   }, [category, searchAsset, sort])
 
+  useEffect(() => {
+    if (asset.length > 0 && assetlocation.length > 0) {
+      count()  
+    }
+  }, [asset, assetlocation])
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 ">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* ค้นหาครุภัณฑ์ */}
       <div className="flex justify-center mb-6">
         <input
           type="text"
-          placeholder="🔍 ค้นหาชื่อสถานที่..."
-          value={searchAsset}  // แก้เป็น searchAsset
-          onChange={(e) => setSearchAsset(e.target.value)}  // แก้เป็น setSearchAsset
-          className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          placeholder="🔍 ค้นหาครุภัณฑ์..."
+          value={searchAsset}
+          onChange={(e) => setSearchAsset(e.target.value)}
+          className="w-full sm:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
         />
       </div>
 
-      {/* Grid Layout for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {asset.map((assetItem) => (  // แก้เป็น asset แทน locations
-          <Card
-            key={assetItem.id} 
-            title={assetItem.name}  // แสดงชื่อของสินทรัพย์
-            bordered={false}
-            className="shadow-sm hover:shadow-xl transition-all duration-300 rounded-lg"
-          >
-            <p className="text-gray-700 px-6 py-4">จำนวนทั้งหมด: {assetItem.availableValue+assetItem.unavailableValue}</p>
-            <p className="text-gray-700 px-6 py-4">จำนวนที่พร้อมใช้งาน: {assetItem.availableValue}</p>
-            <p className="text-gray-700 px-6 py-4">จำนวนที่เสีย: {assetItem.unavailableValue}</p>
-            <Link
-              className="mt-4 w-full inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              href={`asset/${assetItem.id}`}  // เพิ่มการเชื่อมไปยังรายละเอียดสินทรัพย์
-            >
-              ดู
-            </Link>
-          </Card>
-        ))}
-      </div>
+      {asset.length === 0 ? (
+        <div className="text-center text-gray-500 text-lg font-semibold py-6">
+          ❌ ไม่มีข้อมูลสินทรัพย์
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {asset.map((assetItem) => {
+            const countData = assetCount.find((item) => item.assetId === assetItem.assetid)
+            return (
+              <Card
+                key={assetItem.id} 
+                title={
+                  <div className="text-lg font-bold text-gray-800 text-center">
+                    {assetItem.name}
+                  </div>
+                }
+                bordered={false}
+                className="shadow-md hover:shadow-xl transition-all duration-300 rounded-xl p-4"
+              >
+                <div className="px-2 py-2 text-center">
+                  <p className="text-gray-700 text-md">📦 จำนวนทั้งหมด: <span className="font-semibold">{assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0)}</span></p>
+                  <p className="text-green-600 text-md">✅ พร้อมใช้งาน: <span className="font-semibold">{assetItem.availableValue + (countData?.totalAvailable || 0)}</span></p>
+                  <p className="text-red-600 text-md">❌ เสียหาย: <span className="font-semibold">{assetItem.unavailableValue + (countData?.totalUnavailable || 0)}</span></p>
+                </div>
+                <div className="flex justify-center mt-4">
+                  <Link
+                    className="w-full text-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md"
+                    href={`allasset/${assetItem.assetid}`}
+                  >
+                    ดูรายละเอียด
+                  </Link>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+      )}
     </div>
   );
 }
