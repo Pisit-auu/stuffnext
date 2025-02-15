@@ -60,6 +60,9 @@ export default function Manageroom() {
               <h3 className="text-xl font-semibold text-gray-700">
                 🏷️ ชื่อครุภัณฑ์: {asset.name}
               </h3>
+              <h3 className="text-xl font-semibold text-gray-700">
+                🏷️ ประเภท: {asset.category.name}
+              </h3>
               <div className="mt-4">
                 <h3 className="text-lg font-semibold text-gray-700">📦 จำนวนในคลัง</h3>
                 <p className="text-gray-600">✅ พร้อมใช้งาน: {asset.availableValue}</p>
