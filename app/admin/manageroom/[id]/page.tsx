@@ -144,8 +144,20 @@ export default function Manageroom() {
   };
 
   const deleteAssetlocation = async () => {
+    
     try {
+      const getassetlocation = await axios.get(`/api/assetlocation/${Iddelete}`);
+      const getasset = await axios.get(`/api/asset/${getassetlocation.data.assetId}`);
+      const valueasset = getasset.data.availableValue
+      const unvalueasset = getasset.data.unavailableValue
+    //ค่าปัจจุบันในห้อง
+      const saveinRoomunavailableValue = getassetlocation.data.inRoomaunavailableValue
+      const saveinRoomavailableValue = getassetlocation.data.inRoomavailableValue
        await axios.delete(`/api/assetlocation/${parseInt(Iddelete,10)}`);
+       await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
+        availableValue: valueasset+ saveinRoomavailableValue,
+        unavailableValue: unvalueasset+saveinRoomunavailableValue,
+    })
        setIsModalOpen(false);
        fetchassetlocation();
     } catch (error) {
@@ -247,7 +259,7 @@ export default function Manageroom() {
             <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
                 <div className="bg-white p-8 rounded-lg w-96 shadow-lg">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">เพิ่มครุภัณฑ์</h2>
-                <h1 className="text-lg font-medium text-gray-700 mb-4">เลือกประเภทครุภัณฑ์</h1>
+                <h1 className="text-lg font-medium text-gray-700 mb-4">เลือกครุภัณฑ์</h1>
                 <Select
                     showSearch
                     placeholder="เลือกครุภัณฑ์"
