@@ -48,9 +48,12 @@ export default function Home() {
             className="shadow-sm hover:shadow-xl transition-all duration-300 rounded-lg"
           >
             <p className="text-gray-700 px-6 py-4">ผู้รับผิดชอบ: {location.nameteacher}</p>
-            <Button /* onClick={}*/ type="primary" className="w-full">
-              ดู
-            </Button>
+            <Link
+            className="mt-4 w-full inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            href={`location/${location.namelocation}`}
+          >
+            ดู
+          </Link>
           </Card>
           
         ))}
