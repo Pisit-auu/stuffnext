@@ -7,16 +7,8 @@ import { Input } from 'antd';
 import { useRouter } from 'next/navigation'
 import { Button, Popconfirm } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-
 const { Option } = Select;
-interface Asset {
-    id: number;
-    name: string;
-    img: string;
-    assetid: string;
-    categoryId: string;
-    // คุณสามารถเพิ่มฟิลด์อื่นๆ ที่มีในอ็อบเจกต์นี้ได้
-  }
+
   
 export default function Manageroom() {
       const router = useRouter();
@@ -37,19 +29,20 @@ export default function Manageroom() {
   const [addlocationid , setaddlocationid] = useState('')
   const [Iddelete , setIddelete] = useState('')
   const [statusedit , seteditstatus] = useState(false)
+  const [unavilablevaluecanput , setunavilablevaluecanput] = useState('')
+  const [avilablevaluecanput , setavilablevaluecanput] = useState('')
   const fetchAsset = async () => {
     try {
       const resasset = await axios.get(`/api/asset`);
       setAsset(resasset.data);
-      
+  
       const filteredData = resasset.data.filter((assetA) => {
-        // ตรวจสอบว่า `assetA.name` ตรงกับ `assetB.assetId` ในข้อมูล B
+        // ตรวจสอบว่า `assetA.assetid` ตรงกับ `assetB.assetId` ใน assetLocation
         const isInB = assetLocation.some((assetB) => assetB.assetId === assetA.assetid);
-        // กรองเฉพาะ asset ที่ยังไม่อยู่ใน B โดยเปรียบเทียบจากชื่อ
-        return !isInB; // เฉพาะ asset ที่ยังไม่มีใน B
+        // กรองเฉพาะ asset ที่ยังไม่อยู่ใน assetLocation และมีค่า availableValue หรือ unavailableValue มากกว่า 0
+        return !isInB && (assetA.availableValue > 0 || assetA.unavailableValue > 0);
       });
-     // console.log('ข้อมูลที่กรองออกมา:', filteredData);
-      // อัปเดต state หลังจากกรองข้อมูล
+  
       setAsset(filteredData);
     } catch (error) {
       console.error(error);
@@ -69,6 +62,7 @@ export default function Manageroom() {
           inRoomavailableValue: addInRoomavailableValue,
           inRoomaunavailableValue: addInRoomunavailableValue,
         });
+        
 
         // รีเฟรชข้อมูลใหม่หลังจากเพิ่มข้อมูลเสร็จ
         fetchassetlocation();
@@ -110,18 +104,33 @@ export default function Manageroom() {
     }
   };
   const editmodal = async () => {
-    
     if(statusedit){
         if(parseInt(updateInRoomavailableValue,10) < 0 || parseInt(updateInRoomunavailableValue,10)< 0){
                 alert("ค่าที่อัพเดตต้อง>=0")
                 return
         }
         try {
+          const getassetlocation = await axios.get(`/api/assetlocation/${Iddelete}`);
+          console.log(getassetlocation.data.assetId)
+        //ค่าปัจจุบันในห้อง
+          const saveinRoomunavailableValue = getassetlocation.data.inRoomaunavailableValue
+          const saveinRoomavailableValue = getassetlocation.data.inRoomavailableValue
+          //ดึงค่าปัจจุบันในคลัง
+          const getasset = await axios.get(`/api/asset/${getassetlocation.data.assetId}`);
+          const valueasset = getasset.data.availableValue
+          const unvalueasset = getasset.data.unavailableValue
+         // console.log(valueasset+ saveinRoomavailableValue- updateInRoomavailableValue)
+         // console.log(unvalueasset+saveinRoomunavailableValue- updateInRoomunavailableValue)
+    
             await axios.put(`/api/assetlocation/${Iddelete}`, {
                 inRoomavailableValue: updateInRoomavailableValue,
                 inRoomaunavailableValue: updateInRoomunavailableValue,
             })
-            console.log(Iddelete)
+
+            await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
+                availableValue: valueasset+ saveinRoomavailableValue- updateInRoomavailableValue,
+                unavailableValue: unvalueasset+saveinRoomunavailableValue- updateInRoomunavailableValue,
+            })
             setIsModalOpen(false);
             seteditstatus(false)
             fetchassetlocation();
@@ -171,8 +180,18 @@ export default function Manageroom() {
     
   };
 
-  const onChange = (value: string) => {
+  const onChange = async (value: string) => {
     setnewSelectedAsset(value);
+    console.log(value)
+    try {
+      const res = await axios.get(`/api/asset/${value}`);
+      setunavilablevaluecanput(res.data.unavailableValue)
+      setavilablevaluecanput(res.data.availableValue)
+      console.log(res.data.unavailableValue)
+      console.log(res.data.availableValue)
+    } catch (error) {
+      console.error(error);
+    }
     
 
    // console.log(`selected ${value}`);
@@ -257,7 +276,25 @@ export default function Manageroom() {
                         value={addInRoomavailableValue}
                         type="number"
                         min="0"
-                        onChange={(e) => setinRoomavailableValue(e.target.value)}
+                        max={avilablevaluecanput}
+                        onChange={(e) => {
+                          let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
+                      
+                          // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
+                          if (value > parseInt(avilablevaluecanput,10)) {
+                            value = parseInt(avilablevaluecanput,10);
+                          } else if (value < 0 || isNaN(value)) {
+                            value = 0;
+                          }
+                      
+                          setinRoomavailableValue(String(value));
+                        }}
+                        onBlur={(e) => {
+                          // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
+                          if (!e.target.value) {
+                            setinRoomavailableValue("0");
+                          }
+                        }}
                         placeholder="จำนวนที่พร้อมใช้งาน"
                         className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -265,7 +302,25 @@ export default function Manageroom() {
                         value={addInRoomunavailableValue}
                         type="number"
                         min="0"
-                        onChange={(e) => setinRoomunavailableValue(e.target.value)}
+                        max={unavilablevaluecanput}
+                        onChange={(e) => {
+                          let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
+                      
+                          // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
+                          if (value > parseInt(unavilablevaluecanput)) {
+                            value = parseInt(unavilablevaluecanput);
+                          } else if (value < 0 || isNaN(value)) {
+                            value = 0;
+                          }
+                      
+                          setinRoomunavailableValue(String(value));
+                        }}
+                        onBlur={(e) => {
+                          // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
+                          if (!e.target.value) {
+                            setinRoomunavailableValue("0");
+                          }
+                        }}
                         placeholder="จำนวนที่เสีย"
                         className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -305,8 +360,26 @@ export default function Manageroom() {
               <Input
                 value={updateInRoomavailableValue}
                 min="0"
+                max={selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue}
                 type="number"
-                onChange={(e) => setupdateinRoomavailableValue(e.target.value)}
+                onChange={(e) => {
+                  let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
+              
+                  // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
+                  if (value > selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue) {
+                    value = selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue;
+                  } else if (value < 0 || isNaN(value)) {
+                    value = 0;
+                  }
+              
+                  setupdateinRoomavailableValue(String(value));
+                }}
+                onBlur={(e) => {
+                  // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
+                  if (!e.target.value) {
+                    setupdateinRoomavailableValue("0");
+                  }
+                }}
                 placeholder="จำนวนที่พร้อมใช้งาน"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -316,8 +389,24 @@ export default function Manageroom() {
               <Input
                 value={updateInRoomunavailableValue}
                 min="0"
+                max={selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue}
                 type="number"
-                onChange={(e) => setupdateinRoomunavailableValue(e.target.value)}
+                onChange={(e) => {
+                  let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
+                  // จำกัดค่าไม่ให้น้อยกว่า 0 และไม่มากกว่า availableValue
+                  if (value > selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue) {
+                    value = selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue;
+                  } else if (value < 0 || isNaN(value)) {
+                    value = 0;
+                  }
+                  setupdateinRoomunavailableValue(String(value));
+                }}
+                onBlur={(e) => {
+                  // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 0
+                  if (!e.target.value) {
+                    setupdateinRoomunavailableValue("0");
+                  }
+                }}
                 placeholder="จำนวนที่เสีย"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

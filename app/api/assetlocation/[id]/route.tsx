@@ -21,7 +21,7 @@ export async function PUT(
     context: { params: { id: string } }
 ) {
     try {
-        const {assetId, locationId, inRoomavailableValue, inRoomaunavailableValue} = await request.json();
+        const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue } = await request.json();
         
         // ✅ ดึง params id
         const { id } = await context.params;  // ใช้ await ในการเข้าถึง params
@@ -35,7 +35,20 @@ export async function PUT(
             });
         }
 
-        // อัปเดตข้อมูลใน assetLocation
+        // ตรวจสอบว่า inRoomavailableValue และ inRoomaunavailableValue เป็น 0 หรือไม่
+        if (availableValueNumber === 0 && unavailableValueNumber === 0) {
+            // ถ้าทั้งสองค่าเป็น 0 ให้ลบ AssetLocation ออกจากฐานข้อมูล
+            await prisma.assetLocation.delete({
+                where: { id: parseInt(id) },
+            });
+
+            return new Response(JSON.stringify({ message: "AssetLocation deleted due to zero values" }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        // ถ้าไม่เป็น 0 ก็ทำการอัปเดตปกติ
         const update = await prisma.assetLocation.update({
             where: { id: parseInt(id) },
             data: {
@@ -45,13 +58,16 @@ export async function PUT(
                 inRoomaunavailableValue: unavailableValueNumber,
             },
         });
+
         return new Response(JSON.stringify({ update }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
     } catch (error) {
         console.error(error);
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+        const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+
+        return new Response(JSON.stringify({ error: errorMessage }), {
             status: 500,
         });
     }

@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
     const searchCategory = searchParams.get('category') || '';
-    const sort = searchParams.get('sort') || 'desc'; // 'asc' or 'desc'
+    const sort = searchParams.get('sort') || 'desc'; 
 
     let whereCondition: any = {
         asset: {
@@ -79,8 +79,8 @@ export async function POST(request: Request){
         const updatedAsset = await prisma.asset.update({
             where: { assetid: assetId },
             data: {
-                availableValue: existingAsset.availableValue + intInRoomavailableValue,
-                unavailableValue: existingAsset.unavailableValue + intUnavailableValueNumber,
+                availableValue: existingAsset.availableValue - intInRoomavailableValue,
+                unavailableValue: existingAsset.unavailableValue - intUnavailableValueNumber,
             },
         });
 
