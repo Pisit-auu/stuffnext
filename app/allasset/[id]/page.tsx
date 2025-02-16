@@ -83,7 +83,7 @@ export default function Manageroom() {
           ))
         ) : (
           <div className="text-center text-gray-500 text-xl font-semibold py-6">
-            ❌ ไม่มีข้อมูลสินทรัพย์ในห้องนี้
+            ❌ ไม่มีข้อมูลสินทรัพย์ในห้องอื่นๆ
           </div>
         )
       ) : (

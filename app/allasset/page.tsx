@@ -14,6 +14,20 @@ export default function Allasset() {
   const [asset, setAsset] = useState<any[]>([])  
   const [assetlocation, setAssetlocation] = useState<any[]>([])  
   const [assetCount, setAssetCount] = useState<any[]>([])  
+    const [categorys, setCategory] = useState([])
+    const [searchCategory, setSearchCategory] = useState('')
+       useEffect(() => {
+          fetchCategory()
+        }, [searchCategory])
+    const fetchCategory = async () => {
+      try {
+        const query = new URLSearchParams({ search: searchCategory }).toString()
+        const res = await axios.get(`/api/category?${query}`)
+        setCategory(res.data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
 
   const fetchAsset = async () => {
     try {
@@ -77,6 +91,18 @@ export default function Allasset() {
           onChange={(e) => setSearchAsset(e.target.value)}
           className="w-full sm:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
         />
+         <select
+                value={category}
+                onChange={(e) => setSelectCategory(e.target.value)}
+                className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+              >
+                <option value="">เลือกประเภทครุภัณฑ์</option>
+                {categorys.map((cat: any) => (
+                  <option key={cat.idname} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
       </div>
 
       {asset.length === 0 ? (
