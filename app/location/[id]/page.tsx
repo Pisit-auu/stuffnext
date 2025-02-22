@@ -23,6 +23,7 @@ export default function Manageroom() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
   const [avilablevaluecanput , setupdateinRoomavailableValue] = useState('')
+  const [note , setNote] = useState('')
   const [maxinputvalue, setmaxinputvalue ] = useState('')
   const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined);
   const [checksession ,setchecksession ] = useState(false)
@@ -175,6 +176,7 @@ export default function Manageroom() {
           assetId: selectedDetailAsset.assetId,
           borrowLocationId: selectBorrowLocation,  
           returnLocationId: thisLocation.namelocation,
+          note,
           valueBorrow: avilablevaluecanput,
         });
 
@@ -291,6 +293,14 @@ export default function Manageroom() {
                             }}
                             placeholder="จำนวนที่ยืม"
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                             <Input
+                            value={note} // ค่าใน input จะถูกควบคุมด้วย state นี้
+                            type="text"
+                            onChange={(e) => { setNote(String(e.target.value)); }}
+
+                            placeholder="หมายเหตุ"
+                            className="mt-4 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
 
       <div className="flex flex-col space-y-4 mt-6">

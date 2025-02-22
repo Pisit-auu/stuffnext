@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation'
 import { QuestionCircleOutlined } from '@ant-design/icons';
+import Link from 'next/link';
 
 interface BorrowHistory {
   id: number;
@@ -22,6 +23,7 @@ interface BorrowHistory {
   borrowLocation: {
     namelocation: string;
   };
+  note: string;
   returnLocationId: string;
   valueBorrow: number;
 }
@@ -236,6 +238,7 @@ const UserBorrowHistory = () => {
               <th className="px-4 py-2 text-left">สถานะการคืน</th>
               <th className="px-4 py-2 text-left">วันที่ยืม</th>
               <th className="px-4 py-2 text-left">วันที่คืน</th>
+              <th className="px-4 py-2 text-left">หมายเหตุ</th>
               <th className="px-4 py-2 text-left">การดำเนินการ</th>
             </tr>
           </thead>
@@ -243,10 +246,26 @@ const UserBorrowHistory = () => {
             {filteredHistory.map((borrow) => (
               <tr key={borrow.id} className="border-t">
                 <td className="px-4 py-2">{borrow.user.name}</td>
-                <td className="px-4 py-2">{borrow.asset.name}</td>
+                <td className="px-4 py-2"><Link
+                href={`/allasset/${borrow.asset.assetid}`}
+                className="px-4 py-2"
+                >
+                {borrow.asset.name}
+                </Link></td>
+                
                 <td className="px-4 py-2">{borrow.valueBorrow}</td>
-                <td className="px-4 py-2">{borrow.borrowLocation.namelocation}</td>
-                <td className="px-4 py-2">{borrow.returnLocationId || 'N/A'}</td>
+                <td className="px-4 py-2"><Link
+                href={`/location/${borrow.borrowLocation.namelocation}`}
+                className="px-4 py-2"
+                >
+                {borrow.borrowLocation.namelocation}
+                </Link></td>
+                <td className="px-4 py-2"><Link
+                href={`/location/${borrow.returnLocationId }`}
+                className="px-4 py-2"
+                >
+                {borrow.returnLocationId || 'N/A'}
+                </Link></td>
                 <td className="px-4 py-2">
                   {borrow.Borrowstatus === 'c' ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ'}
                 </td>
@@ -255,6 +274,7 @@ const UserBorrowHistory = () => {
                 </td>
                 <td className="px-4 py-2">{new Date(borrow.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-2">{borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString() : 'ยังไม่ได้คืน'}</td>
+                <td className="px-4 py-2">{borrow.note}</td>
                 <td className="px-4 py-2">
                   {borrow.ReturnStatus !== 'c' && (
                                     <Button type="primary" ghost  onClick={() => handleReturn(borrow.id, borrow.asset.id)}

@@ -84,7 +84,7 @@ model borrow {
   dayReturn DateTime?
   Borrowstatus  Status @default(w) // สถานะการยืม
   ReturnStatus  Status @default(w) // สถานะการคืน
-  
+  note String?
   userId     Int
   user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 

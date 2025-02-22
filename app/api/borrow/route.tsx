@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { userId, assetId, borrowLocationId,returnLocationId, dayReturn, valueBorrow } = await req.json();
+    const { userId, assetId, borrowLocationId,returnLocationId, dayReturn,note, valueBorrow } = await req.json();
 
     if (!userId || !assetId || !borrowLocationId ||!returnLocationId|| valueBorrow === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req: Request) {
         borrowLocationId,
         returnLocationId,
         dayReturn: dayReturn ? new Date(dayReturn) : null,
+        note,
         valueBorrow: parseInt(valueBorrow, 10), // แปลง valueBorrow เป็น Int
       },
     });

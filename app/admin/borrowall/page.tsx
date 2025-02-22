@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Link from 'next/link';
 
 interface BorrowHistory {
   id: number;
@@ -18,6 +19,7 @@ interface BorrowHistory {
   borrowLocation: {
     namelocation: string;
   };
+  note: string;
   returnLocationId: string;
   valueBorrow: number;
 }
@@ -258,16 +260,34 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
               <th className="px-4 py-2 text-left">สถานะการคืน</th>
               <th className="px-4 py-2 text-left">วันที่ยืม</th>
               <th className="px-4 py-2 text-left">วันที่คืน</th>
+              <th className="px-4 py-2 text-left">หมายเหตุ</th>
             </tr>
           </thead>
           <tbody>
             {filteredHistory.map((borrow) => (
               <tr key={borrow.id} className="border-t">
                 <td className="px-4 py-2">{borrow.user.name}</td>
-                <td className="px-4 py-2">{borrow.asset.name}</td>
+                <td className="px-4 py-2"><Link
+                href={`/allasset/${borrow.asset.assetid}`}
+                className="px-4 py-2"
+                >
+                {borrow.asset.name}
+                </Link></td>
+                
                 <td className="px-4 py-2">{borrow.valueBorrow}</td>
-                <td className="px-4 py-2">{borrow.borrowLocation.namelocation}</td>
-                <td className="px-4 py-2">{borrow.returnLocationId || 'N/A'}</td>
+                <td className="px-4 py-2"><Link
+                href={`/location/${borrow.borrowLocation.namelocation}`}
+                className="px-4 py-2"
+                >
+                {borrow.borrowLocation.namelocation}
+                </Link></td>
+                <td className="px-4 py-2"><Link
+                href={`/location/${borrow.returnLocationId }`}
+                className="px-4 py-2"
+                >
+                {borrow.returnLocationId || 'N/A'}
+                </Link></td>
+
                 <td className="px-4 py-2">
                   <select
                     value={borrow.Borrowstatus}
@@ -292,8 +312,10 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
                 </td>
                 <td className="px-4 py-2">{new Date(borrow.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-2">{borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString() : 'ยังไม่ได้คืน'}</td>
+                <td className="px-4 py-2">{borrow.note}</td>
               </tr>
             ))}
+            
           </tbody>
         </table>
       </div>
