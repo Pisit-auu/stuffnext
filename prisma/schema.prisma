@@ -24,6 +24,7 @@ model Asset {
   createdAt DateTime @default(now())
 
   locations AssetLocation[]
+  borrow borrow[]
 }
 model Category {
   id    Int    @id @default(autoincrement())
@@ -37,6 +38,7 @@ model Location{
   nameteacher String?
 
   assets AssetLocation[]
+  borrow borrow[]
 
 }
 model AssetLocation {
@@ -50,4 +52,49 @@ model AssetLocation {
   location Location @relation(fields: [locationId], references: [namelocation], onDelete: Cascade)
 
   @@unique([assetId, locationId]) // ป้องกัน asset ซ้ำใน location เดิม
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  surname   String?
+  username  String   @unique
+  password  String
+  email     String?
+  tel       String?
+  image     String?
+  role      Role     @default(user)  // ใช้ enum Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  borrow borrow[]
+}
+enum Status {
+  w // รอตรวจสอบ
+  c // ยืนยัน
+}
+
+model borrow {
+  id Int  @id @default(autoincrement())
+  createdAt DateTime @default(now())  // วันที่ยืม
+  dayReturn DateTime?
+  Borrowstatus  Status @default(w) // สถานะการยืม
+  ReturnStatus  Status @default(w) // สถานะการคืน
+  
+  userId     Int
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  assetId    String  // สิ่งของที่ถูกยืม
+  asset      Asset   @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
+
+  borrowLocationId  String  // สถานที่ที่ยืมไป
+  borrowLocation    Location @relation(fields: [borrowLocationId], references: [namelocation], onDelete: Cascade)
+
+  returnLocationId  String  // สถานที่ที่ยืมจาก
+
+  valueBorrow Int @default(1) // จำนวนที่ยืม (1 ชิ้นเสมอ)
 }

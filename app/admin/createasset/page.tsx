@@ -68,6 +68,7 @@ export default function CreateAsset() {
         availableValue,
         unavailableValue,
       });
+      
       router.push('/admin');
     } catch (error) {
       console.error(error);

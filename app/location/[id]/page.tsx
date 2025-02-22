@@ -6,7 +6,8 @@ import { Select } from 'antd';
 import { Input } from 'antd';
 import { useRouter } from 'next/navigation'
 import { Button, Popconfirm } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { useSession, signOut } from 'next-auth/react'
+
 const { Option } = Select;
 
   
@@ -18,12 +19,33 @@ export default function Manageroom() {
   const [searchLocation, setSearchLocation] = useState('');
   const [allLoction ,setallLocation] = useState('')
   const [thisLocation ,setthisLocation ] = useState([])
-
+  const [nameuser ,setnameuser] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
   const [avilablevaluecanput , setupdateinRoomavailableValue] = useState('')
   const [maxinputvalue, setmaxinputvalue ] = useState('')
   const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined);
+  const [checksession ,setchecksession ] = useState(false)
+
+  //เก็บการยืม
+  const [userId,setUserId] = useState('')
+  //session
+
+  const { data: session, status } = useSession()
+  const fetchUser = async () => {
+    if (!session?.user?.username) return;  // ตรวจสอบว่ามี username ใน session หรือไม่
+    setUserId(session.user.id); //setid
+    const resuser = await axios.get(`/api/auth/signup/${session.user.username}`);
+    setnameuser(resuser.data.name)
+  };
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      setchecksession(false)
+    }else if(status === 'authenticated'){
+      setchecksession(true)
+      fetchUser()
+    }
+  }, [status, router])
 
   useEffect(() => {
     fetchassetlocation();
@@ -61,11 +83,24 @@ export default function Manageroom() {
 
 
   const clisckbutton = (asset: any) => {
+    if(checksession){
+    
     fetchlocation();
     setmaxinputvalue(asset.inRoomavailableValue)
 
     setSelectedAsset(asset);
+    if(nameuser === ''|| nameuser === null){
+      alert('โปรดกรอกชื่อ ก่อนยืม')
+      router.push(`/profile`);
+      return
+    }
     setIsModalOpen(true);
+    }else{
+      
+        alert('โปรด login ก่อนยืม')
+     
+      
+    }
   };
 
   const clickborrow = async () =>{
@@ -134,6 +169,15 @@ export default function Manageroom() {
               alert("ยืมสำเร็จ");
 
         }
+        // เพิ่มประวัติการยืม
+        await axios.post('/api/borrow', { 
+          userId : userId,
+          assetId: selectedDetailAsset.assetId,
+          borrowLocationId: selectBorrowLocation,  
+          returnLocationId: thisLocation.namelocation,
+          valueBorrow: avilablevaluecanput,
+        });
+
       } catch (error) {
         console.error(error);
       }
@@ -146,10 +190,7 @@ export default function Manageroom() {
   };
   const onChange = async (value: string) => {
     setselectBorrowLocation(value);
-    console.log(value)
-
-    
-
+   // console.log(value)
    // console.log(`selected ${value}`);
   };
 
