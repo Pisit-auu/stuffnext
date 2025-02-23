@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 
+
 interface BorrowHistory {
   id: number;
   createdAt: string;
@@ -225,6 +226,7 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
 
   return (
     <div className="container mx-auto p-4">
+      
       <h1 className="text-2xl font-semibold mb-4">Borrow History</h1>
       
       {/* ฟอร์มค้นหาผู้ยืม, ครุภัณฑ์, หรือห้องยืม */}

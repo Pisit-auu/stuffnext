@@ -64,6 +64,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.username = user.username;  // เพิ่ม username ใน token
+        token.email = user.email;  // เพิ่ม email ใน token
+        token.image = user.image;  // เพิ่ม image ใน token
       }
       return token;
     },
@@ -73,6 +75,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.username = token.username;  // เพิ่ม username ใน session
+        session.user.email = token.email;  // เพิ่ม email ใน session
+        session.user.image = token.image;  // เพิ่ม image ใน session
       }
       return session;
     },

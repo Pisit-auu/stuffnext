@@ -16,7 +16,9 @@ export default function create(){
       await axios.post('/api/category', { idname, name })
       router.push('/admin')
     } catch (error) {
-      console.error(error)
+      console.log(error)
+      // แสดงข้อความแค่ใน console แต่ไม่ให้แสดง error แบบละเอียดแก่ผู้ใช้
+      alert('ชื่อรหัสตัวแรกของครุภัณฑ์ถูกใช้ไปแล้ว')
     }
   }
 

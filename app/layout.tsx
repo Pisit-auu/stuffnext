@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_Thai, Bai_Jamjuree } from 'next/font/google';
 import "./globals.css";
-import NavbarGlobal from "./component/navbar/page";
+import Slidebar from "./component/slidebar/page";
+
 import SessionProvider from "./component/Session/SessionProvider";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route"; // ตรวจสอบ path นี้ให้ถูกต้อง
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// Fonts
+const notoSansThai = Noto_Sans_Thai({
+  weight: ['400', '700'],
+  subsets: ['thai', 'latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const baiJamjuree = Bai_Jamjuree({
+  weight: ['400', '700'],
+  subsets: ['thai', 'latin'],
 });
 
 export const metadata: Metadata = {
@@ -26,18 +28,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // ดึง session โดยส่ง authOptions ไปด้วย
+  // Get the session by passing authOptions
   const session = await getServerSession(authOptions);
 
   return (
     <html lang="en">
-      <body
-        className={`bg-gray-100 ${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {/* ส่ง session ไปยัง SessionProvider */}
+      
+      <body className={`${baiJamjuree.className} text-black bg-gray-100 antialiased`}>
+        
+        {/* Pass the session to SessionProvider */}
         <SessionProvider session={session}>
-          <NavbarGlobal /> {/* ตรวจสอบว่า NavbarGlobal ถูกต้องและใช้งานได้ */}
-          {children}
+          <div className="flex">
+            <Slidebar />
+            <main className="flex-1">
+            
+              {children}
+            </main>
+          </div>
         </SessionProvider>
       </body>
     </html>

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,46 +6,78 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model Asset {
-  id        Int      @id @default(autoincrement())
-  name     String
-  img   String?
-  assetid String @unique
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [idname], onDelete: Cascade)
-  availableValue Int @default(0)
-  unavailableValue Int @default(0)
-  createdAt DateTime @default(now())
-
-  locations AssetLocation[]
-  borrow borrow[]
+  id               Int             @id @default(autoincrement())
+  name             String
+  img              String?
+  assetid          String          @unique
+  categoryId       String
+  availableValue   Int             @default(0)
+  unavailableValue Int             @default(0)
+  createdAt        DateTime        @default(now())
+  category         Category        @relation(fields: [categoryId], references: [idname], onDelete: Cascade)
+  locations        AssetLocation[]
+  borrow           borrow[]
 }
+
 model Category {
-  id    Int    @id @default(autoincrement())
-  idname  String @unique
-  name String
-  asset Asset[]
+  id     Int     @id @default(autoincrement())
+  idname String  @unique
+  name   String
+  asset  Asset[]
 }
-model Location{
-  id    Int    @id @default(autoincrement())
-  namelocation String @unique
-  nameteacher String?
 
-  assets AssetLocation[]
-  borrow borrow[]
-
+model Location {
+  id           Int             @id @default(autoincrement())
+  namelocation String          @unique
+  nameteacher  String?
+  assets       AssetLocation[]
+  borrow       borrow[]
 }
+
 model AssetLocation {
-  id         Int   @id @default(autoincrement())
-  assetId    String
-  locationId String
-  inRoomavailableValue Int @default(1)
-  inRoomaunavailableValue Int @default(0)
+  id                      Int      @id @default(autoincrement())
+  assetId                 String
+  locationId              String
+  inRoomaunavailableValue Int      @default(0)
+  inRoomavailableValue    Int      @default(1)
+  asset                   Asset    @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
+  location                Location @relation(fields: [locationId], references: [namelocation], onDelete: Cascade)
 
-  asset   Asset   @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
-  location Location @relation(fields: [locationId], references: [namelocation], onDelete: Cascade)
+  @@unique([assetId, locationId])
+}
 
-  @@unique([assetId, locationId]) // ป้องกัน asset ซ้ำใน location เดิม
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  username  String   @unique
+  password  String
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String?
+  surname   String?
+  tel       String?
+  role      Role     @default(user)
+  borrow    borrow[]
+}
+
+model borrow {
+  id               Int       @id @default(autoincrement())
+  createdAt        DateTime  @default(now())
+  dayReturn        DateTime?
+  Borrowstatus     Status    @default(w)
+  ReturnStatus     Status    @default(w)
+  userId           Int
+  assetId          String
+  valueBorrow      Int       @default(1)
+  borrowLocationId String
+  returnLocationId String
+  note             String?
+  asset            Asset     @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
+  borrowLocation   Location  @relation(fields: [borrowLocationId], references: [namelocation], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -59,42 +85,7 @@ enum Role {
   admin
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  surname   String?
-  username  String   @unique
-  password  String
-  email     String?
-  tel       String?
-  image     String?
-  role      Role     @default(user)  // ใช้ enum Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  borrow borrow[]
-}
 enum Status {
-  w // รอตรวจสอบ
-  c // ยืนยัน
-}
-
-model borrow {
-  id Int  @id @default(autoincrement())
-  createdAt DateTime @default(now())  // วันที่ยืม
-  dayReturn DateTime?
-  Borrowstatus  Status @default(w) // สถานะการยืม
-  ReturnStatus  Status @default(w) // สถานะการคืน
-  note String?
-  userId     Int
-  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  assetId    String  // สิ่งของที่ถูกยืม
-  asset      Asset   @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
-
-  borrowLocationId  String  // สถานที่ที่ยืมไป
-  borrowLocation    Location @relation(fields: [borrowLocationId], references: [namelocation], onDelete: Cascade)
-
-  returnLocationId  String  // สถานที่ที่ยืมจาก
-
-  valueBorrow Int @default(1) // จำนวนที่ยืม (1 ชิ้นเสมอ)
+  w
+  c
 }

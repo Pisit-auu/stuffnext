@@ -156,6 +156,7 @@ const UserBorrowHistory = () => {
             inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
           });
           alert("ยกเลิกสำเร็จ");
+          window.location.reload();
       }else{
         await axios.post('/api/assetlocation', { 
               assetId: response.data.assetId,
@@ -180,7 +181,9 @@ const UserBorrowHistory = () => {
               inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
             });
             alert("ยกเลิกสำเร็จ");
-            router.push('/profile/history');
+            window.location.reload();
+            
+            
 
       }
       await axios.delete(`/api/borrow/${id}`);

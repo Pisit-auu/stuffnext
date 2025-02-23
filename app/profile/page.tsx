@@ -70,28 +70,45 @@ export default function Profile() {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
         {status === 'authenticated' && session?.user ? (
           <>
-            <p className="text-2xl font-semibold text-center mb-4">
+            <div className="text-2xl font-semibold text-center mb-4">
               Welcome, <span className="text-blue-600">{session.user.username}</span>!
-            </p>
+            </div>
             <div className="space-y-3">
               {/* แสดงข้อมูลผู้ใช้เมื่อได้ข้อมูลจาก API */}
               {getuser ? (
                 <>
-                  <p className="text-lg text-gray-700">
-                    <strong>Username:</strong> {isEditing ? (
-                      <input
-                      type="text"
-                      value={formData.username ?? ""}
-                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                      className="p-2 border rounded"
-                    />
-                    
-                    ) : (
-                      getuser.username
-                    )}
-                  </p>
-                  <p className="text-lg text-gray-700">
-                    <strong>Full Name:</strong> {isEditing ? (
+                  {/*บน*/}
+                  <div className="flex">
+                    <div className="text-lg text-gray-700">
+                      ชื่อผู้ใช้: {isEditing ? (
+                        <input
+                        type="text"
+                        value={formData.username ?? ""}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        className="p-2 border rounded"
+                      />
+                      
+                      ) : (
+                        getuser.username
+                      )}
+                    </div>
+                    <div className="text-lg text-gray-700">
+                      email: {isEditing ? (
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="p-2 border rounded"
+                        />
+                      ) : (
+                        getuser.email
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="text-lg text-gray-700">
+                    <div>ชื่อจริง:</div>
+                    {isEditing ? (
                       <input
                         type="text"
                         value={formData.name}
@@ -102,6 +119,7 @@ export default function Profile() {
                       getuser.name
                     )}
                     &nbsp;
+                    <div>นามสกุล:</div>
                     {isEditing ? (
                       <input
                         type="text"
@@ -112,20 +130,9 @@ export default function Profile() {
                     ) : (
                       getuser.surname
                     )}
-                  </p>
-                  <p className="text-lg text-gray-700">
-                    <strong>Email:</strong> {isEditing ? (
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                    ) : (
-                      getuser.email
-                    )}
-                  </p>
-                  <p className="text-lg text-gray-700">
+                  </div>
+                  
+                  <div className="text-lg text-gray-700">
                       <strong>Role:</strong> {/*{isEditing && session?.user?.role === "admin" ? (
                         <input
                           type="text"
@@ -137,9 +144,9 @@ export default function Profile() {
                         getuser.role
                       )}*/}
                       {getuser.role}
-                    </p>
+                    </div>
 
-                  <p className="text-lg text-gray-700">
+                  <div className="text-lg text-gray-700">
                     <strong>Tel:</strong> {isEditing ? (
                       <input
                         type="text"
@@ -150,10 +157,10 @@ export default function Profile() {
                     ) : (
                       getuser.tel
                     )}
-                  </p>
+                  </div>
                 </>
               ) : (
-                <p>Loading user data...</p>  
+                <div>Loading user data...</div>  
               )}
             </div>
 

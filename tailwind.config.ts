@@ -11,6 +11,9 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        yellow_FFA601: '#FFA601',
+        human_C5A880: '#C5A880',
+        blackblue_111827: '#111827',
       },
       fontFamily: {
         thai: ['Noto Sans Thai', 'sans-serif'],
