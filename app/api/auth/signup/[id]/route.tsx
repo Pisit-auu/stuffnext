@@ -62,11 +62,11 @@ export async function DELETE(
         //  ต้อง await ก่อนเข้าถึงค่า params
         const { id } = await context.params;
 
-        const deleteAsset = await prisma.user.delete({
-            where: { username: id },
+        const deleteuser = await prisma.user.delete({
+            where: { id: parseInt(id,10) },
         });
 
-        return Response.json(deleteAsset);
+        return Response.json(deleteuser);
     } catch (error) {
         return new Response(JSON.stringify({ error: "Internal Server Error" }), {
             status: 500,

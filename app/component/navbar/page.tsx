@@ -149,6 +149,13 @@ export default function NavbarGlobal() {
                 </div>
               </Link>
             )}
+            {checksession && session?.user?.role === "admin" && (
+              <Link href="/admin/user">
+                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
+                  user ทั้งหมด
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       )}

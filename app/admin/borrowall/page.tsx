@@ -52,7 +52,7 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
   // ฟังก์ชันในการกรองข้อมูลจากคำค้นหา
   useEffect(() => {
     let filtered = borrowHistory;
-
+  
     // กรองจากคำค้นหาผู้ยืม, ครุภัณฑ์, หรือห้องยืม
     if (searchTerm) {
       filtered = filtered.filter((borrow) =>
@@ -61,19 +61,28 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
         borrow.borrowLocation.namelocation.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
+  
     // กรองจากวันที่ยืม
-    if (startDate && endDate) {
-      const startDateObj = new Date(startDate);
-      const endDateObj = new Date(endDate);
+    if (startDate || endDate) {
+      const startDateObj = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
+      const endDateObj = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+  
       filtered = filtered.filter((borrow) => {
-        const borrowDate = new Date(borrow.createdAt);
-        return borrowDate >= startDateObj && borrowDate <= endDateObj;
+        const borrowDate = new Date(borrow.createdAt).setHours(0, 0, 0, 0); // เปลี่ยนวันที่ให้ไม่มีเวลา
+        let isValid = true;
+        if (startDateObj) {
+          isValid = borrowDate >= startDateObj;
+        }
+        if (endDateObj) {
+          isValid = isValid && borrowDate <= endDateObj;
+        }
+        return isValid;
       });
     }
-
+  
     setFilteredHistory(filtered);
   }, [searchTerm, startDate, endDate, borrowHistory]);
+  
 
       
   

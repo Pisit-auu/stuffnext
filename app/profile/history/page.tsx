@@ -66,23 +66,23 @@ const UserBorrowHistory = () => {
   }, [session]);
 
   useEffect(() => {
-    // ฟิลเตอร์ข้อมูลตามวันที่และคำค้น
     const filtered = borrowHistory.filter((borrow) => {
-      const borrowDate = new Date(borrow.createdAt);
+      const borrowDate = new Date(borrow.createdAt).setHours(0, 0, 0, 0);
       const isWithinDateRange =
-        (startDate ? borrowDate >= new Date(startDate) : true) &&
-        (endDate ? borrowDate <= new Date(endDate) : true);
-
+        (startDate ? borrowDate >= new Date(startDate).setHours(0, 0, 0, 0) : true) &&
+        (endDate ? borrowDate <= new Date(endDate).setHours(23, 59, 59, 999) : true);
+  
       const matchesSearchTerm =
         borrow.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         borrow.asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         borrow.borrowLocation.namelocation.toLowerCase().includes(searchTerm.toLowerCase());
-
+  
       return isWithinDateRange && matchesSearchTerm;
     });
-
+  
     setFilteredHistory(filtered);
   }, [startDate, endDate, searchTerm, borrowHistory]);
+  
 
   const handleReturn = async (borrowId: number) => {
     try {
