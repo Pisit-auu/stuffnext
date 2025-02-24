@@ -29,8 +29,8 @@ const Sidebar: React.FC = () => {
     else if (key === "5") router.push("/admin");
     else if (key === "6") router.push("/admin");
     else if (key === "7") router.push("/admin");
-    else if (key === "8") router.push("/admin/borrowall");
-    else if (key === "9") router.push("/profile/history");
+    else if (key === "8") router.push("/profile/history");
+    else if (key === "9") router.push("/admin/borrowall");
     else if (key === "logout") signOut(); // ✅ ใช้ signOut() จาก next-auth
     else if (key === "login") router.push("/login");
   };
