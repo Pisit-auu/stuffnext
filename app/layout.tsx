@@ -33,15 +33,15 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      
       <body className={`${baiJamjuree.className} text-black bg-gray-100 antialiased`}>
-        
         {/* Pass the session to SessionProvider */}
         <SessionProvider session={session}>
           <div className="flex">
-            <Slidebar />
+            {/* Hide Slidebar on small screens and show on large screens */}
+            <div className="hidden lg:block">
+              <Slidebar />
+            </div>
             <main className="flex-1">
-            
               {children}
             </main>
           </div>
@@ -50,3 +50,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

@@ -1,14 +1,11 @@
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
-
+import prisma from "@/lib/prisma"; 
 export async function GET(
     request: Request,
     context: { params: { id: string } }
 ) {
     // ✅ ต้องใช้ await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
-
-    const result = await prisma.asset.findUnique({
+        const result = await prisma.asset.findUnique({
         where: { assetid: id },
         include: { category: true },
     });

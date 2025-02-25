@@ -1,8 +1,7 @@
 import { getSession } from 'next-auth/react';
-import { PrismaClient } from '@prisma/client';
+import prisma from "@/lib/prisma"; 
 import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const { oldPassword, newPassword } = await req.json();
