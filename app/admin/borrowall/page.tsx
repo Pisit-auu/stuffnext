@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';  // นำเข้า useParams
 
 
 interface BorrowHistory {
@@ -16,6 +17,7 @@ interface BorrowHistory {
   };
   asset: {
     name: string;
+    assetid: string;
   };
   borrowLocation: {
     namelocation: string;
@@ -24,8 +26,15 @@ interface BorrowHistory {
   returnLocationId: string;
   valueBorrow: number;
 }
-
-const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
+interface AssetLocation {
+  asset: {
+    assetid: string;
+  };
+  inRoomavailableValue: number;
+  inRoomaunavailableValue: number;
+  id: number;
+}
+const BorrowHistoryPage = () => {
   const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);
   const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,6 +42,7 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const params = useParams();
 
   useEffect(() => {
     const fetchBorrowHistory = async () => {
@@ -113,113 +123,128 @@ const BorrowHistoryPage = ({ params }: { params: { id: string } }) => {
   };
   
   const updateReturnStatus = async (
-    id: number,
-    Borrowstatus: string,
-    ReturnStatus: string,
-    dayReturn: string | null
-  ) => {
-    try {
-        // สามารถปรับเป็น "รอตรวจสอบ" ได้
-        const response = await axios.put(`/api/borrow/${id}`, {
-          id,
-          Borrowstatus,
-          ReturnStatus,
-          dayReturn,
-        });
-        setBorrowHistory((prevHistory) =>
-          prevHistory.map((borrow) =>
-            borrow.id === id ? { ...borrow, Borrowstatus, ReturnStatus, dayReturn } : borrow
-          )
-        );
-        //หลังอัพเดตสถานะ
-        if(ReturnStatus === 'c' || ReturnStatus === 'w'){
-          const response = await axios.get(`/api/borrow/${id}`)
+  id: number,
+  Borrowstatus: string,
+  ReturnStatus: string,
+  dayReturn: string | null
+) => {
+  try {
+    const response = await axios.put(`/api/borrow/${id}`, {
+      id,
+      Borrowstatus,
+      ReturnStatus,
+      dayReturn,
+    });
 
-            let presentlocation = ''
-            let locationreturn = ''
-           if( ReturnStatus === 'w'){
-            presentlocation =response.data.returnLocationId
-            locationreturn = response.data.borrowLocationId// ห้องที่อยู่
-           }else{
-            presentlocation =response.data.borrowLocationId
-            locationreturn = response.data.returnLocationId// ห้องที่อยู่
-           }
-          // console.log(response.data.borrowLocationId) // ห้องที่อยู่
-           //console.log(response.data.returnLocationId)   //ห้องที่ต้องคืน
-          //  console.log(response.data.valueBorrow)  //จำนวนที่ยืม
-           //console.log(response.data.assetId) // รหัสของที่ยืม
-                      try {
-                        const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
-                        const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`);
-                        const filtered = getassetlocationinroom.data.filter(item => item.asset.assetid === response.data.assetId);  // กรองว่า getassetlocationinroom == assetid
-                        console.log(filtered[0].inRoomavailableValue)
-                        const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่ยืม
-                        const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue
-                
-                        //เช็คว่าห้องนั้นมีของซ้ำไหม
-                        const hasReturnAsset = getreturnlocation.data.some(item => item.assetId === response.data.assetId );
-                
-                        if(hasReturnAsset){
-                            const getupdateReturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
-                            let idAssetReturn: number = 0;
-                            let saveassetlocationvalule: number = 0;  //save ค่าที่อยู่ห้องที่จะคืน
-                            let saveassetlocationunvalule: number = 0;//save ค่าที่อยู่ห้องที่จะคืน
-                            
-                            getupdateReturnlocation.data.forEach((item: { assetId: string, id: number }) => {
-                              if (response.data.assetId  === item.assetId) {
-                                idAssetReturn = item.id;
-                                saveassetlocationvalule = item.inRoomavailableValue
-                                saveassetlocationunvalule = item.inRoomaunavailableValue
-                              }
-                            });
-                            await axios.put(`/api/assetlocation/${idAssetReturn}`, {
-                              inRoomavailableValue: saveassetlocationvalule + parseInt(response.data.valueBorrow,10),
-                              inRoomaunavailableValue: saveassetlocationunvalule,
-                            });
-                            await axios.put(`/api/assetlocation/${filtered[0].id}`, {
-                              inRoomavailableValue: parseInt(savegetassetlocationinroomvalue,10) - parseInt(response.data.valueBorrow,10),
-                              inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
-                            });
-                            alert("คืนสำเร็จ");
-                        }else{
-                          await axios.post('/api/assetlocation', { 
-                                assetId: response.data.assetId,
-                                locationId: locationreturn,  
-                                inRoomavailableValue: 0,
-                                inRoomaunavailableValue: 0,
-                              });
-                              const getupdateborrowlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
-                              let idAssetborrow: number = 0;
-                
-                              getupdateborrowlocation.data.forEach((item: { assetId: string, id: number }) => {
-                                if (response.data.assetId === item.assetId) {
-                                  idAssetborrow = item.id;
-                                }
-                              });
-                              await axios.put(`/api/assetlocation/${idAssetborrow}`, {
-                                inRoomavailableValue: parseInt(response.data.valueBorrow),
-                                inRoomaunavailableValue: 0,
-                              });
-                              await axios.put(`/api/assetlocation/${filtered[0].id}`, {
-                                inRoomavailableValue: parseInt(savegetassetlocationinroomvalue,10) - parseInt(response.data.valueBorrow,10),
-                                inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
-                              });
-                              if(ReturnStatus === 'c' ){
-                                alert("คืนสำเร็จ");
-                              }
-                              
-                
-                        }
-                      } catch (error) {
-                        console.error(error);
-                      }
+    // อัปเดต state หลังจากส่งคำขอสำเร็จ
+    setBorrowHistory((prevHistory) =>
+      prevHistory.map((borrow) =>
+        borrow.id === id ? { ...borrow, Borrowstatus, ReturnStatus, dayReturn } : borrow
+      )
+    );
+
+    if (ReturnStatus === 'c' || ReturnStatus === 'w') {
+      const response = await axios.get(`/api/borrow/${id}`);
+
+      let presentlocation = '';
+      let locationreturn = '';
+      if (ReturnStatus === 'w') {
+        presentlocation = response.data.returnLocationId;
+        locationreturn = response.data.borrowLocationId; // ห้องที่อยู่
+      } else {
+        presentlocation = response.data.borrowLocationId;
+        locationreturn = response.data.returnLocationId; // ห้องที่อยู่
+      }
+
+      try {
+        const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
+        const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`);
+
+        // กำหนดประเภทของ item
+        interface AssetLocation {
+          asset: {
+            assetid: string;
+          };
+          assetId: string; // เพิ่ม assetId
+          inRoomavailableValue: number;
+          inRoomaunavailableValue: number;
+          id: number;
         }
-   
-    } catch (err) {
-      setError('Failed to update borrow status');
-    }
-  };
+
+        const filtered = getassetlocationinroom.data.filter((item: AssetLocation) => item.asset.assetid === response.data.assetId);  // กรองว่า getassetlocationinroom == assetid
+        console.log(filtered[0].inRoomavailableValue);
+        const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue; // เก็บค่าของก่อนที่ยืม
+        const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue;
+
+        // เช็คว่าห้องนั้นมีของซ้ำไหม
+        const hasReturnAsset = getreturnlocation.data.some((item: AssetLocation) => item.assetId === response.data.assetId);
+
+        if (hasReturnAsset) {
+          const getupdateReturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
+          let idAssetReturn: number = 0;
+          let saveassetlocationvalule: number = 0;  // save ค่าที่อยู่ห้องที่จะคืน
+          let saveassetlocationunvalule: number = 0; // save ค่าที่อยู่ห้องที่จะคืน
+
+          getupdateReturnlocation.data.forEach((item: AssetLocation) => {
+            if (response.data.assetId === item.assetId) {
+              idAssetReturn = item.id;
+              saveassetlocationvalule = item.inRoomavailableValue;
+              saveassetlocationunvalule = item.inRoomaunavailableValue;
+            }
+          });
+
+          await axios.put(`/api/assetlocation/${idAssetReturn}`, {
+            inRoomavailableValue: saveassetlocationvalule + parseInt(response.data.valueBorrow, 10),
+            inRoomaunavailableValue: saveassetlocationunvalule,
+          });
+
+          await axios.put(`/api/assetlocation/${filtered[0].id}`, {
+            inRoomavailableValue: parseInt(savegetassetlocationinroomvalue, 10) - parseInt(response.data.valueBorrow, 10),
+            inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue, 10),
+          });
+
+          alert("คืนสำเร็จ");
+        } else {
+          await axios.post('/api/assetlocation', {
+            assetId: response.data.assetId,
+            locationId: locationreturn,
+            inRoomavailableValue: 0,
+            inRoomaunavailableValue: 0,
+          });
+
+          const getupdateborrowlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
+          let idAssetborrow: number = 0;
+
+          getupdateborrowlocation.data.forEach((item: AssetLocation) => {
+            if (response.data.assetId === item.assetId) {
+              idAssetborrow = item.id;
+            }
+          });
+
+          await axios.put(`/api/assetlocation/${idAssetborrow}`, {
+            inRoomavailableValue: parseInt(response.data.valueBorrow),
+            inRoomaunavailableValue: 0,
+          });
+
+          await axios.put(`/api/assetlocation/${filtered[0].id}`, {
+            inRoomavailableValue: parseInt(savegetassetlocationinroomvalue, 10) - parseInt(response.data.valueBorrow, 10),
+            inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue, 10),
+          });
+
+          if (ReturnStatus === 'c') {
+            alert("คืนสำเร็จ");
+          }
   
+
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  } catch (err) {
+    setError('Failed to update borrow status');
+  }
+};
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-red-500">{error}</div>;

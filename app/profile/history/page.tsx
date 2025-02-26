@@ -17,6 +17,7 @@ interface BorrowHistory {
     name: string;
   };
   asset: {
+    assetid: any;
     name: string;
     id: number;
   };
@@ -84,7 +85,7 @@ const UserBorrowHistory = () => {
   }, [startDate, endDate, searchTerm, borrowHistory]);
   
 
-  const handleReturn = async (borrowId: number) => {
+  const handleReturn = async (borrowId: number, id?: number) => {
     try {
       // สร้างวันที่คืนเป็นวันที่ปัจจุบัน
       const dayReturn = new Date().toISOString();
@@ -126,13 +127,13 @@ const UserBorrowHistory = () => {
 
       const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);//เรียก ห้องที่จะคืน
       const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`); //เรียก assetidที่อยู่ในห้องนั้น
-      const filtered = getassetlocationinroom.data.filter(item => item.asset.assetid === response.data.assetId); // กรองว่า getassetlocationinroom == assetid
-      //console.log(filtered[0].inRoomavailableValue)
+      const filtered = getassetlocationinroom.data.filter((item: { asset: { assetid: any; }; }) => item.asset.assetid === response.data.assetId); // กรองว่า getassetlocationinroom == assetid
+      console.log(filtered[0])
       const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่ยืม
       const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue
 
       //เช็คว่าห้องนั้นมีของซ้ำไหม
-      const hasReturnAsset = getreturnlocation.data.some(item => item.assetId === response.data.assetId );
+      const hasReturnAsset = getreturnlocation.data.some((item: { assetId: any; }) => item.assetId === response.data.assetId );
 
       if(hasReturnAsset){
           const getupdateReturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
@@ -140,7 +141,10 @@ const UserBorrowHistory = () => {
           let saveassetlocationvalule: number = 0;  //save ค่าที่อยู่ห้องที่จะคืน
           let saveassetlocationunvalule: number = 0;//save ค่าที่อยู่ห้องที่จะคืน
           
-          getupdateReturnlocation.data.forEach((item: { assetId: string, id: number }) => {
+          getupdateReturnlocation.data.forEach((item: {
+            inRoomaunavailableValue: number;
+            inRoomavailableValue: number; assetId: string, id: number 
+}) => {
             if (response.data.assetId  === item.assetId) {
               idAssetReturn = item.id;
               saveassetlocationvalule = item.inRoomavailableValue

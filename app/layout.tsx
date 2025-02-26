@@ -5,7 +5,7 @@ import Slidebar from "./component/slidebar/page";
 
 import SessionProvider from "./component/Session/SessionProvider";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 
 // Fonts
 const notoSansThai = Noto_Sans_Thai({

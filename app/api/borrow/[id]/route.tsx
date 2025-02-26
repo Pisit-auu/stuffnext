@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
 
-
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    // Await params ก่อนใช้งาน
-    const { id } = await params;
+    const { id } = await context.params;  // ใช้ await ที่นี่
 
     const borrow = await prisma.borrow.findUnique({
       where: { id: Number(id) },
@@ -25,14 +23,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id, Borrowstatus, ReturnStatus, dayReturn } = await req.json();
-
-    // ตรวจสอบว่ามี id หรือไม่
-    if (!id) {
-      return NextResponse.json({ error: "Borrow ID is required" }, { status: 400 });
-    }
+    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { Borrowstatus, ReturnStatus, dayReturn } = await request.json();
 
     // ตรวจสอบว่า dayReturn ถ้าได้รับมา ต้องเป็นรูปแบบที่ถูกต้อง
     let formattedDayReturn: Date | undefined;
@@ -46,7 +40,7 @@ export async function PUT(req: Request) {
 
     // อัพเดตข้อมูลการยืม
     const updatedBorrow = await prisma.borrow.update({
-      where: { id },
+      where: { id: Number(id) },
       data: {
         Borrowstatus,
         ReturnStatus,
@@ -60,23 +54,16 @@ export async function PUT(req: Request) {
   }
 }
 
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;  // ใช้ await ที่นี่
 
-export async function DELETE(
-    request: Request,
-    context: { params: { id: string } }
-) {
-    try {
-        //  ต้อง await ก่อนเข้าถึงค่า params
-        const { id } = await context.params;
+    const deleteAsset = await prisma.borrow.delete({
+      where: { id: Number(id) },
+    });
 
-        const deleteAsset = await prisma.borrow.delete({
-            where: { id: parseInt(id) },
-        });
-
-        return Response.json(deleteAsset);
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-            status: 500,
-        });
-    }
+    return NextResponse.json(deleteAsset, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

@@ -9,7 +9,12 @@ import { Button, Popconfirm } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 const { Option } = Select;
 
-  
+interface Asset {
+  assetid: string;
+  availableValue: number;
+  unavailableValue: number;
+  // Add other properties as needed
+}
 export default function Manageroom() {
       const router = useRouter();
   const { id } = useParams() as { id: string };
@@ -36,7 +41,7 @@ export default function Manageroom() {
       const resasset = await axios.get(`/api/asset`);
       setAsset(resasset.data);
   
-      const filteredData = resasset.data.filter((assetA) => {
+      const filteredData = resasset.data.filter((assetA: Asset) => {
         // ตรวจสอบว่า `assetA.assetid` ตรงกับ `assetB.assetId` ใน assetLocation
         const isInB = assetLocation.some((assetB) => assetB.assetId === assetA.assetid);
         // กรองเฉพาะ asset ที่ยังไม่อยู่ใน assetLocation และมีค่า availableValue หรือ unavailableValue มากกว่า 0
@@ -128,9 +133,9 @@ export default function Manageroom() {
             })
 
             await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
-                availableValue: valueasset+ saveinRoomavailableValue- updateInRoomavailableValue,
-                unavailableValue: unvalueasset+saveinRoomunavailableValue- updateInRoomunavailableValue,
-            })
+              availableValue: valueasset + saveinRoomavailableValue - Number(updateInRoomavailableValue),
+              unavailableValue: unvalueasset + saveinRoomunavailableValue - Number(updateInRoomunavailableValue),
+            });
             setIsModalOpen(false);
             seteditstatus(false)
             fetchassetlocation();

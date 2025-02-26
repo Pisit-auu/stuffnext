@@ -18,31 +18,36 @@ export default function SignIn() {
 
   // ฟังก์ชันเข้าสู่ระบบ
   const handleSignInSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!username || !password) {
-      setErrorMessage('Both fields are required')
-      return
+      setErrorMessage('Both fields are required');
+      return;
     }
-    
-    setLoading(true)
+  
+    setLoading(true);
     try {
-      const result: SignInResponse | { error: string } = await signIn('credentials', {
+      const result = await signIn('credentials', {
         redirect: false,
         username,
         password,
-      })
-
-      if (result?.error) {
-        setErrorMessage(result.error)
+      });
+  
+      if (!result) {
+        setErrorMessage('Sign-in failed. Please try again.');
+        return;
+      }
+  
+      if (result.error) {
+        setErrorMessage(result.error);
       } else {
-        router.push(redirectUrl)
+        router.push(redirectUrl);
       }
     } catch (error) {
-      setErrorMessage('An unexpected error occurred. Please try again.')
+      setErrorMessage('An unexpected error occurred. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // ฟังก์ชันสมัครสมาชิก
   const handleSignUpSubmit = async (e: FormEvent) => {

@@ -1,60 +1,46 @@
-import prisma from "@/lib/prisma"; 
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;  // ใช้ await ที่นี่
 
-export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
-    const { id } = await params;
+  const result = await prisma.category.findUnique({
+    where: { idname: id },
+  });
 
-    const result = await prisma.category.findUnique({
-        where: { idname: id }
+  return NextResponse.json(result);
+}
+
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { idname, name } = await request.json();
+
+    const { id } = await context.params;  // ใช้ await ที่นี่
+
+    const update = await prisma.category.update({
+      where: { idname: id },
+      data: {
+        idname,
+        name,
+      },
     });
 
-    return Response.json(result);
+    return NextResponse.json(update);
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
-export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
-    try {
-        const { idname, name } = await request.json();
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;  // ใช้ await ที่นี่
 
-        const { id } = await params;
+    const deletecategory = await prisma.category.delete({
+      where: { idname: id },
+    });
 
-        const update = await prisma.category.update({
-            where: { idname: id },
-            data: {
-                idname,
-                name
-            }
-        });
-
-        return Response.json(update);
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-            status: 500,
-        });
-    }
-}
-
-export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
-    try {
-
-        const { id } = await params;
-
-        const deletecategory = await prisma.category.delete({
-            where: { idname: id },
-        });
-
-        return Response.json(deletecategory);
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-            status: 500,
-        });
-    }
+    return NextResponse.json(deletecategory);
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

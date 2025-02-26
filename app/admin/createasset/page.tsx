@@ -13,7 +13,7 @@ export default function CreateAsset() {
   const [availableValue, setAvailableValue] = useState<number>(0);
   const [unavailableValue, setunAvailableValue] = useState<number>(0);
   const router = useRouter();
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false); // สถานะการอัปโหลด
 
   const handleUpload = async () => {
@@ -117,7 +117,11 @@ export default function CreateAsset() {
             <input
             type="file"
             accept="image/*"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setFile(e.target.files[0]);
+              }
+            }}
             disabled={isUploading} // ปิดการใช้งานการเลือกไฟล์ระหว่างการอัปโหลด
           />
           <button

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
 
-
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params; // ใช้ await กับ params ก่อนการใช้งาน
+    const { id } = await context.params;  // ใช้ await ที่นี่
 
     // ดึงข้อมูลจากฐานข้อมูลตาม userId
     const borrowList = await prisma.borrow.findMany({
@@ -15,7 +14,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         borrowLocation: true,
       },
     });
-
 
     return NextResponse.json(borrowList, { status: 200 });
   } catch (error) {

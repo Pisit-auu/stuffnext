@@ -1,18 +1,18 @@
-"use client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react";
-import { useSession, signOut } from 'next-auth/react';
-import { Layout, Menu } from "antd"
-import { DesktopOutlined, FileOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons"
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { Layout, Menu } from "antd";
+import { DesktopOutlined, FileOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
 
-const { Sider } = Layout
+const { Sider } = Layout;
 
 type MenuItem = {
-  key: string
-  icon?: React.ReactNode
-  label: string
-  children?: MenuItem[]
-}
+  key: string;
+  icon: React.JSX.Element; // Use React.JSX.Element instead of React.ReactNode
+  label: string;
+  children?: MenuItem[];
+};
 
 const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -36,14 +36,18 @@ const Sidebar: React.FC = () => {
   };
 
   // 🔹 สร้างเมนูตาม session และ role ของผู้ใช้
-  const items: MenuItem[] = [{
-    key: "1",
-    label: "หน้าหลัก",
-    icon: <DesktopOutlined /> },
-    isAuthenticated && { key: "2", label: "ข้อมูลส่วนตัว",
-    icon: <FileOutlined />,
-  },
-     {
+  const items = [
+    {
+      key: "1",
+      label: "หน้าหลัก",
+      icon: <DesktopOutlined />,
+    },
+    isAuthenticated && {
+      key: "2",
+      label: "ข้อมูลส่วนตัว",
+      icon: <FileOutlined />,
+    },
+    {
       key: "sub1",
       label: "ผู้ใช้",
       icon: <UserOutlined />,
@@ -52,20 +56,17 @@ const Sidebar: React.FC = () => {
         { key: "4", label: "ครุภัณฑ์ทั้งหมด" },
       ],
     },
-
-    isAuthenticated && userRole === "admin" && {
-      key: "sub2",
-      label: "แอดมิน",
-
-      icon: <TeamOutlined />,
-      children: [
-        { key: "5", label: "ครุภัณฑ์" },
-        { key: "6", label: "ประเภทครุภัณฑ์" },
-        { key: "7", label: "สถานที่ทั้งหมด" },
-      ],
-      
-    },
-
+    isAuthenticated &&
+      userRole === "admin" && {
+        key: "sub2",
+        label: "แอดมิน",
+        icon: <TeamOutlined />,
+        children: [
+          { key: "5", label: "ครุภัณฑ์" },
+          { key: "6", label: "ประเภทครุภัณฑ์" },
+          { key: "7", label: "สถานที่ทั้งหมด" },
+        ],
+      },
     isAuthenticated && {
       key: "sub3",
       label: "ประวัติ",
@@ -75,11 +76,10 @@ const Sidebar: React.FC = () => {
         { key: "9", label: "การยืม/คืนทั้งหมด" },
       ],
     },
-
     isAuthenticated
       ? { key: "logout", label: "ออกจากระบบ", icon: <UserOutlined /> }
       : { key: "login", label: "เข้าสู่ระบบ", icon: <UserOutlined /> },
-  ].filter(Boolean); // ✅ ลบค่าที่เป็น null ออก
+  ].filter((item): item is MenuItem => !!item); // ✅ ลบค่าที่เป็น false ออก
 
   return (
     <Sider
@@ -92,8 +92,6 @@ const Sidebar: React.FC = () => {
         position: "fixed",
         height: "100vh",
         zIndex: 1000,
-        
-        
       }}
     >
       <Menu
@@ -103,7 +101,8 @@ const Sidebar: React.FC = () => {
         items={items}
         style={{
           backgroundColor: "#111827",
-          color: "#FFFFFF" }}
+          color: "#FFFFFF",
+        }}
         onClick={({ key }) => handleMenuClick(key)}
       />
     </Sider>

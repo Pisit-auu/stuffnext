@@ -1,17 +1,18 @@
-import { getSession } from 'next-auth/react';
-import prisma from "@/lib/prisma"; 
+import { NextRequest, NextResponse } from 'next/server'; // Use NextRequest and NextResponse
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/authOptions'; // Adjust the path to your auth options
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
-
-export async function POST(req: Request) {
-  const { oldPassword, newPassword } = await req.json();
+export async function POST(req: NextRequest) {
+  const { oldPassword, newPassword } = await req.json(); // Parse the request body
 
   // ตรวจสอบ session
-  const session = await getSession({ req });
+  const session = await getServerSession(authOptions); // Use getServerSession without req/res
 
   if (!session) {
-    return new Response(
-      JSON.stringify({ message: 'Not authenticated' }),
+    return NextResponse.json(
+      { message: 'Not authenticated' },
       { status: 401 }
     );
   }
@@ -21,8 +22,8 @@ export async function POST(req: Request) {
   });
 
   if (!user || !bcrypt.compareSync(oldPassword, user.password)) {
-    return new Response(
-      JSON.stringify({ message: 'Invalid old password' }),
+    return NextResponse.json(
+      { message: 'Invalid old password' },
       { status: 400 }
     );
   }
@@ -34,8 +35,8 @@ export async function POST(req: Request) {
     data: { password: hashedPassword },
   });
 
-  return new Response(
-    JSON.stringify({ message: 'Password changed successfully' }),
+  return NextResponse.json(
+    { message: 'Password changed successfully' },
     { status: 200 }
   );
 }

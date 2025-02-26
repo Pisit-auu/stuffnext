@@ -4,16 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from 'next-auth/react';
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      name?: string | null;
-      username?: string | null;
-      image?: string | null;
-      role?: string; // Add role here
-    };
-  }
-}
+
 export default function NavbarGlobal() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session, status } = useSession();
