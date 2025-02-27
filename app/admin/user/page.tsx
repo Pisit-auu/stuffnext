@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Link from 'next/link';
 
 interface User {
   id: number;
@@ -68,6 +69,7 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
+      <Link href={"/admin/user/singupuser"}><h1 className="mt-4  text-xl font-bold mb-4 text-center bg-green-500 text-white">สมัคร User</h1></Link>
     </div>
   );
 }
