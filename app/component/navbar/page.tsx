@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from 'next-auth/react';
 
-
 export default function NavbarGlobal() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session, status } = useSession();
@@ -17,7 +16,7 @@ export default function NavbarGlobal() {
       setchecksession(false);
     } else if (status === 'authenticated') {
       setchecksession(true);
-      console.log(session?.user?.role); // Using optional chaining to avoid errors if session or user is undefined
+      //console.log(session?.user?.role); // Using optional chaining to avoid errors if session or user is undefined
     }
   }, [status, router]);
 
@@ -29,7 +28,7 @@ export default function NavbarGlobal() {
   return (
     <div className="relative">
       {/* Navbar */}
-      <div className="grid grid-cols-3 bg-sky-600 h-32 items-center shadow-xl z-50 border-b-2 border-blue-950">
+      <div className="grid grid-cols-3 bg-sky-600 h-24 items-center shadow-xl z-50 border-b-2 border-blue-950">
         {/* Left Menu */}
         <div className="flex justify-self-start ml-8">
           <button className="focus:outline-none" onClick={toggleMenu}>
@@ -40,12 +39,12 @@ export default function NavbarGlobal() {
         {/* Logo */}
         <div className="justify-self-center">
           <Link href="/">
-            <img className="w-20 h-auto" src="https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png" alt="Logo" />
+            <img className="w-[50px] h-auto" src="https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png" alt="Logo" />
           </Link>
         </div>
 
         {/* Right Menu */}
-        <div className="flex justify-self-end items-center mr-8 space-x-4">
+        <div className="flex justify-self-end items-center mr-8 space-x-4 hidden lg:flex">
           <div className="text-white text-xl font-semibold">
             <Link href="/allasset">{"ครุภัณฑ์ทั้งหมด"}</Link>
           </div>
@@ -147,6 +146,14 @@ export default function NavbarGlobal() {
                 </div>
               </Link>
             )}
+            {checksession && (
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="text-red-800  font-medium"
+            >
+              ออกจากระบบ
+            </button>
+          )}
           </div>
         </div>
       )}
