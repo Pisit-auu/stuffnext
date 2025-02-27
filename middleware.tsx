@@ -7,14 +7,15 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   })
 
-  // แปลงค่า token เป็น User type
-  const user = token as { role?: string } | null
+  console.log("Middleware Token:", token); // ✅ Debug ค่า token
 
-  const { pathname } = request.nextUrl
+  const user = token as { role?: string } | null;
+  const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/admin') && (!user || user.role !== 'admin')) {
-    return NextResponse.redirect(new URL('/', request.url))
+    console.log("Unauthorized User:", user);
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
