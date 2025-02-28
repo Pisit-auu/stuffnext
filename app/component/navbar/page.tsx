@@ -49,15 +49,36 @@ export default function NavbarGlobal() {
                 {name} ﹀
               </button>
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
-                  <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="w-full text-left px-4 py-2 text-black  hover:bg-gray-200"
-                  >
-                    ออกจากระบบ
-                  </button>
-                </div>
-              )}
+                    <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
+                      {session?.user.role === 'admin' && (
+                        <>
+                          <Link href="/admin">
+                            <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
+                              Admin
+                            </button>
+                          </Link>
+                          <Link href="/admin/borrowall">
+                            <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
+                              All History
+                            </button>
+                          </Link>
+                          <Link href="/admin/user">
+                            <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
+                              All User
+                            </button>
+                          </Link>
+                        </>
+                      )}
+
+                      <button
+                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        className="w-full text-left px-4 py-2 text-black hover:bg-gray-200"
+                      >
+                        ออกจากระบบ
+                      </button>
+                    </div>
+                  )}
+
             </div>
           )}
 
