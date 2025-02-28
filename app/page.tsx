@@ -1,25 +1,33 @@
 'use client'
 import Image from "next/image";
 import Link from 'next/link';
-
 import { Card } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Button } from 'antd';
 
 export default function Home() {
-  const [locations, setLocation] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
   const [searchLocation, setSearchLocation] = useState('');
+  const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchLocation();
-  }, [searchLocation]);
+    fetchLocations();
+  }, []);
 
-  const fetchLocation = async () => {
+  useEffect(() => {
+    // ค้นหาจากข้อมูลที่มีอยู่ ไม่ต้องเรียก API ใหม่
+    setFilteredLocations(
+      locations.filter(location => 
+        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
+      )
+    );
+  }, [searchLocation, locations]);
+
+  const fetchLocations = async () => {
     try {
-      const query = new URLSearchParams({ search: searchLocation }).toString();
-      const res = await axios.get(`/api/location?${query}`);
-      setLocation(res.data);
+      const res = await axios.get(`/api/location`);
+      setLocations(res.data);
+      setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
     } catch (error) {
       console.error(error);
     }
@@ -40,7 +48,7 @@ export default function Home() {
 
       {/* Grid Layout for Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {locations.map((location) => (
+        {filteredLocations.map((location) => (
           <Card
             key={location.id}
             variant={"outlined"}

@@ -56,10 +56,10 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt', // Use JWT for session management
   },
   callbacks: {
-    // JWT callback to store additional data in the token
     jwt: async ({ token, user }) => {
       if (user) {
-        token.id = user.id; // Include the id in the token
+        token.id = user.id;
+        token.name = user.name;  // ✅ เพิ่ม name เข้า token
         token.role = user.role;
         token.username = user.username;
         token.email = user.email;
@@ -67,16 +67,16 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    // Session callback to include additional data in the session
     session: async ({ session, token }) => {
       if (session.user) {
-        session.user.id = token.id; // Include the id in the session
+        session.user.id = token.id;
+        session.user.name = token.name; // ✅ เพิ่ม name เข้า session
         session.user.role = token.role;
         session.user.username = token.username;
-        //session.user.email = token.email;
         session.user.image = token.image;
       }
       return session;
     },
   },
+  
 };

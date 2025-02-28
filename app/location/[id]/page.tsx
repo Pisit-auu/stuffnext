@@ -33,6 +33,8 @@ export default function Manageroom() {
   const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined);
   const [checksession, setchecksession] = useState(false);
   const [userId, setUserId] = useState('');
+  const [valueinroom, setvalueinroom] = useState(0);
+  const [unvalueinroom, setunvalueinroom] = useState(0);
 
   // Session
   const { data: session, status } = useSession();
@@ -42,8 +44,7 @@ export default function Manageroom() {
     if (session.user.id) {
       setUserId(session.user.id); // Set the user ID
     }
-    const resuser = await axios.get(`/api/auth/signup/${session.user.username}`);
-    setnameuser(resuser.data.name);
+    setnameuser(session.user.name ?? ""); // ถ้าเป็น null/undefined ใช้ค่าเป็น "" แทน
   };
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function Manageroom() {
     } else if (status === 'authenticated') {
       setchecksession(true);
       fetchUser();
+      fetchlocation();
     }
   }, [status, router]);
 
@@ -79,8 +81,10 @@ export default function Manageroom() {
 
   const fetchlocation = async () => {
     try {
-      const res = await axios.get(`/api/location`);
-      const getlocation = await axios.get(`/api/location/${id}`);
+      const [res, getlocation] = await Promise.all([
+        axios.get(`/api/location`),
+        axios.get(`/api/location/${id}`)
+      ]);
       setthisLocation(getlocation.data); // Set thisLocation with the correct type
       setallLocation(res.data.filter((loc: { id: any; }) => loc.id !== getlocation.data.id));
     } catch (error) {
@@ -88,12 +92,14 @@ export default function Manageroom() {
     }
   };
 
-  const clisckbutton = (asset: any) => {
+  const clisckbutton = (asset: any,savevalueinroom: number,saveunvalueinroom: number) => {
     if (checksession) {
-      fetchlocation();
       setmaxinputvalue(asset.inRoomavailableValue);
       setupdateinRoomavailableValue(asset.inRoomavailableValue);
       setSelectedAsset(asset);
+      setvalueinroom(savevalueinroom);
+      setunvalueinroom(saveunvalueinroom);
+      
       if (nameuser === '' || nameuser === null) {
         alert('โปรดเพิ่มชื่อจริง ก่อนยืมที่หน้า โปรไฟล์');
         router.push(`/profile`);
@@ -112,20 +118,17 @@ export default function Manageroom() {
     }
     try {
       const getborrowlocation = await axios.get(`/api/assetlocationroom?location=${selectBorrowLocation}`);
-      const getassetlocationinroom = await axios.get(`/api/assetlocation/${selectedDetailAsset.id}`);
-
-      const savegetassetlocationinroomvalue = getassetlocationinroom.data.inRoomavailableValue; // เก็บค่าของก่อนที่ยืม
-      const savegetassetlocationinroomunvalue = getassetlocationinroom.data.inRoomaunavailableValue;
-
-      // เช็คว่าห้องนั้นมีของซ้ำไหม
+      const savegetassetlocationinroomvalue = valueinroom; // เก็บค่าของก่อนที่ยืม
+      const savegetassetlocationinroomunvalue = unvalueinroom;
+      
+      
       const hasborrowAsset = getborrowlocation.data.some((item: { assetId: any; }) => item.assetId === selectedDetailAsset.assetId);
-
+      
       if (hasborrowAsset) {
-        const getupdateborrowlocation = await axios.get(`/api/assetlocationroom?location=${selectBorrowLocation}`);
         let idAssetborrow: number = 0;
         let saveassetlocationvalule: number = 0; // save ค่าที่อยู่ห้องที่จะยืม
         let saveassetlocationunvalule: number = 0; // save ค่าที่อยู่ห้องที่จะยืม
-        getupdateborrowlocation.data.forEach((item: {
+        getborrowlocation.data.forEach((item: {
                   inRoomavailableValue: number;
                   inRoomaunavailableValue: number; assetId: string; id: number 
         }) => {
@@ -135,13 +138,22 @@ export default function Manageroom() {
             saveassetlocationunvalule = item.inRoomaunavailableValue;
           }
         });
+        if(parseInt(avilablevaluecanput, 10)<0){
+          alert("ค่าที่เพิ่ม < 0")
+          return
+        }
+        if( savegetassetlocationinroomvalue < parseInt(avilablevaluecanput, 10)){
+          alert("ค่าของในห้อง < ค่าที่จะยิม")
+          return
+        }
         await axios.put(`/api/assetlocation/${idAssetborrow}`, {
+        
           inRoomavailableValue: saveassetlocationvalule + parseInt(avilablevaluecanput, 10),
           inRoomaunavailableValue: saveassetlocationunvalule,
         });
         await axios.put(`/api/assetlocation/${selectedDetailAsset.id}`, {
-          inRoomavailableValue: parseInt(savegetassetlocationinroomvalue, 10) - parseInt(avilablevaluecanput, 10),
-          inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue, 10),
+          inRoomavailableValue: savegetassetlocationinroomvalue- parseInt(avilablevaluecanput, 10),
+          inRoomaunavailableValue: savegetassetlocationinroomunvalue,
         });
         setIsModalOpen(false);
         router.push(`/`);
@@ -161,13 +173,21 @@ export default function Manageroom() {
             idAssetborrow = item.id;
           }
         });
+        if(parseInt(avilablevaluecanput, 10)<0){
+          alert("ค่าที่เพิ่ม < 0")
+          return
+        }
+        if( savegetassetlocationinroomvalue < parseInt(avilablevaluecanput, 10)){
+          alert("ค่าของในห้อง < ค่าที่จะยิม")
+          return
+        }
         await axios.put(`/api/assetlocation/${idAssetborrow}`, {
           inRoomavailableValue: parseInt(avilablevaluecanput),
           inRoomaunavailableValue: 0,
         });
         await axios.put(`/api/assetlocation/${selectedDetailAsset.id}`, {
-          inRoomavailableValue: parseInt(savegetassetlocationinroomvalue, 10) - parseInt(avilablevaluecanput, 10),
-          inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue, 10),
+          inRoomavailableValue: savegetassetlocationinroomvalue - parseInt(avilablevaluecanput, 10),
+          inRoomaunavailableValue: savegetassetlocationinroomunvalue,
         });
         setIsModalOpen(false);
         router.push(`/`);
@@ -228,7 +248,7 @@ export default function Manageroom() {
               <p className="text-gray-700">📦 จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
               <p className="text-gray-700">📦 จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
               <div className="mt-4">
-                <button onClick={() => clisckbutton(As)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                <button onClick={() => clisckbutton(As,As.inRoomavailableValue,As.inRoomaunavailableValue)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
                   ยืม
                 </button>
               </div>
