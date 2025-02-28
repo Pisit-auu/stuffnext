@@ -10,7 +10,6 @@ export default function Profile() {
   const [getuser, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [password, setPassword] = useState('');
-  const [changepassword,setchangpassword]= useState('');
   const [formData, setFormData] = useState<any>({
     username: '',
     name: '',
@@ -38,8 +37,11 @@ export default function Profile() {
 
   // ฟังก์ชันสำหรับการอัปเดตข้อมูล
   const handleUpdate = async () => {
-    if (!session?.user?.username || !password) return;
-
+    if (!session?.user?.username ) return;
+    if(!password){
+      alert("โปรดกรอกรหัสเพื่อยืนยันการแก้ไขข้อมูล")
+      return
+    }
     try {
       // ตรวจสอบรหัสผ่านที่กรอก
       const isPasswordCorrect = await bcrypt.compare(password, getuser.password);
