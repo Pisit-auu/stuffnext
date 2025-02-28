@@ -4,6 +4,7 @@ import { useSession, signOut, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import bcrypt from 'bcryptjs';
+import Link from 'next/link';
 
 export default function Profile() {
   const { data: session, status, update } = useSession();
@@ -16,7 +17,7 @@ export default function Profile() {
     surname: '',
     email: '',
     tel: '',
-    password:''
+    password: ''
   });
 
   const router = useRouter();
@@ -37,10 +38,10 @@ export default function Profile() {
 
   // ฟังก์ชันสำหรับการอัปเดตข้อมูล
   const handleUpdate = async () => {
-    if (!session?.user?.username ) return;
-    if(!password){
-      alert("โปรดกรอกรหัสเพื่อยืนยันการแก้ไขข้อมูล")
-      return
+    if (!session?.user?.username) return;
+    if (!password) {
+      alert("โปรดกรอกรหัสเพื่อยืนยันการแก้ไขข้อมูล");
+      return;
     }
     try {
       // ตรวจสอบรหัสผ่านที่กรอก
@@ -76,7 +77,7 @@ export default function Profile() {
           alert('เกิดข้อผิดพลาด');
         } else {
           alert('เปลี่ยนข้อมูลเรียบร้อย');
-          setPassword('')
+          setPassword('');
         }
       }
     } catch (error) {
@@ -94,7 +95,7 @@ export default function Profile() {
 
   // ตรวจสอบสถานะการโหลด session
   if (status === 'loading') {
-    return <p>Loading...</p>;
+    return <p className="text-center text-gray-500">กำลังโหลดข้อมูล...</p>;
   }
 
   if (status === 'unauthenticated') {
@@ -102,135 +103,142 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
+    <div className="flex h-screen items-center justify-center bg-gray-100 py-8">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full space-y-6">
         {status === 'authenticated' && session?.user ? (
           <>
-            <div className="text-2xl font-semibold text-center mb-4">
-              Welcome, <span className="text-blue-600">{session.user.username}</span>!
+            <div className="text-3xl font-semibold text-center text-gray-800">
+              ยินดีต้อนรับ  <span className="text-blue-600">{session.user.username}</span>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-5">
               {getuser ? (
                 <>
-                  <div className="flex">
-                    <div className="text-lg text-gray-700">
-                      ชื่อผู้ใช้: {isEditing ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-lg text-gray-700">ชื่อผู้ใช้:</label>
+                      {isEditing ? (
                         <input
                           type="text"
                           value={formData.username || ""}
                           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                          className="p-2 border rounded"
+                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        getuser.username
+                        <span>{getuser.username}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-lg text-gray-700">อีเมล:</label>
+                      {isEditing ? (
+                        <input
+                          type="email"
+                          value={formData.email || ""}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span>{getuser.email}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-lg text-gray-700">ชื่อจริง:</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.name || ""}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span>{getuser.name}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-lg text-gray-700">นามสกุล:</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.surname || ""}
+                          onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
+                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span>{getuser.surname}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-lg text-gray-700">เบอร์โทรศัพท์:</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.tel || ""}
+                          onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
+                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span>{getuser.tel}</span>
                       )}
                     </div>
                   </div>
-                  <div className="text-lg text-gray-700">
-                    email: {isEditing ? (
-                      <input
-                        type="email"
-                        value={formData.email || ""}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                    ) : (
-                      getuser.email
-                    )}
-                  </div>
 
-                  <div className="text-lg text-gray-700">
-                    <div>ชื่อจริง:</div>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.name || ""}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                    ) : (
-                      getuser.name
-                    )}
-                    &nbsp;
-                    <div>นามสกุล:</div>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.surname || ""}
-                        onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                    ) : (
-                      getuser.surname
-                    )}
-                  </div>
-
-                  <div className="text-lg text-gray-700">
-                    <strong>Role:</strong>
-                    {getuser.role}
-                  </div>
-
-                  <div className="text-lg text-gray-700">
-                    <strong>Tel:</strong> {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.tel || ""}
-                        onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                    ) : (
-                      getuser.tel
-                    )}
-                  </div>
-
-               
-                  {/* ช่องกรอกรหัสผ่าน */}
                   {isEditing && (
-                    <div className="text-lg text-gray-700">
-                      <div>กรอกรหัสผ่านเพื่อแก้ไขข้อมูล:</div>
+                    <div className="mt-4">
+                      <label className="text-lg text-gray-700">กรอกรหัสผ่านเพื่อยืนยันการแก้ไขข้อมูล:</label>
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="p-2 border rounded"
+                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   )}
                 </>
               ) : (
-                <div>Loading user data...</div>
+                <div>กำลังโหลดข้อมูล...</div>
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 flex gap-4">
               {isEditing ? (
                 <button
                   onClick={handleUpdate}
                   className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
                 >
-                  Save Changes
+                  บันทึกการเปลี่ยนแปลง
                 </button>
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="w-full bg-yellow-600 text-white py-2 rounded-md hover:bg-yellow-700 transition duration-300"
+                  className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-700 transition duration-300"
                 >
-                  Edit Profile
+                  แก้ไขข้อมูลส่วนตัว
                 </button>
               )}
             </div>
 
-            <div className="mt-6">
+            <Link href={`/profile/changepassword`}>
+              <button
+                className="mt-4 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
+              >
+                เปลี่ยนรหัสผ่าน
+              </button>
+            </Link>
+
+            <div className="mt-4">
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
               >
-                Logout
+                ออกจากระบบ
               </button>
             </div>
           </>
         ) : (
-          <p>Loading...</p>
+          <p>กำลังโหลด...</p>
         )}
       </div>
     </div>
