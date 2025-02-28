@@ -40,7 +40,9 @@ export default function NavbarGlobal() {
         <div className="hidden lg:flex items-center space-x-6">
           <Link href="/allasset" className="text-black text-lg font-semibold">ครุภัณฑ์ทั้งหมด</Link>
           <Link href="/" className="text-black text-lg font-semibold">สถานที่ทั้งหมด</Link>
-          <Link href="/profile/history" className="text-black text-lg font-semibold">สถานะรายการ</Link>
+          {checksession && (
+            <Link href="/profile/history" className="text-black text-lg font-semibold">สถานะรายการ</Link>
+          )}
           {!checksession ? (
             <Link href="/login" className="text-black text-lg font-semibold">เข้าสู่ระบบ</Link>
           ) : (
