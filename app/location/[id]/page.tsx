@@ -16,7 +16,7 @@ interface Location {
   // Add other properties if needed
 }
 
-export default function Manageroom() {
+export default function location() {
   const router = useRouter();
   const { id } = useParams() as { id: string };
   const [assetLocation, setAssetLocation] = useState<any[]>([]);
@@ -35,10 +35,10 @@ export default function Manageroom() {
   const [userId, setUserId] = useState('');
   const [valueinroom, setvalueinroom] = useState(0);
   const [unvalueinroom, setunvalueinroom] = useState(0);
-
+  const [borrowbotton ,setborrowbotton ] = useState(false);
   // Session
   const { data: session, status } = useSession();
-
+ 
   const fetchUser = async () => {
     if (!session?.user?.username) return; // Check if username exists in the session
     if (session.user.id) {
@@ -83,7 +83,7 @@ export default function Manageroom() {
     try {
       const [res, getlocation] = await Promise.all([
         axios.get(`/api/location`),
-        axios.get(`/api/location/${id}`)
+        axios.get(`/api/location/${decodeURIComponent(id)}`)
       ]);
       setthisLocation(getlocation.data); // Set thisLocation with the correct type
       setallLocation(res.data.filter((loc: { id: any; }) => loc.id !== getlocation.data.id));
@@ -116,6 +116,7 @@ export default function Manageroom() {
       alert("กรุณาเลือกสถานที่ที่จะยืม")
       return
     }
+    setborrowbotton(true)
     try {
       const getborrowlocation = await axios.get(`/api/assetlocationroom?location=${selectBorrowLocation}`);
       const savegetassetlocationinroomvalue = valueinroom; // เก็บค่าของก่อนที่ยืม
@@ -190,8 +191,10 @@ export default function Manageroom() {
           inRoomaunavailableValue: savegetassetlocationinroomunvalue,
         });
         setIsModalOpen(false);
+        setborrowbotton(false)
         router.push(`/`);
         alert('ยืมสำเร็จ');
+       
       }
       // เพิ่มประวัติการยืม
       await axios.post('/api/borrow', {
@@ -313,7 +316,7 @@ export default function Manageroom() {
               className="mt-4 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={clickborrow} type="primary" className="w-full">
+              <Button onClick={clickborrow} disabled={borrowbotton} type="primary" className="w-full">
                 ยืม
               </Button>
               <Button onClick={closeModal} className="w-full">

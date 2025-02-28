@@ -1,54 +1,34 @@
 'use client'
 import Link from 'next/link'
 import { Card } from 'antd';
-import axios from 'axios';
+import axios from 'axios'
 import React, { useEffect, useState } from 'react';
 
 export default function Allasset() {
   const [category, setSelectCategory] = useState('')  
   const [searchAsset, setSearchAsset] = useState('')  
-  const [sort, setSort] = useState('desc')  
   const [asset, setAsset] = useState<any[]>([])  
   const [assetlocation, setAssetlocation] = useState<any[]>([])  
   const [assetCount, setAssetCount] = useState<any[]>([])  
   const [categorys, setCategory] = useState([])
-  const [searchCategory, setSearchCategory] = useState('')
 
-
-
-  
   useEffect(() => {
-    fetchCategory()
-  }, [searchCategory])
-
-  const fetchCategory = async () => {
-    try {
-      const query = new URLSearchParams({ search: searchCategory }).toString()
-      const res = await axios.get(`/api/category?${query}`)
-      setCategory(res.data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  const fetchAsset = async () => {
-    try {
-      const query = new URLSearchParams({ category, search: searchAsset, sort }).toString()
-      const resasset = await axios.get(`/api/asset?${query}`)
-      setAsset(resasset.data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  const fetchAssetlocation = async () => {
-    try {
-      const resasset = await axios.get(`/api/assetlocation`)
-      setAssetlocation(resasset.data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
+    const fetchData = async () => {
+      try {
+        const [categoryRes, assetRes, assetlocationRes] = await Promise.all([
+          axios.get(`/api/category`),
+          axios.get(`/api/asset`),
+          axios.get(`/api/assetlocation`)
+        ]);
+        setCategory(categoryRes.data);
+        setAsset(assetRes.data);
+        setAssetlocation(assetlocationRes.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const count = () => {
     const countData = asset.map((assetItem) => {
@@ -72,15 +52,17 @@ export default function Allasset() {
   }
 
   useEffect(() => {
-    fetchAsset()
-    fetchAssetlocation()
-  }, [category, searchAsset, sort])
-
-  useEffect(() => {
     if (asset.length > 0 && assetlocation.length > 0) {
       count()  
     }
   }, [asset, assetlocation])
+
+  // ฟังก์ชันค้นหาภายใน
+  const filteredAssets = asset.filter((assetItem) => {
+    const matchesCategory = category ? assetItem.category.name === category : true;
+    const matchesSearch = assetItem.name.toLowerCase().includes(searchAsset.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 bg-gray-50">
@@ -107,13 +89,13 @@ export default function Allasset() {
         </select>
       </div>
 
-      {asset.length === 0 ? (
+      {filteredAssets.length === 0 ? (
         <div className="text-center text-gray-500 text-lg font-semibold py-6">
           ❌ ไม่มีข้อมูลสินทรัพย์
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {asset.map((assetItem) => {
+          {filteredAssets.map((assetItem) => {
             const countData = assetCount.find((item) => item.assetId === assetItem.assetid)
             return (
               <Card

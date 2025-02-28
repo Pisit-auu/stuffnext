@@ -26,6 +26,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         name,
         surname,
         username,
+        password,
         email,
         tel,
         image,

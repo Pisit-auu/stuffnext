@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 interface User {
   id: number;
@@ -13,8 +14,8 @@ interface User {
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
-  const [form, setForm] = useState({ name: "", username: "", password: "", role: "user" });
-
+  const { data: session, status } = useSession();
+  
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -29,7 +30,11 @@ export default function AdminDashboard() {
     }
   };
   
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, usernameselect :string) => {
+    if(session?.user.username === usernameselect){
+      alert("ไม่สามารถลบรหัสของตนเองได้")
+      return
+    }
     await axios.delete(`/api/auth/signup/${id}`);
     fetchUsers();
   };
@@ -59,7 +64,7 @@ export default function AdminDashboard() {
                   <td className="p-2 border">{user.username}</td>
                   <td className="p-2 border text-center">{user.role}</td>
                   <td className="p-2 border text-center">
-                    <button onClick={() => handleDelete(user.id)} className="bg-red-500 text-white px-2 py-1 rounded-md">ลบ</button>
+                    <button onClick={() => handleDelete(user.id,user.username)} className="bg-red-500 text-white px-2 py-1 rounded-md">ลบ</button>
                   </td>
                 </tr>
               ))

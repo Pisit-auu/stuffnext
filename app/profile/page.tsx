@@ -1,31 +1,35 @@
 'use client';
 import axios from 'axios';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import bcrypt from 'bcryptjs';
 
 export default function Profile() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [getuser, setUser] = useState<any>(null);
-  const [isEditing, setIsEditing] = useState(false);  // เพิ่มสถานะการแก้ไข
+  const [isEditing, setIsEditing] = useState(false);
+  const [password, setPassword] = useState('');
+  const [changepassword,setchangpassword]= useState('');
   const [formData, setFormData] = useState<any>({
-    username: "",
-    name: "",
-    surname: "",
-    email: "",
-    tel: "",
+    username: '',
+    name: '',
+    surname: '',
+    email: '',
+    tel: '',
+    password:''
   });
-  
+
   const router = useRouter();
 
   // ฟังก์ชันดึงข้อมูลผู้ใช้
   const fetchUser = async () => {
-    if (!session?.user?.username) return;  // ตรวจสอบว่ามี username ใน session หรือไม่
+    if (!session?.user?.username) return;
     try {
       const resuser = await axios.get(`/api/auth/signup/${session.user.username}`);
       if (resuser.data) {
-        setUser(resuser.data);  // อัปเดตข้อมูลผู้ใช้ที่ได้รับจาก API
-        setFormData(resuser.data);  // เตรียมข้อมูลสำหรับการแก้ไข
+        setUser(resuser.data);
+        setFormData(resuser.data);
       }
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -34,35 +38,65 @@ export default function Profile() {
 
   // ฟังก์ชันสำหรับการอัปเดตข้อมูล
   const handleUpdate = async () => {
-    if (!session?.user?.username) return;
+    if (!session?.user?.username || !password) return;
+
     try {
+      // ตรวจสอบรหัสผ่านที่กรอก
+      const isPasswordCorrect = await bcrypt.compare(password, getuser.password);
+      if (!isPasswordCorrect) {
+        alert('รหัสผ่านไม่ถูกต้อง');
+        return;
+      }
+
+      // อัปเดตข้อมูลผู้ใช้บน server
       const res = await axios.put(`/api/auth/signup/${session.user.username}`, formData);
       if (res.status === 200) {
-        setUser(formData);  // อัปเดตข้อมูลผู้ใช้ใน state
-        setIsEditing(false);  // ปิดโหมดแก้ไข
-        alert('User data updated successfully!');
+        setUser(formData);
+        setIsEditing(false);
+
+        // อัปเดต session บน client
+        await update({
+          user: {
+            ...session.user,
+            ...formData,
+          },
+        });
+
+        // รีเฟรช session ด้วยรหัสผ่านใหม่
+        const response = await signIn("credentials", {
+          redirect: false,
+          username: session.user.username,
+          password,
+        });
+
+        // ตรวจสอบผลการเข้าสู่ระบบ
+        if (response?.error) {
+          alert('เกิดข้อผิดพลาด');
+        } else {
+          alert('เปลี่ยนข้อมูลเรียบร้อย');
+          setPassword('')
+        }
       }
     } catch (error) {
-      console.error('Error updating user:', error);
-      alert('Error updating user data.');
+      console.error('มีปัญหาระหว่างอัพโหลด:', error);
+      alert('มีปัญหาระหว่างอัพโหลด.');
     }
   };
 
   // เรียก fetchUser เมื่อ session มีการเปลี่ยนแปลง หรือเมื่อ status เป็น 'authenticated'
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && session?.user?.username) {
       fetchUser();  // ดึงข้อมูลผู้ใช้เมื่อ session พร้อมใช้งาน
     }
-  }, [status]);  // เปลี่ยนแปลงตาม status ของ session
+  }, [status, session?.user?.username]);
 
   // ตรวจสอบสถานะการโหลด session
   if (status === 'loading') {
-    return <p>Loading...</p>;  // กำลังโหลด session
+    return <p>Loading...</p>;
   }
 
   if (status === 'unauthenticated') {
-    router.push('/login');  // ถ้าไม่ได้ login, เปลี่ยนหน้าไปที่หน้า login
-
+    router.push('/login');
   }
 
   return (
@@ -74,44 +108,41 @@ export default function Profile() {
               Welcome, <span className="text-blue-600">{session.user.username}</span>!
             </div>
             <div className="space-y-3">
-              {/* แสดงข้อมูลผู้ใช้เมื่อได้ข้อมูลจาก API */}
               {getuser ? (
                 <>
-                  {/*บน*/}
                   <div className="flex">
                     <div className="text-lg text-gray-700">
                       ชื่อผู้ใช้: {isEditing ? (
                         <input
-                        type="text"
-                        value={formData.username ?? ""}
-                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        className="p-2 border rounded"
-                      />
-                      
+                          type="text"
+                          value={formData.username || ""}
+                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                          className="p-2 border rounded"
+                        />
                       ) : (
                         getuser.username
                       )}
                     </div>
-                    <div className="text-lg text-gray-700">
-                      email: {isEditing ? (
-                        <input
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="p-2 border rounded"
-                        />
-                      ) : (
-                        getuser.email
-                      )}
-                    </div>
                   </div>
-                  
+                  <div className="text-lg text-gray-700">
+                    email: {isEditing ? (
+                      <input
+                        type="email"
+                        value={formData.email || ""}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="p-2 border rounded"
+                      />
+                    ) : (
+                      getuser.email
+                    )}
+                  </div>
+
                   <div className="text-lg text-gray-700">
                     <div>ชื่อจริง:</div>
                     {isEditing ? (
                       <input
                         type="text"
-                        value={formData.name}
+                        value={formData.name || ""}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="p-2 border rounded"
                       />
@@ -123,7 +154,7 @@ export default function Profile() {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={formData.surname}
+                        value={formData.surname || ""}
                         onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
                         className="p-2 border rounded"
                       />
@@ -131,26 +162,17 @@ export default function Profile() {
                       getuser.surname
                     )}
                   </div>
-                  
+
                   <div className="text-lg text-gray-700">
-                      <strong>Role:</strong> {/*{isEditing && session?.user?.role === "admin" ? (
-                        <input
-                          type="text"
-                          value={formData.role}
-                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                          className="p-2 border rounded"
-                        />
-                      ) : (
-                        getuser.role
-                      )}*/}
-                      {getuser.role}
-                    </div>
+                    <strong>Role:</strong>
+                    {getuser.role}
+                  </div>
 
                   <div className="text-lg text-gray-700">
                     <strong>Tel:</strong> {isEditing ? (
                       <input
                         type="text"
-                        value={formData.tel}
+                        value={formData.tel || ""}
                         onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
                         className="p-2 border rounded"
                       />
@@ -158,9 +180,23 @@ export default function Profile() {
                       getuser.tel
                     )}
                   </div>
+
+               
+                  {/* ช่องกรอกรหัสผ่าน */}
+                  {isEditing && (
+                    <div className="text-lg text-gray-700">
+                      <div>กรอกรหัสผ่านเพื่อแก้ไขข้อมูล:</div>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="p-2 border rounded"
+                      />
+                    </div>
+                  )}
                 </>
               ) : (
-                <div>Loading user data...</div>  
+                <div>Loading user data...</div>
               )}
             </div>
 
@@ -192,7 +228,7 @@ export default function Profile() {
             </div>
           </>
         ) : (
-          <p>Loading...</p>  
+          <p>Loading...</p>
         )}
       </div>
     </div>

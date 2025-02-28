@@ -17,6 +17,7 @@
     "antd": "^5.24.2",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cloudinary": "^2.5.1",
     "ioredis": "^5.5.0",
     "next": "15.1.6",

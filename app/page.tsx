@@ -11,6 +11,15 @@ export default function Home() {
   const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
 
   useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await axios.get(`/api/location`);
+        setLocations(res.data);
+        setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
+      } catch (error) {
+        console.error(error);
+      }
+    };
     fetchLocations();
   }, []);
 
@@ -23,15 +32,7 @@ export default function Home() {
     );
   }, [searchLocation, locations]);
 
-  const fetchLocations = async () => {
-    try {
-      const res = await axios.get(`/api/location`);
-      setLocations(res.data);
-      setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
