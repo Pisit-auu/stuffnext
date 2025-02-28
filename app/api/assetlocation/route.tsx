@@ -49,23 +49,29 @@ export async function GET(request: NextRequest) {
     }
 }
 
-
 export async function POST(request: Request){
-    const {assetId,locationId,inRoomavailableValue,inRoomaunavailableValue} = await request.json()
+    const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue } = await request.json();
+
+    // ตรวจสอบว่า inRoomavailableValue และ inRoomaunavailableValue เป็นตัวเลขที่ถูกต้อง
     const intInRoomavailableValue = parseInt(inRoomavailableValue, 10);
     const intUnavailableValueNumber = parseInt(inRoomaunavailableValue, 10);
-    try{
-        
+
+    if (isNaN(intInRoomavailableValue) || isNaN(intUnavailableValueNumber)) {
+        return new Response("Invalid number format", { status: 400 });
+    }
+
+    try {
+        // สร้างข้อมูลใหม่ใน assetLocation
         const newassetlocation = await prisma.assetLocation.create({
             data: {
-              asset: { connect: { assetid: assetId } }, 
-              location: { connect: { namelocation: locationId } }, 
-              inRoomavailableValue: intInRoomavailableValue,
+                asset: { connect: { assetid: assetId } }, 
+                location: { connect: { namelocation: locationId } }, 
+                inRoomavailableValue: intInRoomavailableValue,
                 inRoomaunavailableValue: intUnavailableValueNumber,
             },
-          });
-          
-          const existingAsset = await prisma.asset.findUnique({
+        });
+
+        const existingAsset = await prisma.asset.findUnique({
             where: { assetid: assetId },
             select: { availableValue: true, unavailableValue: true },
         });
@@ -84,9 +90,8 @@ export async function POST(request: Request){
         });
 
         return Response.json({ newassetlocation, updatedAsset });
-    }catch (error){
-        return new Response(error as BodyInit,{
-            status:500,
-        })
+    } catch (error) {
+        console.error("Error in POST request:", error);
+        return new Response("Internal Server Error", { status: 500 });
     }
 }

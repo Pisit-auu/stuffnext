@@ -46,9 +46,7 @@ export default function Allasset() {
 
   const fetchAssetlocation = async () => {
     try {
-      const resasset = await axios.get(`/api/assetlocation`, {
-        timeout: 10000, // เพิ่มเวลา timeout เป็น 10 วินาที
-      });
+      const resasset = await axios.get(`/api/assetlocation`)
       setAssetlocation(resasset.data)
     } catch (error) {
       console.error(error)
