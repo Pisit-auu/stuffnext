@@ -67,18 +67,27 @@ export default function Allasset() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 bg-gray-50">
       {/* ค้นหาครุภัณฑ์ */}
-      <div className="flex justify-center mb-8">
-        <input
-          type="text"
-          placeholder="🔍 ค้นหาครุภัณฑ์..."
-          value={searchAsset}
-          onChange={(e) => setSearchAsset(e.target.value)}
-          className="w-full sm:w-96 px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-        />
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
+        <div className="relative w-full sm:w-96">
+          <input
+            type="text"
+            placeholder="ค้นหาครุภัณฑ์..."
+            value={searchAsset}
+            onChange={(e) => setSearchAsset(e.target.value)}
+            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          />
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <img 
+              src="search.png" 
+              alt="ค้นหา"
+              className="w-6 h-6"
+            />
+          </button>
+        </div>
         <select
           value={category}
           onChange={(e) => setSelectCategory(e.target.value)}
-          className="px-4 py-2 ml-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
         >
           <option value="">เลือกประเภทครุภัณฑ์</option>
           {categorys.map((cat: any) => (
@@ -110,7 +119,7 @@ export default function Allasset() {
               >
                 <div className="px-2 py-4 text-center">
                   <p className="text-gray-700 text-md">📦 จำนวนทั้งหมด: <span className="font-semibold">{assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0)}</span></p>
-                  <p className="text-green-600 text-md">✅ พร้อมใช้งาน: <span className="font-semibold">{assetItem.availableValue + (countData?.totalAvailable || 0)}</span></p>
+                  <p className="text-green-600 text-md">✓ พร้อมใช้งาน: <span className="font-semibold">{assetItem.availableValue + (countData?.totalAvailable || 0)}</span></p>
                 </div>
                 <div className="flex justify-center mt-6">
                   <Link

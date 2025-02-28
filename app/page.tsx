@@ -38,13 +38,22 @@ export default function Home() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Input Search */}
       <div className="flex justify-center mb-6">
+            <div className="relative w-full sm:w-96">
         <input
-          type="text"
-          placeholder="🔍 ค้นหาสถานที่..."
-          value={searchLocation}
-          onChange={(e) => setSearchLocation(e.target.value)}
-          className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-        />
+            type="text"
+            placeholder="ค้นหาครุภัณฑ์..."
+            value={searchLocation}
+            onChange={(e) => setSearchLocation(e.target.value)}
+            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          />
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <img 
+              src="search.png" 
+              alt="ค้นหา"
+              className="w-6 h-6"
+            />
+          </button>
+        </div>
       </div>
 
       {/* Grid Layout for Cards */}
@@ -75,7 +84,7 @@ export default function Home() {
                 href={`location/${location.namelocation}`}
                 className="mt-4 block w-full text-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
               >
-                ดูรายละเอียด
+                ยืมของภายในห้อง
               </Link>
             </div>
           </Card>

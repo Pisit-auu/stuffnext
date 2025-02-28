@@ -8,7 +8,8 @@ export default function NavbarGlobal() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session, status } = useSession();
   const [checksession, setchecksession] = useState(false);
-
+  const [name, setName] = useState<string>(''); 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,146 +17,104 @@ export default function NavbarGlobal() {
       setchecksession(false);
     } else if (status === 'authenticated') {
       setchecksession(true);
-      //console.log(session?.user?.role); // Using optional chaining to avoid errors if session or user is undefined
+      setName(session?.user?.name || '');
     }
   }, [status, router]);
-
-  // Toggle menu
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
 
   return (
     <div className="relative">
       {/* Navbar */}
-      <div className="grid grid-cols-3 bg-sky-600 h-24 items-center shadow-xl z-50 border-b-2 border-blue-950">
-        {/* Left Menu */}
-        <div className="flex justify-self-start ml-8">
-          <button className="focus:outline-none" onClick={toggleMenu}>
-            <img className="w-8 h-8" src="/menu.png" alt="menu" />
-          </button>
-        </div>
+      <div className="flex items-center justify-between bg-[#7EDBE9] h-20 px-6 shadow-lg border-b-2 border-blue-950">
+        
+        {/* ปุ่มเมนู (Sidebar) สำหรับมือถือ */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden">
+          <img className="w-8 h-8" src="/menu.png" alt="menu" />
+        </button>
 
-        {/* Logo */}
-        <div className="justify-self-center">
-          <Link href="/">
-            <img className="w-[50px] h-auto" src="https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png" alt="Logo" />
-          </Link>
-        </div>
+        {/* โลโก้หรือชื่อระบบ */}
+        <Link href="/">
+          <h1 className="text-xl text-[#002584] font-semibold">┃Srinakarin Inventory</h1>
+        </Link>
 
-        {/* Right Menu */}
-        <div className="flex justify-self-end items-center mr-8 space-x-4 hidden lg:flex">
-          <div className="text-white text-xl font-semibold">
-            <Link href="/allasset">{"ครุภัณฑ์ทั้งหมด"}</Link>
-          </div>
-          <div className="text-white text-xl font-semibold">
-            <Link href="/">{"สถานที่ทั้งหมด"}</Link>
-          </div>
-
-          {checksession && (
-            <div className="text-white text-xl font-semibold">
-              <Link href="/profile">{"โปรไฟล์"}</Link>
-            </div>
-          )}
-
-          {checksession && session?.user?.role === "admin" && (
-            <div className="text-white text-xl font-semibold">
-              <Link href="/admin">{"admin"}</Link>
-            </div>
-          )}
-
-          {!checksession && (
-            <div className="text-white text-xl font-semibold">
-              <Link href="/login">{"เข้าสู่ระบบ"}</Link>
+        {/* เมนูหลัก (ซ่อนในมือถือ) */}
+        <div className="hidden lg:flex items-center space-x-6">
+          <Link href="/allasset" className="text-black text-lg font-semibold">ครุภัณฑ์ทั้งหมด</Link>
+          <Link href="/" className="text-black text-lg font-semibold">สถานที่ทั้งหมด</Link>
+          <Link href="/profile/history" className="text-black text-lg font-semibold">สถานะรายการ</Link>
+          {!checksession ? (
+            <Link href="/login" className="text-black text-lg font-semibold">เข้าสู่ระบบ</Link>
+          ) : (
+            <div className="relative">
+              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="text-black text-lg  font-semibold">
+                {name} ﹀
+              </button>
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    className="w-full text-left px-4 py-2 text-black  hover:bg-gray-200"
+                  >
+                    ออกจากระบบ
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {checksession && (
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="text-white text-xl font-semibold"
-            >
-              ออกจากระบบ
-            </button>
+            <Link href="/profile">
+              <img className="w-10 h-10 rounded-full" src="/profile.png" alt="Profile" />
+            </Link>
           )}
         </div>
       </div>
 
-      {/* Sidebar Menu */}
-      {isMenuOpen && (
-        <div className="absolute left-0 top-0 w-64 h-[500px] bg-white shadow-lg z-50 rounded-lg overflow-hidden">
-          <div className="flex justify-between items-center p-4 bg-sky-600 text-white">
-            <div className="text-xl font-semibold">
-              <Link href="/profile">{session?.user?.name}</Link>
-            </div>
-            <button className="hover:text-red-400" onClick={toggleMenu}>
-              ✖
-            </button>
-          </div>
-
-          <div className="p-4">
-            <Link href="/allasset">
-              <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                ครุภัณฑ์ทั้งหมด
-              </div>
-            </Link>
-            <Link href="/">
-              <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                สถานที่ทั้งหมด
-              </div>
-            </Link>
-            {checksession && (
-              <Link href="/profile">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  โปรไฟล์
-                </div>
-              </Link>
-            )}
-            {checksession && (
-              <Link href="/profile/history">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  ประวัติการยืม
-                </div>
-              </Link>
-            )}
-            {!checksession && (
-              <Link href="/login">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  login
-                </div>
-              </Link>
-            )}
-            {checksession && session?.user?.role === "admin" && (
-              <Link href="/admin">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  admin
-                </div>
-              </Link>
-            )}
-            {checksession && session?.user?.role === "admin" && (
-              <Link href="/admin/borrowall">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  ประวัติการยืมทั้งหมด
-                </div>
-              </Link>
-            )}
-            {checksession && session?.user?.role === "admin" && (
-              <Link href="/admin/user">
-                <div className="text-blue-800 mb-4 hover:text-blue-800 cursor-pointer font-medium">
-                  user ทั้งหมด
-                </div>
-              </Link>
-            )}
-            {checksession && (
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="text-red-800  font-medium"
-            >
-              ออกจากระบบ
-            </button>
-          )}
-          </div>
+      {/* Sidebar (สำหรับมือถือ) */}
+      <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isMenuOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out z-50`}>
+        
+        {/* หัวเมนู Sidebar */}
+        <div className="flex justify-between items-center p-4 bg-[#7EDBE9] text-white">
+          <h1 className="text-xl font-semibold">{session?.user?.name || "เมนู"}</h1>
+          <button onClick={() => setIsMenuOpen(false)} className="hover:text-red-400">✖</button>
         </div>
+
+        {/* รายการเมนู */}
+        <div className="p-4 space-y-4">
+          <Link href="/allasset" className="block text-blue-800 hover:text-blue-600 font-medium">ครุภัณฑ์ทั้งหมด</Link>
+          <Link href="/" className="block text-blue-800 hover:text-blue-600 font-medium">สถานที่ทั้งหมด</Link>
+
+          {checksession && (
+            <>
+              <Link href="/profile" className="block text-blue-800 hover:text-blue-600 font-medium">โปรไฟล์</Link>
+              <Link href="/profile/history" className="block text-blue-800 hover:text-blue-600 font-medium">ประวัติการยืม</Link>
+            </>
+          )}
+
+          {!checksession ? (
+            <Link href="/login" className="block text-blue-800 hover:text-blue-600 font-medium">เข้าสู่ระบบ</Link>
+          ) : (
+            <>
+              {session?.user?.role === "admin" && (
+                <>
+                  <Link href="/admin" className="block text-blue-800 hover:text-blue-600 font-medium">หน้า Admin</Link>
+                  <Link href="/admin/borrowall" className="block text-blue-800 hover:text-blue-600 font-medium">ประวัติการยืมทั้งหมด</Link>
+                  <Link href="/admin/user" className="block text-blue-800 hover:text-blue-600 font-medium">ผู้ใช้ทั้งหมด</Link>
+                </>
+              )}
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full text-left text-red-800 font-medium hover:text-red-600"
+              >
+                ออกจากระบบ
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ปิดเมนูเมื่อกดข้างนอก */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-black opacity-30 z-40" onClick={() => setIsMenuOpen(false)}></div>
       )}
     </div>
   );

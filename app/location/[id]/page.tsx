@@ -225,18 +225,27 @@ export default function location() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* 🔍 Input Search */}
-      <div className="flex justify-center mb-6">
-        <input
-          type="text"
-          placeholder="🔍 ค้นหาชื่อของในห้อง"
-          value={searchLocation}
-          onChange={(e) => setSearchLocation(e.target.value)}
-          className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-        />
+        <div className="flex justify-center mb-6">
+            <div className="relative w-full sm:w-96">
+        {/* ไอคอนค้นหา */}
+            <input
+            type="text"
+            placeholder="ค้นหาครุภัณฑ์..."
+            value={searchLocation}
+            onChange={(e) => setSearchLocation(e.target.value)}
+            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          />
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <img 
+              src="/search.png" 
+              alt="ค้นหา"
+              className="w-6 h-6"
+            />
+          </button>
+        </div>
       </div>
 
-      {/* 🏠 Grid Layout for Cards */}
+      {/*  Grid Layout for Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {filteredLocation.map((As: any) => (
           <div key={As.id} className="bg-white shadow-lg rounded-lg overflow-hidden w-full">
@@ -247,9 +256,9 @@ export default function location() {
             />
             <div className="p-4">
               <h2 className="text-lg font-semibold">{As.asset.name}</h2>
-              <p className="text-gray-600">📍 สถานที่: {As.location.namelocation}</p>
-              <p className="text-gray-700">📦 จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
-              <p className="text-gray-700">📦 จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
+              <p className="text-gray-600">สถานที่: {As.location.namelocation}</p>
+              <p className="text-gray-700">จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
+              <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
               <div className="mt-4">
                 <button onClick={() => clisckbutton(As,As.inRoomavailableValue,As.inRoomaunavailableValue)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
                   ยืม
@@ -264,7 +273,7 @@ export default function location() {
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-96">
             <h2 className="text-xl font-semibold text-center mb-4">{selectedDetailAsset.asset.name}</h2>
-            <p className="text-gray-600 text-center mb-4">📍 สถานที่จะยืม: {selectedDetailAsset.location.namelocation}</p>
+            <p className="text-gray-600 text-center mb-4">สถานที่จะยืม: {selectedDetailAsset.location.namelocation}</p>
             <Select
               showSearch
               placeholder="เลือกสถานที่ยืม"
