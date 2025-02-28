@@ -46,7 +46,9 @@ export default function Allasset() {
 
   const fetchAssetlocation = async () => {
     try {
-      const resasset = await axios.get(`/api/assetlocation`)
+      const resasset = await axios.get(`/api/assetlocation`, {
+        timeout: 10000, // เพิ่มเวลา timeout เป็น 10 วินาที
+      });
       setAssetlocation(resasset.data)
     } catch (error) {
       console.error(error)
@@ -126,13 +128,12 @@ export default function Allasset() {
                     {assetItem.name}
                   </div>
                 }
-                bordered={false}
+                variant={"outlined"}
                 className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl p-6 bg-white"
               >
                 <div className="px-2 py-4 text-center">
                   <p className="text-gray-700 text-md">📦 จำนวนทั้งหมด: <span className="font-semibold">{assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0)}</span></p>
                   <p className="text-green-600 text-md">✅ พร้อมใช้งาน: <span className="font-semibold">{assetItem.availableValue + (countData?.totalAvailable || 0)}</span></p>
-                  <p className="text-red-600 text-md">❌ เสียหาย: <span className="font-semibold">{assetItem.unavailableValue + (countData?.totalUnavailable || 0)}</span></p>
                 </div>
                 <div className="flex justify-center mt-6">
                   <Link

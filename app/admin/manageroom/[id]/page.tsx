@@ -7,6 +7,8 @@ import { Input } from 'antd';
 import { useRouter } from 'next/navigation'
 import { Button, Popconfirm } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
+import '@ant-design/v5-patch-for-react-19';
+
 const { Option } = Select;
 
 interface Asset {

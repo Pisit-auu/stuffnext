@@ -16,7 +16,7 @@ export default function create(){
       await axios.post('/api/location', { namelocation, nameteacher })
       router.push('/admin')
     } catch (error) {
-      console.error(error)
+      alert('ชื่อห้องถูกตั้งไปแล้ว')
     }
   }
 

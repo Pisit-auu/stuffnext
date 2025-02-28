@@ -18,8 +18,8 @@ const baiJamjuree = Bai_Jamjuree({
 });
 
 export const metadata: Metadata = {
-  title: "Stuff Next",
-  description: "Stuff Next",
+  title: "Srinakarin",
+  description: "Srinakarin",
 };
 
 export default async function RootLayout({

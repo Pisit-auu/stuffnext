@@ -1,5 +1,4 @@
 'use client';
-
 import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -82,7 +81,7 @@ export default function Edit() {
       });
       router.push('/admin');
     } catch (error) {
-      console.error(error);
+      alert("รหัสครุภัณฑ์ซ้ำไม่สามารถแก้ไขได้")
     }
   };
 

@@ -71,7 +71,8 @@ export default function CreateAsset() {
       
       router.push('/admin');
     } catch (error) {
-      console.error(error);
+      alert("รหัสครุภัณฑ์ ซ้ำ")
+      console.log(error)
     }
   };
 

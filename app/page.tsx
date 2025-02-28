@@ -43,7 +43,7 @@ export default function Home() {
         {locations.map((location) => (
           <Card
             key={location.id}
-            bordered={false}
+            variant={"outlined"}
             className="shadow-lg hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden"
           >
             {/* รูปภาพสถานที่ */}

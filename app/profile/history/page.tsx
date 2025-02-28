@@ -35,7 +35,7 @@ const UserBorrowHistory = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
+  const [Returned, setReturned] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -106,6 +106,32 @@ const UserBorrowHistory = () => {
           )
         );
       }
+      setReturned(true)
+    } catch (err) {
+      setError('Failed to update return date');
+    }
+  };
+  const handlecancleReturn = async (borrowId: number, id?: number) => {
+    try {
+      // สร้างวันที่คืนเป็น null
+      const dayReturn = null
+      // ส่งคำขอ PUT ไปที่ API
+      const response = await axios.put(`/api/borrow/${borrowId}`, {
+        id: borrowId,
+        dayReturn, 
+      });
+  
+      if (response.status === 200) {
+        // อัพเดตข้อมูลใน state
+        setBorrowHistory((prevHistory) =>
+          prevHistory.map((borrow) =>
+            borrow.id === borrowId
+              ? { ...borrow, dayReturn } // อัพเดตแค่วันที่คืน
+              : borrow
+          )
+        );
+      }
+      setReturned(false)
     } catch (err) {
       setError('Failed to update return date');
     }
@@ -113,7 +139,6 @@ const UserBorrowHistory = () => {
   const handlecancle = async (
     id: number,
   ) => {
-
 
     try {
 
@@ -128,7 +153,7 @@ const UserBorrowHistory = () => {
       const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);//เรียก ห้องที่จะคืน
       const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`); //เรียก assetidที่อยู่ในห้องนั้น
       const filtered = getassetlocationinroom.data.filter((item: { asset: { assetid: any; }; }) => item.asset.assetid === response.data.assetId); // กรองว่า getassetlocationinroom == assetid
-      console.log(filtered[0])
+      console.log(getassetlocationinroom)
       const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่ยืม
       const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue
 
@@ -144,7 +169,7 @@ const UserBorrowHistory = () => {
           getupdateReturnlocation.data.forEach((item: {
             inRoomaunavailableValue: number;
             inRoomavailableValue: number; assetId: string, id: number 
-}) => {
+      }) => {
             if (response.data.assetId  === item.assetId) {
               idAssetReturn = item.id;
               saveassetlocationvalule = item.inRoomavailableValue
@@ -283,10 +308,17 @@ const UserBorrowHistory = () => {
                 <td className="px-4 py-2">{borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString() : 'ยังไม่ได้คืน'}</td>
                 <td className="px-4 py-2">{borrow.note}</td>
                 <td className="px-4 py-2">
-                  {borrow.ReturnStatus !== 'c' && (
+                  {borrow.ReturnStatus !== 'c' && !Returned && (
                                     <Button type="primary" ghost  onClick={() => handleReturn(borrow.id, borrow.asset.id)}
                                     className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
                                               คืน
+                                           </Button>
+                    
+                  )}
+                  {borrow.ReturnStatus !== 'c' && Returned && (
+                                    <Button type="primary" ghost  onClick={() => handlecancleReturn(borrow.id, borrow.asset.id)}
+                                    className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
+                                              ยกเลิกการคืน
                                            </Button>
                     
                   )}

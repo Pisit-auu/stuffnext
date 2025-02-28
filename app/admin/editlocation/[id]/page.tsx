@@ -35,7 +35,7 @@ export default function Edit() {
       })
       router.push('/admin')
     } catch (error) {
-      console.error(error)
+      alert('ชื่อห้องถูกใช้ไปแล้ว ไม่สามารถใช้ซ้ำได้')
     }
   }
 

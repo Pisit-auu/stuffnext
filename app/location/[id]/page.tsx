@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Select, Input, Button, Popconfirm } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import '@ant-design/v5-patch-for-react-19';
 
 const { Option } = Select;
 
@@ -26,9 +27,9 @@ export default function Manageroom() {
   const [nameuser, setnameuser] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
-  const [avilablevaluecanput, setupdateinRoomavailableValue] = useState('');
+  const [avilablevaluecanput, setupdateinRoomavailableValue] = useState(''); //จำนวนที่จะยืม
   const [note, setNote] = useState('');
-  const [maxinputvalue, setmaxinputvalue] = useState('');
+  const [maxinputvalue, setmaxinputvalue] = useState('');  
   const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined);
   const [checksession, setchecksession] = useState(false);
   const [userId, setUserId] = useState('');
@@ -91,6 +92,7 @@ export default function Manageroom() {
     if (checksession) {
       fetchlocation();
       setmaxinputvalue(asset.inRoomavailableValue);
+      setupdateinRoomavailableValue(asset.inRoomavailableValue);
       setSelectedAsset(asset);
       if (nameuser === '' || nameuser === null) {
         alert('โปรดเพิ่มชื่อจริง ก่อนยืมที่หน้า โปรไฟล์');
@@ -104,6 +106,10 @@ export default function Manageroom() {
   };
 
   const clickborrow = async () => {
+    if(!selectBorrowLocation){
+      alert("กรุณาเลือกสถานที่ที่จะยืม")
+      return
+    }
     try {
       const getborrowlocation = await axios.get(`/api/assetlocationroom?location=${selectBorrowLocation}`);
       const getassetlocationinroom = await axios.get(`/api/assetlocation/${selectedDetailAsset.id}`);

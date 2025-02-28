@@ -55,13 +55,13 @@ export default function Manageroom() {
           Object.keys(groupedAssets).map((assetId) => (
             <div key={assetId} className="mb-6 bg-gray-100 p-6 rounded-lg shadow-md">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                🏷️ รหัสครุภัณฑ์: {assetId}
+                 รหัสครุภัณฑ์: {assetId}
               </h2>
               <h3 className="text-xl font-semibold text-gray-700">
-                🏷️ ชื่อครุภัณฑ์: {asset.name}
+                 ชื่อครุภัณฑ์: {asset.name}
               </h3>
               <h3 className="text-xl font-semibold text-gray-700">
-                🏷️ ประเภท: {asset.category.name}
+                 ประเภท: {asset.category.name}
               </h3>
               <div className="mt-4">
                 <h3 className="text-lg font-semibold text-gray-700">📦 จำนวนในคลัง</h3>

@@ -52,7 +52,7 @@ export default function SignIn() {
 
       {/* Left - Logo & Text */}
       <div className=" md:w-1/2  text-center md:text-left mb-8 md:mb-0 ">
-      <Link href={"/"}><h1 className="text-6xl font-bold text-human_C5A880 hover:text-black transition duration-100">StuffNext</h1></Link>
+      <Link href={"/"}><h1 className="text-6xl font-bold text-human_C5A880 hover:text-black transition duration-100">Srinakarin</h1></Link>
         <p className="mt-4 text-lg text-gray-600">
           {'เข้าถึงและจัดการสินค้าคงคลังอุปกรณ์ของโรงเรียน'}
         </p>
