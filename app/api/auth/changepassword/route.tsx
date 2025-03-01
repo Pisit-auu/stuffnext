@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'; // Use NextRequest and 
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/authOptions'; // Adjust the path to your auth options
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   const { oldPassword, newPassword } = await req.json(); // Parse the request body

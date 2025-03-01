@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {

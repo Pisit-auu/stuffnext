@@ -18,26 +18,34 @@ export default function CreateAsset() {
 
   const handleUpload = async () => {
     if (!file) return;
-
+  
     setIsUploading(true); // ตั้งสถานะว่ากำลังอัปโหลด
-
+  
     try {
-      // ทำการอัปโหลดไฟล์ที่เลือก
       const formData = new FormData();
       formData.append("file", file);
       
-      // ใส่คำสั่ง API ของคุณที่นี่เพื่ออัปโหลดไฟล์
-      // ตัวอย่างนี้เป็นเพียงคำสั่งที่ส่งไฟล์ไปยัง API
-      const res = await axios.post("/api/uploadimg", formData);
-      
-      // แสดง URL ของรูปภาพที่อัปโหลดแล้ว
+      const res = await axios.post("/api/uploadimg", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
       setImg(res.data.url); 
-    } catch (error) {
-      console.error("Error uploading file:", error);
+    } catch (error: any) {
+      if (error.response) {
+        console.error("Error uploading file:", error.response.data);
+      } else if (error.message) {
+        console.error("Error message:", error.message);
+      } else {
+        console.error("Unknown error:", error);
+      }
     } finally {
       setIsUploading(false); // ปิดสถานะการอัปโหลด
     }
   };
+  
+  
 
   useEffect(() => {
     fetchCategories();

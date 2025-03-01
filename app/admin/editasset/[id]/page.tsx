@@ -24,21 +24,34 @@ export default function Edit() {
 
   const handleUpload = async () => {
     if (!file) return;
-
+  
     setIsUploading(true);
-
+  
     try {
       const formData = new FormData();
       formData.append('file', file);
-
+  
       const res = await axios.post('/api/uploadimg', formData);
-      setImg(res.data.url);
-    } catch (error) {
-      console.error('Error uploading file:', error);
+  
+      if (res.data?.url) {
+        setImg(res.data.url);
+      } else {
+        console.error('No URL returned from the server');
+      }
+    } catch (error: unknown) {
+      // Type guard for 'Error' type
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        // You can access other properties of the error like `stack`
+      } else {
+        console.error('Unknown error occurred', error);
+      }
     } finally {
       setIsUploading(false);
     }
   };
+  
+  
 
   const fetchPost = async (id: string) => {
     try {

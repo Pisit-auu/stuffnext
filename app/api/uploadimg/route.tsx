@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import cloudinary from '@/app/cloudinary';
+import cloudinary from '@/lib/cloudinary';
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get('file');
-
-  // Check if the file is a File object
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'No file uploaded or invalid file type' }, { status: 400 });
-  }
-
   try {
-    // Convert the file to a base64-encoded string
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // รับข้อมูลจาก formData()
+    const formData = await req.formData();
+    const file = formData.get('file');
+
+    // ตรวจสอบว่าเป็น File หรือไม่
+    if (!(file instanceof Blob)) {
+      return NextResponse.json({ error: 'No file uploaded or invalid file type' }, { status: 400 });
+    }
+
+    // แปลง Blob เป็น Buffer (ใช้ stream เพื่อป้องกันปัญหาจาก experimental feature)
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // สร้าง base64 string สำหรับอัปโหลด
     const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    // Upload the image to Cloudinary
+    // อัปโหลดภาพไปที่ Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(base64Image, {
       folder: 'uploads',
     });
 
-    // Return the secure URL of the uploaded image
+    // ส่ง URL ของไฟล์ที่อัปโหลดกลับไป
     return NextResponse.json({ url: uploadResponse.secure_url });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

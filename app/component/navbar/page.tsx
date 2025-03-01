@@ -11,7 +11,7 @@ export default function NavbarGlobal() {
   const [name, setName] = useState<string>(''); 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
-
+  
   useEffect(() => {
     if (status === 'unauthenticated') {
       setchecksession(false);
