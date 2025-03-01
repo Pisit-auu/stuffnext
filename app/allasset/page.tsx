@@ -65,9 +65,9 @@ export default function Allasset() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 bg-gray-50">
+    <div className=" max-w-7xl mx-auto px-6 py-12 ">
       {/* ค้นหาครุภัณฑ์ */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8 ">
         <div className="relative w-full sm:w-96">
           <input
             type="text"

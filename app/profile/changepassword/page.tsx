@@ -1,15 +1,18 @@
-'use client'
-import { useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+"use client"; 
+import { useRouter } from 'next/navigation'; // นำเข้า useRouter
+import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import axios from 'axios';
+
 
 const ChangePasswordPage = () => {
   const { data: session } = useSession();
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const router = useRouter(); // ใช้ useRouter
 
   const handleChangePassword = async () => {
     if (!session || !session.user) {
@@ -31,7 +34,10 @@ const ChangePasswordPage = () => {
 
       if (res.status === 200) {
         setSuccess('เปลี่ยนรหัสผ่านสำเร็จ');
-        
+      
+        setTimeout(() => {
+          router.push('/profile'); // ไปที่หน้า /profile หลังจาก 3 วินาที
+        }, 1000);
       } else {
         setError('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
       }
@@ -40,8 +46,10 @@ const ChangePasswordPage = () => {
     }
   };
 
-  return (
-    <div className="flex h-full items-center justify-center bg-gray-100">
+
+
+  return session ? (
+    <div className="mt-8 flex h-full items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
         <h2 className="text-2xl font-semibold text-center mb-4">เปลี่ยนรหัสผ่าน</h2>
 
@@ -94,12 +102,20 @@ const ChangePasswordPage = () => {
 
         <div className="mt-6">
           <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="w-full bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition duration-300"
           >
             ออกจากระบบ
           </button>
         </div>
+      </div>
+    </div>
+  ) : (
+    <div className="flex h-screen items-center justify-center bg-gray-100">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center mt-[-450px]">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">คุณยังไม่ได้เข้าสู่ระบบ</h2>
+        <p className="text-gray-600 mb-4">กรุณาเข้าสู่ระบบเพื่อเปลี่ยนรหัสผ่าน</p>
+
       </div>
     </div>
   );

@@ -1,189 +1,93 @@
 'use client'
-
-import { useState, FormEvent, useEffect } from 'react'
-import { signIn, SignInResponse } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import axios from 'axios'
-import Link from 'next/link';
 import Image from "next/image";
+import Link from 'next/link';
+import { Card } from 'antd';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
-export default function SignIn() {
-  const [username, setUsername] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [isSignUp, setIsSignUp] = useState<boolean>(false)
-  const [errorMessage, setErrorMessage] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const router = useRouter()
-  const [redirectUrl, setRedirectUrl] = useState<string>('/')
+export default function Home() {
+  const [locations, setLocations] = useState<any[]>([]);
+  const [searchLocation, setSearchLocation] = useState('');
+  const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
 
-  // ฟังก์ชันเข้าสู่ระบบ
-  const handleSignInSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!username || !password) {
-      setErrorMessage('Both fields are required');
-      return;
-    }
-  
-    setLoading(true);
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        username,
-        password,
-      });
-  
-      if (!result) {
-        setErrorMessage('Sign-in failed. Please try again.');
-        return;
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await axios.get(`/api/location`);
+        setLocations(res.data);
+        setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
+      } catch (error) {
+        console.error(error);
       }
-  
-      if (result.error) {
-        setErrorMessage(result.error);
-      } else {
-        router.push(redirectUrl);
-      }
-    } catch (error) {
-      setErrorMessage('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchLocations();
+  }, []);
 
-  // ฟังก์ชันสมัครสมาชิก
-  const handleSignUpSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!username || !password) {
-      setErrorMessage('Both fields are required')
-      return
-    }
-
-    setLoading(true)
-    try {
-      await axios.post('/api/auth/signup', { username, password })
-      router.push('/login')
-    } catch (error) {
-      setErrorMessage('Sign Up failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    // ค้นหาจากข้อมูลที่มีอยู่ ไม่ต้องเรียก API ใหม่
+    setFilteredLocations(
+      locations.filter(location => 
+        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
+      )
+    );
+  }, [searchLocation, locations]);
 
   return (
-  
+    <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
+      {/* Input Search */}
+      <div className="flex justify-center mb-8">
+        <div className="relative w-full sm:w-96">
+          <input
+            type="text"
+            placeholder="ค้นหาครุภัณฑ์..."
+            value={searchLocation}
+            onChange={(e) => setSearchLocation(e.target.value)}
+            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          />
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <img 
+              src="search.png" 
+              alt="ค้นหา"
+              className="w-6 h-6"
+            />
+          </button>
+        </div>
+      </div>
 
-
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-
-        {/* Content Top */}
-        <div className="flex flex-col md:flex-row-reverse items-center w-full max-w-5xl flex-grow  p-16">
-            {/* Image */}
-            <div className="w-full md:w-1/2 flex justify-end">
+      {/* Grid Layout for Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredLocations.map((location) => (
+          <Card
+            key={location.id}
+            variant={"outlined"}
+            className="shadow-lg hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden"
+          >
+            {/* รูปภาพสถานที่ */}
+            {location.image && (
+              <div className="relative w-full h-40 rounded-t-lg overflow-hidden">
                 <Image
-                    src="/" 
-                    alt="Picture of the school"
-                    width={400}
-                    height={300}
-                    className="rounded-lg shadow-md"
+                  src={location.image}
+                  alt={location.namelocation}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-t-lg"
                 />
+              </div>
+            )}
+
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">{location.namelocation}</h3>
+              <p className="text-gray-600 mt-2">ผู้รับผิดชอบ: {location.nameteacher}</p>
+              <Link
+                href={`location/${location.namelocation}`}
+                className="mt-4 block w-full text-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+              >
+                ยืมของภายในห้อง
+              </Link>
             </div>
-
-            {/* Content */}
-            <div className="w-full md:w-1/2 text-left md:pl-12">
-                <h1 className="text-5xl font-bold text-blackblue_111827 hover:text-black transition duration-100">
-                ▎StuffNext
-                </h1>
-                <p className="mt-4 text-lg text-gray-600">
-                    This is the website for managing equipment within Srinakharinwirot School. 
-                    You can visit the school's main website here.
-                </p>
-                <div className="flex justify-start">
-                    <button
-                    type="submit"
-                    className="w-24 bg-yellow-500 text-white py-2 rounded-lg text-lg font-semibold hover:bg-yellow-600 transition duration-300 mt-8"
-                    >
-                    Let's go
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    
-
-        {/* Content Center */}
-        <div className="flex flex-col items-center w-full h-auto bg-gray-200 rounded-lg	pb-20">
-            <h1 className="text-5xl font-extrabold text-gray-800	 transition duration-100 mt-20">
-                    StuffNext's Features
-            </h1>
-            <p className="mt-2 text-lg text-gray-600">
-                Choose the features that enchance the efficiency of managing school assets
-            </p>
-            
-            <div className="flex flex-row item-center  mt-16 space-x-10">
-
-                <Link href="#">
-                    <div className=" rounded-lg hover:bg-blue-200">    
-                        <Image
-                            src="/" 
-                            alt="Button Icon"
-                            width={200} 
-                            height={200} 
-                            className="bg-white rounded-lg shadow-md" 
-                        />
-                        <div className="mt-12 text-xl text-blackblue_111827 text-center font-semibold	" >BORROW</div>
-                    </div>
-                </Link>
-
-                <Link href="#">
-                    <div className=" rounded-lg hover:bg-blue-200">    
-                        <Image
-                        src="/" 
-                        alt="Button Icon"
-                        width={200} 
-                        height={200} 
-                        className="bg-white rounded-lg shadow-md" 
-                        />
-                        <div className="mt-12 text-xl text-blackblue_111827 text-center font-semibold	" >RETURN</div>
-                    </div>
-                </Link>
-                
-                
-                <Link href="#">
-                    <div className=" rounded-lg hover:bg-blue-200">    
-                        <Image
-                        src="/" // เปลี่ยนเป็นไฟล์จริง
-                        alt="Button Icon"
-                        width={200} // ขนาดของรูป
-                        height={200} // ขนาดของรูป
-                        className="bg-white rounded-lg shadow-md" // เพิ่มระยะห่างจากข้อความ
-                        />
-                        <div className="mt-12 text-xl text-blackblue_111827 text-center font-semibold" >USER STATUS</div>
-                    </div>
-                </Link>
-            </div>
- 
-        
-        </div>
-
-
-        {/* Content Bottom */}
-        <div className="flex flex-col items-center w-full h-auto bg-blackblue_111827 rounded-lg	">
-            <h1 className="text-5xl font-bold text-red-800	 transition duration-100 mt-20">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque recusandae ab aperiam sapiente sit vero amet delectus quisquam voluptatem adipisci.
-            </h1>
-        </div>
-
+          </Card>
+        ))}
+      </div>
     </div>
-
-
-    
-    
-    
- 
-       
-
-
-    
-
-  )
+  );
 }
-// 

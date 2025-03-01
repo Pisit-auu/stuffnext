@@ -24,7 +24,7 @@ export default function NavbarGlobal() {
   return (
     <div className="relative">
       {/* Navbar */}
-      <div className="flex items-center justify-between bg-[#7EDBE9] h-20 px-6 shadow-lg border-b-2 border-blue-950">
+      <div className="flex items-center justify-between bg-[#7EDBE9] h-20 px-6 shadow-lg border-b-2 border-[#7EDBE9]">
         
         {/* ปุ่มเมนู (Sidebar) สำหรับมือถือ */}
         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden">
@@ -33,21 +33,21 @@ export default function NavbarGlobal() {
 
         {/* โลโก้หรือชื่อระบบ */}
         <Link href="/">
-          <h1 className="text-xl text-[#002584] font-semibold">┃Srinakarin Inventory</h1>
+          <h1 className="text-xl text-[#002584] ">┃Srinakarin Inventory</h1>
         </Link>
 
         {/* เมนูหลัก (ซ่อนในมือถือ) */}
         <div className="hidden lg:flex items-center space-x-6">
-          <Link href="/allasset" className="text-black text-lg font-semibold">ครุภัณฑ์ทั้งหมด</Link>
-          <Link href="/" className="text-black text-lg font-semibold">สถานที่ทั้งหมด</Link>
+          <Link href="/allasset" className="text-black text-lg ">ครุภัณฑ์ทั้งหมด</Link>
+          <Link href="/home" className="text-black text-lg ">สถานที่ทั้งหมด</Link>
           {checksession && (
-            <Link href="/profile/history" className="text-black text-lg font-semibold">สถานะรายการ</Link>
+            <Link href="/profile/history" className="text-black text-lg ">สถานะรายการ</Link>
           )}
           {!checksession ? (
-            <Link href="/login" className="text-black text-lg font-semibold">เข้าสู่ระบบ</Link>
+            <Link href="/login" className="text-black text-lg ">เข้าสู่ระบบ</Link>
           ) : (
             <div className="relative">
-              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="text-black text-lg  font-semibold">
+              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="text-black text-lg ">
                 {name} ﹀
               </button>
               {isDropdownOpen && (
@@ -56,17 +56,17 @@ export default function NavbarGlobal() {
                         <>
                           <Link href="/admin">
                             <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
-                              Admin
+                              แอดมิน
                             </button>
                           </Link>
                           <Link href="/admin/borrowall">
                             <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
-                              All History
+                              ประวัติการยืมทั้งหมด
                             </button>
                           </Link>
                           <Link href="/admin/user">
                             <button className="w-full text-left px-4 py-2 text-black hover:bg-gray-200">
-                              All User
+                              รายชื่อผู้ใช้ทุกคน
                             </button>
                           </Link>
                         </>
@@ -104,7 +104,7 @@ export default function NavbarGlobal() {
         {/* รายการเมนู */}
         <div className="p-4 space-y-4">
           <Link href="/allasset" className="block text-blue-800 hover:text-blue-600 font-medium">ครุภัณฑ์ทั้งหมด</Link>
-          <Link href="/" className="block text-blue-800 hover:text-blue-600 font-medium">สถานที่ทั้งหมด</Link>
+          <Link href="/home" className="block text-blue-800 hover:text-blue-600 font-medium">สถานที่ทั้งหมด</Link>
 
           {checksession && (
             <>

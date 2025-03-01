@@ -108,6 +108,7 @@ const UserBorrowHistory = () => {
         );
       }
       setReturned(true)
+      alert("สถานะการคืนจะอัพเดต เมื่อแอดมินตรวจสอบเสร็จสิ้น")
     } catch (err) {
       setError('Failed to update return date');
     }
@@ -226,26 +227,29 @@ const UserBorrowHistory = () => {
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-4">User Borrow History</h1>
+    <div className="container mx-auto mt-4 p-4">
+      <h1 className="text-2xl font-semibold mb-4">สถานะการยืมของ {session?.user.name}</h1>
 
       {/* ฟอร์มการค้นหาด้วยวันที่ */}
       <div className="mb-4">
-        <label className="mr-2">วันที่เริ่มต้น:</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="px-4 py-2 border rounded"
-        />
-        <label className="ml-4 mr-2">ถึงวันที่:</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="px-4 py-2 border rounded"
-        />
-      </div>
+      <label htmlFor="startDate" className="mr-2">วันที่เริ่มต้น:</label>
+      <input
+        id="startDate"
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        className="px-4 py-2 border rounded"
+      />
+      <label htmlFor="endDate" className="ml-4 mr-2">ถึงวันที่:</label>
+      <input
+        id="endDate"
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="px-4 py-2 border rounded"
+      />
+    </div>
+    
 
       {/* ฟอร์มการค้นหาด้วยข้อมูล */}
       <div className="mb-4">

@@ -14,24 +14,30 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    // รับข้อมูลที่อาจจะมีค่าบางฟิลด์ที่ต้องการอัปเดต
     const { name, surname, username, password, email, tel, image, role } = await request.json();
 
-    // ✅ ต้อง await ก่อนเข้าถึงค่า params
+    // ต้อง await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
-    const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ใช้ bcrypt แฮชรหัสผ่าน ถ้ามีการเปลี่ยนแปลง
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
+    // เตรียมข้อมูลที่ต้องการอัปเดต
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (surname) updateData.surname = surname;
+    if (username) updateData.username = username;
+    if (hashedPassword) updateData.password = password;
+    if (email) updateData.email = email;
+    if (tel) updateData.tel = tel;
+    if (image) updateData.image = image;
+    if (role) updateData.role = role;
+
+    // อัปเดตข้อมูลในฐานข้อมูล
     const update = await prisma.user.update({
       where: { username: id },
-      data: {
-        name,
-        surname,
-        username,
-        password,
-        email,
-        tel,
-        image,
-        role,
-      },
+      data: updateData,
     });
 
     return Response.json(update);

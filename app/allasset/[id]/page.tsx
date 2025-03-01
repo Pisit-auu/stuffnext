@@ -27,6 +27,7 @@ export default function Manageroom() {
     try {
       const res = await axios.get(`/api/asset/${decodeURIComponent(id)}`);
       setAsset(res.data);
+      console.log(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -42,42 +43,61 @@ export default function Manageroom() {
       grouped[item.assetId].push({
         location: item.location.namelocation,
         inRoomavailableValue: item.inRoomavailableValue,
-        inRoomunavailableValue: item.inRoomaunavailableValue,
+        inRoomaunavailableValue: item.inRoomaunavailableValue,
       });
     });
     setGroupedAssets(grouped);
+    console.log(grouped)
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+    <div className="mt-4 max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl">
       {asset ? (
         Object.keys(groupedAssets).length > 0 ? (
           Object.keys(groupedAssets).map((assetId) => (
-            <div key={assetId} className="mb-6 bg-gray-100 p-6 rounded-lg shadow-md">
+            <div key={assetId} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                 รหัสครุภัณฑ์: {assetId}
+                รหัสครุภัณฑ์: {assetId}
               </h2>
-              <h3 className="text-xl font-semibold text-gray-700">
-                 ชื่อครุภัณฑ์: {asset.name}
-              </h3>
-              <h3 className="text-xl font-semibold text-gray-700">
-                 ประเภท: {asset.category.name}
-              </h3>
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold text-gray-700">📦 จำนวนในคลัง</h3>
-                <p className="text-gray-600">✅ พร้อมใช้งาน: {asset.availableValue}</p>
-                <p className="text-gray-600">❌ ไม่พร้อมใช้งาน: {asset.unavailableValue}</p>
-              </div>
+              <div className="flex items-center space-x-6">
+                  <img 
+                    src={asset?.img || '/srinakarin.png'} 
+                    alt={asset?.name || 'Asset'} 
+                    className="w-40 h-48 object-cover rounded-lg shadow-md"
+                  />
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">{asset?.name || 'ชื่อครุภัณฑ์'}</h3>
+                    <p className="text-xl font-semibold text-gray-700">{asset?.category.name || 'ประเภท'}</p>
+                    <div className="mt-4">
+                      <h4 className="text-lg font-semibold text-gray-700">📦 จำนวนในคลัง</h4>
+                      <p className="text-gray-600">✅ พร้อมใช้งาน: {asset?.availableValue || 0}</p>
+                      <p className="text-gray-600">❌ ไม่พร้อมใช้งาน: {asset?.unavailableValue || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
 
               <div className="mt-4">
-                <h3 className="text-lg font-semibold text-gray-700">📍 สถานที่จัดเก็บ</h3>
-                {groupedAssets[assetId].map((item: any, index: number) => (
-                  <div key={index} className="border-l-4 border-blue-500 bg-white p-4 my-2 rounded-lg shadow-sm">
-                    <p className="text-gray-700 font-medium">📍 {item.location}</p>
-                    <p className="text-gray-600">✅ ใช้งานได้: {item.inRoomavailableValue}</p>
-                    <p className="text-gray-600">❌ ใช้งานไม่ได้: {item.inRoomunavailableValue}</p>
-                  </div>
-                ))}
+                <h3 className="text-lg font-semibold text-gray-700"> สถานที่จัดเก็บ</h3>
+                <table className="min-w-full table-auto border-collapse border border-gray-300">
+                        <thead>
+                          <tr>
+                            <th className="border-b px-4 py-2 text-left text-gray-700">สถานที่</th>
+                            <th className="border-b px-4 py-2 text-left text-gray-700"> พรัอมใช้งาน</th>
+                            <th className="border-b px-4 py-2 text-left text-gray-700"> ไม่พร้อมใช้งาน</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupedAssets[assetId].map((item: any, index: number) => (
+                            <tr key={index} className="hover:bg-gray-100">
+                              <td className="border-b px-4 py-2 text-gray-700">{item.location}</td>
+                              <td className="border-b px-4 py-2 text-gray-600">{item.inRoomavailableValue}</td>
+                              <td className="border-b px-4 py-2 text-gray-600">{item.inRoomaunavailableValue}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
               </div>
             </div>
           ))

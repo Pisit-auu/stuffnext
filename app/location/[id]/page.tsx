@@ -95,7 +95,6 @@ export default function location() {
   const clisckbutton = (asset: any,savevalueinroom: number,saveunvalueinroom: number) => {
     if (checksession) {
       setmaxinputvalue(asset.inRoomavailableValue);
-      setupdateinRoomavailableValue(asset.inRoomavailableValue);
       setSelectedAsset(asset);
       setvalueinroom(savevalueinroom);
       setunvalueinroom(saveunvalueinroom);
@@ -157,7 +156,7 @@ export default function location() {
           inRoomaunavailableValue: savegetassetlocationinroomunvalue,
         });
         setIsModalOpen(false);
-        router.push(`/`);
+        router.push(`/home`);
         alert('ยืมสำเร็จ');
       } else {
         await axios.post('/api/assetlocation', {
@@ -192,7 +191,7 @@ export default function location() {
         });
         setIsModalOpen(false);
         setborrowbotton(false)
-        router.push(`/`);
+        router.push(`/home`);
         alert('ยืมสำเร็จ');
        
       }
@@ -224,7 +223,7 @@ export default function location() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-center mb-6">
             <div className="relative w-full sm:w-96">
         {/* ไอคอนค้นหา */}
@@ -244,7 +243,7 @@ export default function location() {
           </button>
         </div>
       </div>
-
+      <h1 className='mb-4 text-xl'>ครุภัณฑ์ในห้อง</h1>
       {/*  Grid Layout for Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {filteredLocation.map((As: any) => (
@@ -255,7 +254,7 @@ export default function location() {
               className="h-48 w-full object-cover"
             />
             <div className="p-4">
-              <h2 className="text-lg font-semibold">{As.asset.name}</h2>
+              <h2 className="text-lg font-semibold">{As.asset.name} </h2>
               <p className="text-gray-600">สถานที่: {As.location.namelocation}</p>
               <p className="text-gray-700">จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
               <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
@@ -272,8 +271,9 @@ export default function location() {
       {isModalOpen && selectedDetailAsset && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-semibold text-center mb-4">{selectedDetailAsset.asset.name}</h2>
-            <p className="text-gray-600 text-center mb-4">สถานที่จะยืม: {selectedDetailAsset.location.namelocation}</p>
+            <h2 className="  mb-4">ครุภัณฑ์ที่ยืม : {selectedDetailAsset.asset.name} </h2>
+            <h2 className=" mb-4">รหัสครุภัณฑ์ : {selectedDetailAsset.asset.assetid} </h2>
+            <h2 className=" mb-4">สถานที่ของครุภัณฑ์  : {selectedDetailAsset.location.namelocation} </h2>
             <Select
               showSearch
               placeholder="เลือกสถานที่ยืม"
@@ -314,7 +314,7 @@ export default function location() {
                   setupdateinRoomavailableValue("0");
                 }
               }}
-              placeholder="จำนวนที่ยืม"
+              placeholder={`จำนวนที่ยืม เลือกได้สูงสุด ${maxinputvalue}`}
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Input

@@ -69,14 +69,16 @@ export default function Manageroom() {
           inRoomavailableValue: addInRoomavailableValue,
           inRoomaunavailableValue: addInRoomunavailableValue,
         });
-        
 
         // รีเฟรชข้อมูลใหม่หลังจากเพิ่มข้อมูลเสร็จ
         fetchassetlocation();
-
+        setnewSelectedAsset('')
+        setinRoomunavailableValue('0')
+        setinRoomavailableValue('0')
         setIsaddAssetOpen(false); 
         router.push(`/admin/manageroom/${addlocationid}`);
         alert("เพิ่มข้อมูลครุภัณฑ์สำเร็จ");
+        
 
     } catch (error) {
       console.error("Error updating asset in room:", error);
@@ -126,8 +128,8 @@ export default function Manageroom() {
           const getasset = await axios.get(`/api/asset/${getassetlocation.data.assetId}`);
           const valueasset = getasset.data.availableValue
           const unvalueasset = getasset.data.unavailableValue
-         // console.log(valueasset+ saveinRoomavailableValue- updateInRoomavailableValue)
-         // console.log(unvalueasset+saveinRoomunavailableValue- updateInRoomunavailableValue)
+         // console.log(valueasset+ saveinRoomavailableValue - updateInRoomavailableValue)
+         // console.log(unvalueasset+saveinRoomunavailableValue - updateInRoomunavailableValue)
     
             await axios.put(`/api/assetlocation/${Iddelete}`, {
                 inRoomavailableValue: updateInRoomavailableValue,
@@ -201,13 +203,13 @@ export default function Manageroom() {
 
   const onChange = async (value: string) => {
     setnewSelectedAsset(value);
-    console.log(value)
+    //console.log(value)
     try {
       const res = await axios.get(`/api/asset/${value}`);
       setunavilablevaluecanput(res.data.unavailableValue)
       setavilablevaluecanput(res.data.availableValue)
-      console.log(res.data.unavailableValue)
-      console.log(res.data.availableValue)
+    //  console.log(res.data.unavailableValue)
+      //console.log(res.data.availableValue)
     } catch (error) {
       console.error(error);
     }
@@ -225,13 +227,13 @@ export default function Manageroom() {
       <div className="flex justify-center mb-6">
         <input
           type="text"
-          placeholder="🔍 ค้นหาชื่อของในห้อง"
+          placeholder=" ค้นหาชื่อของในห้อง"
           value={searchLocation}
           onChange={(e) => setSearchLocation(e.target.value)}
           className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
         />
       </div>
-      <button onClick={() => openaddasset()} className="m-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+      <button onClick={() => openaddasset()} className="m-4 w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
         เพิ่มครุภัณฑ์ในห้อง
       </button>
 
@@ -252,7 +254,7 @@ export default function Manageroom() {
               <p className="text-gray-700">📦 จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
 
               <div className="mt-4">
-                <button onClick={() => openModal(As)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                <button onClick={() => openModal(As)} className="w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
                   ดูรายละเอียด
                 </button>
               </div>
@@ -340,7 +342,7 @@ export default function Manageroom() {
                             setinRoomunavailableValue("0");
                           }
                         }}
-                        placeholder="จำนวนที่เสีย"
+                        placeholder="จำนวนที่ไม่พร้อมใช้งาน"
                         className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     </div>
@@ -349,7 +351,7 @@ export default function Manageroom() {
                 <div className="flex justify-end mt-6 space-x-4">
                     <button
                     onClick={updateAssetinroom}
-                    className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 focus:outline-none transition"
+                    className="bg-[#113FB3] text-white py-2 px-6 rounded-lg hover:bg-blue-600 focus:outline-none transition"
                     >
                     เพิ่ม
                     </button>

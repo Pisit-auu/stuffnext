@@ -1,95 +1,125 @@
 'use client'
-import Image from "next/image";
-import Link from 'next/link';
-import { Card } from 'antd';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
 
-export default function Home() {
-  const [locations, setLocations] = useState<any[]>([]);
-  const [searchLocation, setSearchLocation] = useState('');
-  const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
+import Link from 'next/link'
+import Image from 'next/image'
 
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const res = await axios.get(`/api/location`);
-        setLocations(res.data);
-        setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchLocations();
-  }, []);
-
-  useEffect(() => {
-    // ค้นหาจากข้อมูลที่มีอยู่ ไม่ต้องเรียก API ใหม่
-    setFilteredLocations(
-      locations.filter(location => 
-        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
-      )
-    );
-  }, [searchLocation, locations]);
-
-
+export default function SignIn() {
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Input Search */}
-      <div className="flex justify-center mb-6">
-            <div className="relative w-full sm:w-96">
-        <input
-            type="text"
-            placeholder="ค้นหาครุภัณฑ์..."
-            value={searchLocation}
-            onChange={(e) => setSearchLocation(e.target.value)}
-            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      {/* Content Top */}
+      <div className="flex flex-col md:flex-row-reverse items-center w-full max-w-5xl flex-grow p-4 md:p-16">
+        {/* Image */}
+        <div className="md:w-1/2 flex justify-center md:justify-end mb-8 md:mb-0">
+        <img
+            src="head.jpg"
+            alt="Picture of the school"
+            className=" rounded-lg shadow-md w-[400px] h-full" // ใช้ class สำหรับกำหนดขนาด
           />
-          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <img 
-              src="search.png" 
-              alt="ค้นหา"
-              className="w-6 h-6"
-            />
-          </button>
+
+        </div>
+
+        {/* Content */}
+        <div className="w-full md:w-1/2 text-center md:text-left md:pl-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-blackblue_111827 hover:text-black transition duration-100">
+            ▎Srinakarin
+          </h1>
+          <p className="mt-4 text-base md:text-lg text-gray-600">
+            เป็นเว็บไซต์ บริหารและจัดการอุปกรณ์ภายในโรงเรียนศรีนครินทร์วิทยานุเคราะห์
+            คุณสามารถเยี่ยมชมเว็บไซต์หลักของโรงเรียนได้ที่นี่
+          </p>
+          <div className="flex justify-center md:justify-start">
+            <Link href="https://www.srinakarin.ac.th/about.html">
+              <button
+                type="submit"
+                className="w-24 bg-[#7EDBE9] text-black py-2 rounded-lg text-lg font-semibold hover:bg-[#99FFFF] transition duration-300 mt-8"
+              >
+                คลิกเลย
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Grid Layout for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredLocations.map((location) => (
-          <Card
-            key={location.id}
-            variant={"outlined"}
-            className="shadow-lg hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden"
-          >
-            {/* รูปภาพสถานที่ */}
-            {location.image && (
-              <div className="relative w-full h-40">
-                <Image
-                  src={location.image}
-                  alt={location.namelocation}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-t-lg"
-                />
-              </div>
-            )}
+      {/* Content Center */}
+      <div className="flex flex-col items-center w-full h-auto bg-gray-200 rounded-lg pb-10 md:pb-20 px-4 md:px-0">
+        <h1 className="text-3xl md:text-5xl font-extrabold text-gray-800 transition duration-100 mt-10 md:mt-20">
+          คุณสมบัติของ Srinakarin Inventory
+        </h1>
+        <p className="mt-2 text-base md:text-lg text-gray-600">
+          เลือกฟีเจอร์ที่ช่วยเพิ่มประสิทธิภาพในการจัดการทรัพย์สินของโรงเรียน
+        </p>
 
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900">{location.namelocation}</h3>
-              <p className="text-gray-600 mt-2">ผู้รับผิดชอบ: {location.nameteacher}</p>
-              <Link
-                href={`location/${location.namelocation}`}
-                className="mt-4 block w-full text-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
-              >
-                ยืมของภายในห้อง
-              </Link>
+        <div className="flex flex-col md:flex-row items-center justify-center mt-8 md:mt-16 space-y-8 md:space-y-0 md:space-x-10">
+        <Link href="/home">
+  <div className="rounded-lg hover:bg-blue-200 p-4">
+              <Image
+                src="/borrow.png"
+                alt="Button Icon"
+                width={200}  // ขนาดที่เท่ากัน
+                height={200} // ขนาดที่เท่ากัน
+                className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
+              />
+              <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
+                BORROW
+              </div>
             </div>
-          </Card>
-        ))}
+          </Link>
+
+          <Link href="/profile/history">
+            <div className="rounded-lg hover:bg-blue-200 p-4">
+              <Image
+                src="/return.png"
+                alt="Button Icon"
+                width={200}  // ขนาดที่เท่ากัน
+                height={200} // ขนาดที่เท่ากัน
+                className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
+              />
+              <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
+                RETURN
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/profile/history">
+            <div className="rounded-lg hover:bg-blue-200 p-4">
+              <Image
+                src="/status.png"
+                alt="Button Icon"
+                width={200}  // ขนาดที่เท่ากัน
+                height={200} // ขนาดที่เท่ากัน
+                className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
+              />
+              <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
+                USER STATUS
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Content Bottom */}
+      <div className="flex flex-col items-center w-full bg-secondary">
+        <div className="flex flex-col text-md text-white transition my-8 md:my-16 px-4 md:px-0">
+          <div className="flex flex-col mb-4">
+            <div className="text-xl md:text-2xl">Address</div>
+            <div className="indent-4 md:indent-16">
+              119 ถนนเพชรเกษม ตำบลคลองทราย อำเภอนาทวี จังหวัดสงขลา 90160
+            </div>
+          </div>
+
+          <div className="flex flex-col mb-4">
+            <div className="text-xl md:text-2xl">Email</div>
+            <div className="indent-4 md:indent-16">Srinakzarin.school@gmail.com</div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="text-xl md:text-2xl">Phone</div>
+            <div className="indent-4 md:indent-16">074-371744-5</div>
+            <div className="indent-4 md:indent-16">082-5234382</div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }

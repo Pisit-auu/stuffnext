@@ -242,7 +242,7 @@ const BorrowHistoryPage = () => {
       }
     }
   } catch (err) {
-    setError('Failed to update borrow status');
+    setError('การอัพเดตผิดพลาด');
   }
 };
 
@@ -252,18 +252,8 @@ const BorrowHistoryPage = () => {
   return (
     <div className="container mx-auto p-4">
       
-      <h1 className="text-2xl font-semibold mb-4">Borrow History</h1>
+      <h1 className="mt-4  text-2xl font-semibold mb-4">การยืมของผู้ใช้ทั้งหมด</h1>
       
-      {/* ฟอร์มค้นหาผู้ยืม, ครุภัณฑ์, หรือห้องยืม */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="ค้นหาโดย ชื่อผู้ยืม, ครุภัณฑ์, หรือยืมจากสถานที่"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-      </div>
 
       {/* ฟอร์มค้นหาตามวันที่ */}
       <div className="mb-4">
@@ -280,6 +270,17 @@ const BorrowHistoryPage = () => {
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           className="px-4 py-2 border rounded"
+        />
+      </div>
+
+          {/* ฟอร์มค้นหาผู้ยืม, ครุภัณฑ์, หรือห้องยืม */}
+          <div className="mb-4">
+        <input
+          type="text"
+          placeholder="ค้นหาโดย ชื่อผู้ยืม, ครุภัณฑ์, หรือยืมจากสถานที่"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 rounded w-full"
         />
       </div>
 

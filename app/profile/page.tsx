@@ -22,7 +22,7 @@ export default function Profile() {
 
   const router = useRouter();
 
-  // ฟังก์ชันดึงข้อมูลผู้ใช้
+  // ฟังก์ชันดึงข้อมูลผู้ใช้ L:>
   const fetchUser = async () => {
     if (!session?.user?.username) return;
     try {
@@ -104,143 +104,139 @@ export default function Profile() {
 
   return (
     <div className="flex h-screen items-center justify-center bg-gray-100 py-8">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full space-y-6">
-        {status === 'authenticated' && session?.user ? (
-          <>
-            <div className="text-3xl font-semibold text-center text-gray-800">
-              ยินดีต้อนรับ  <span className="text-blue-600">{session.user.username}</span>
-            </div>
-            <div className="space-y-5">
-              {getuser ? (
-                <>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-lg text-gray-700">ชื่อผู้ใช้:</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={formData.username || ""}
-                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <span>{getuser.username}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-lg text-gray-700">อีเมล:</label>
-                      {isEditing ? (
-                        <input
-                          type="email"
-                          value={formData.email || ""}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <span>{getuser.email}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-lg text-gray-700">ชื่อจริง:</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={formData.name || ""}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <span>{getuser.name}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-lg text-gray-700">นามสกุล:</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={formData.surname || ""}
-                          onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
-                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <span>{getuser.surname}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-lg text-gray-700">เบอร์โทรศัพท์:</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={formData.tel || ""}
-                          onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
-                          className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <span>{getuser.tel}</span>
-                      )}
-                    </div>
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full space-y-6">
+      {status === 'authenticated' && session?.user ? (
+        <>
+          <div className="text-3xl font-semibold text-center text-gray-800">
+            ยินดีต้อนรับ  <span className="text-blue-600">{session.user.username}</span>
+          </div>
+          <div className="space-y-5">
+            {getuser ? (
+              <>
+                <div className="space-y-3">
+                  {/* แก้ไขส่วนที่ไม่ให้แก้ไขชื่อผู้ใช้ */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-lg text-gray-700">ชื่อผู้ใช้:</label>
+                    {isEditing ? (
+                      <span>หากต้องการแก้ไข กรุณาติดต่อแอดมิน</span>
+                    ) : (
+                      <span>{getuser.username}</span>
+                    )}
                   </div>
 
-                  {isEditing && (
-                    <div className="mt-4">
-                      <label className="text-lg text-gray-700">กรอกรหัสผ่านเพื่อยืนยันการแก้ไขข้อมูล:</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-lg text-gray-700">อีเมล:</label>
+                    {isEditing ? (
                       <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        type="email"
+                        value={formData.email || ""}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
                       />
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div>กำลังโหลดข้อมูล...</div>
-              )}
-            </div>
+                    ) : (
+                      <span>{getuser.email}</span>
+                    )}
+                  </div>
 
-            <div className="mt-6 flex gap-4">
-              {isEditing ? (
-                <button
-                  onClick={handleUpdate}
-                  className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
-                >
-                  บันทึกการเปลี่ยนแปลง
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-700 transition duration-300"
-                >
-                  แก้ไขข้อมูลส่วนตัว
-                </button>
-              )}
-            </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-lg text-gray-700">ชื่อจริง:</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.name || ""}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : (
+                      <span>{getuser.name}</span>
+                    )}
+                  </div>
 
-            <Link href={`/profile/changepassword`}>
+                  <div className="flex items-center justify-between">
+                    <label className="text-lg text-gray-700">นามสกุล:</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.surname || ""}
+                        onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
+                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : (
+                      <span>{getuser.surname}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <label className="text-lg text-gray-700">เบอร์โทรศัพท์:</label>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        value={formData.tel || ""}
+                        onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
+                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : (
+                      <span>{getuser.tel}</span>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="mt-4">
+                    <label className="text-lg text-gray-700">กรอกรหัสผ่านเพื่อยืนยันการแก้ไขข้อมูล:</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>กำลังโหลดข้อมูล...</div>
+            )}
+          </div>
+
+          <div className="mt-6 flex gap-4">
+            {isEditing ? (
               <button
-                className="mt-4 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
+                onClick={handleUpdate}
+                className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
               >
-                เปลี่ยนรหัสผ่าน
+                บันทึกการเปลี่ยนแปลง
               </button>
-            </Link>
-
-            <div className="mt-4">
+            ) : (
               <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+                onClick={() => setIsEditing(true)}
+                className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-700 transition duration-300"
               >
-                ออกจากระบบ
+                แก้ไขข้อมูลส่วนตัว
               </button>
-            </div>
-          </>
-        ) : (
-          <p>กำลังโหลด...</p>
-        )}
-      </div>
+            )}
+          </div>
+
+          <Link href={`/profile/changepassword`}>
+            <button
+              className="mt-4 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
+            >
+              เปลี่ยนรหัสผ่าน
+            </button>
+          </Link>
+
+          <div className="mt-4">
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+            >
+              ออกจากระบบ
+            </button>
+          </div>
+        </>
+      ) : (
+        <p>กำลังโหลด...</p>
+      )}
     </div>
-  );
+  </div>
+);
 }

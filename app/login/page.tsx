@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
-import { signIn, SignInResponse } from 'next-auth/react'
+import { useState, FormEvent } from 'react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
-import Link from 'next/link';
+import Link from 'next/link'
 
 export default function SignIn() {
   const [username, setUsername] = useState<string>('')
@@ -13,102 +12,94 @@ export default function SignIn() {
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
 
-  // ฟังก์ชันเข้าสู่ระบบ
   const handleSignInSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!username || !password) {
-      setErrorMessage('Both fields are required');
-      return;
+      setErrorMessage('Both fields are required')
+      return
     }
-  
-    setLoading(true);
+
+    setLoading(true)
+    setErrorMessage('')
+
     try {
       const result = await signIn('credentials', {
         redirect: false,
         username,
         password,
-      });
-  
-      if (!result) {
-        setErrorMessage('Sign-in failed. Please try again.');
-        return;
-        }else {
-          router.push('/')
-        }
-  
-      if (result.error) {
-        setErrorMessage(result.error);
-      } 
-    } catch (error) {
-      setErrorMessage('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      })
 
+      if (result?.error) {
+        setErrorMessage("ชื่อผู้ใช้ หรือ รหัสผ่านไม่ถูกต้อง")
+      } else {
+        router.push('/')
+      }
+    } catch (error) {
+      setErrorMessage('เกิดข้อผิดพลาดที่ไม่คาดคิด โปรดลองอีกครั้ง.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen  bg-gray-100">
-
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-gray-100">
       {/* Left - Logo & Text */}
-      <div className=" md:w-1/2  text-center md:text-left mb-8 md:mb-0 ">
-      <Link href={"/"}><h1 className="text-6xl font-bold text-human_C5A880 hover:text-black transition duration-100">Srinakarin</h1></Link>
-        <p className="mt-4 text-lg text-gray-600">
-          {'เข้าถึงและจัดการสินค้าคงคลังอุปกรณ์ของโรงเรียน'}
+      <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+        <Link href="/">
+          <button className="mt-4 text-6xl font-bold text-[#113FB3] hover:text-[#3333FF] transition duration-100">▎Srinakarin</button>
+        </Link>
+        <p className="mt-6 text-1xl text-gray-600">
+          เข้าถึงและจัดการสินค้าคงคลังอุปกรณ์ของโรงเรียน
         </p>
       </div>
 
       {/* Right - Form */}
-      <div className=" md:w-1/2  max-w-md  ">
-        <form
-          onSubmit={ handleSignInSubmit}
-          className="bg-white p-8 rounded-xl shadow-md w-full"
-        >
-          <h2 className="text-4xl font-bold text-center text-black mb-6">
-            {'Sign In'}
-          </h2>
+      <div className="md:w-1/2 max-w-lg">
+        <form onSubmit={handleSignInSubmit} className="bg-white p-10 rounded-xl shadow-md w-full">
+          <h2 className="text-5xl font-bold text-center text-black mb-6">ยินดีต้อนรับ</h2>
+          <h1 className="text-2xl text-center text-black mb-8">
+            โปรดกรอกข้อมูลเพื่อเข้าสู่ระบบ
+          </h1>
 
-          {/* ข้อความข้อผิดพลาด */}
+          {/* Error Message */}
           {errorMessage && (
-            <div className="text-red-600 text-sm mb-4">{errorMessage}</div>
+            <div className="text-red-600 text-lg mb-6">{errorMessage}</div>
           )}
 
           {/* Username */}
-          <div className="mb-4">
-            <label htmlFor="username" className="block text-sm font-medium text-black">Username</label>
+          <div className="mb-6">
+            <label htmlFor="username" className="block text-xl font-medium text-black mb-1">ชื่อผู้ใช้</label>
             <input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full border border-gray-300 px-4 py-2 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Password */}
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-black">Password</label>
+          <div className="mb-8">
+            <label htmlFor="password" className="block text-xl font-medium text-black">รหัสผ่าน</label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 px-4 py-2 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-yellow-500 text-white py-2 rounded-lg text-lg font-semibold hover:bg-yellow-600 transition duration-300"
+            className="w-full bg-[#7EDBE9] text-white py-3 rounded-lg text-2xl font-semibold hover:bg-[#00CCFF] transition duration-300"
             disabled={loading}
           >
-             {loading ? 'Processing...' : 'Sign In'}
+            {loading ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
           </button>
-
-    
         </form>
       </div>
     </div>

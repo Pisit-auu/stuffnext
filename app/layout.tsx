@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Thai, Bai_Jamjuree } from 'next/font/google';
 import "./globals.css";
-import NavbarGlobal from "./component/navbar/page";
+import NavbarWrapper  from "@/lib/NavbarWrapper";
 import SessionProvider from "./component/Session/SessionProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
@@ -30,6 +30,7 @@ export default async function RootLayout({
   // Get the session by passing authOptions
   const session = await getServerSession(authOptions);
 
+
   return (
     <html lang="en">
       <body className={`${baiJamjuree.className} text-black bg-gray-100 antialiased`}>
@@ -38,7 +39,7 @@ export default async function RootLayout({
           <div className="">
             {/* Hide Slidebar on small screens and show on large screens */}
             <div className="">
-              <NavbarGlobal />
+            <NavbarWrapper />
             </div>
             <main className="flex-1">
               {children}
