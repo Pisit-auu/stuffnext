@@ -172,7 +172,10 @@ const BorrowHistoryPage = () => {
         }
 
         const filtered = getassetlocationinroom.data.filter((item: AssetLocation) => item.asset.assetid === response.data.assetId);  // กรองว่า getassetlocationinroom == assetid
-        console.log(filtered[0].inRoomavailableValue);
+        if(filtered[0] === undefined){
+          alert("ครุภัณฑ์ที่ยืมมาถูกยืมไปห้องอื่น หรือ ไม่มีครุภัณฑ์ในห้อง")
+          return
+        }
         const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue; // เก็บค่าของก่อนที่ยืม
         const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue;
 

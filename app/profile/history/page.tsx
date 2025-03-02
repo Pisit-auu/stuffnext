@@ -30,6 +30,7 @@ interface BorrowHistory {
   valueBorrow: number;
 }
 
+
 const UserBorrowHistory = () => {
   const { data: session } = useSession(); // ดึง session ของผู้ใช้
   const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);
@@ -41,7 +42,7 @@ const UserBorrowHistory = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>(borrowHistory);
-
+  const [day ,setday] = useState<string>('');
   useEffect(() => {
     if (!session?.user?.id) {
       setError('User is not logged in');
@@ -63,7 +64,7 @@ const UserBorrowHistory = () => {
         setLoading(false);
       }
     };
-
+    
     fetchBorrowHistory();
   }, [session]);
 
@@ -155,8 +156,11 @@ const UserBorrowHistory = () => {
       const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);//เรียก ห้องที่จะคืน
       const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`); //เรียก assetidที่อยู่ในห้องนั้น
       const filtered = getassetlocationinroom.data.filter((item: { asset: { assetid: any; }; }) => item.asset.assetid === response.data.assetId); // กรองว่า getassetlocationinroom == assetid
-      console.log(getassetlocationinroom)
-      const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่ยืม
+      if(filtered[0] === undefined){
+        alert("ครุภัณฑ์ที่ยืมมาถูกยืมไปห้องอื่น หรือ ไม่มีครุภัณฑ์ในห้อง")
+        return
+      }
+      const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่คืน
       const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue
 
       //เช็คว่าห้องนั้นมีของซ้ำไหม

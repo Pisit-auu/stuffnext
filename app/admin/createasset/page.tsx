@@ -175,13 +175,13 @@ export default function CreateAsset() {
             จำนวนที่พร้อมใช้งาน
           </label>
           <input
-            type="number"
-            id="Available"
-            required
-            value={availableValue}
-            onChange={(e) => setAvailableValue(parseInt(e.target.value, 10))}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
+              type="number"
+              id="Available"
+              required
+              value={availableValue || ''}  // ใช้ค่าหรือค่าว่างถ้าค่าคือ NaN
+              onChange={(e) => setAvailableValue(parseInt(e.target.value, 10) || 0)}  // แปลงค่าที่ได้รับเป็นตัวเลข
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
         </div>
 
         {/* จำนวนที่เสีย */}

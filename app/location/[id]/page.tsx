@@ -20,7 +20,9 @@ export default function location() {
   const router = useRouter();
   const { id } = useParams() as { id: string };
   const [assetLocation, setAssetLocation] = useState<any[]>([]);
-  const [filteredLocation, setFilteredLocation] = useState<any[]>([]);
+  const [filteredborrow, setFilteredborrow] = useState<any[]>([]);
+  const [newfilteredLocation, senewFilteredLocation] = useState<any[]>([]);
+
   const [searchLocation, setSearchLocation] = useState('');
   const [allLoction, setallLocation] = useState<Location[]>([]);
   const [thisLocation, setthisLocation] = useState<Location | null>(null); // Properly type thisLocation
@@ -38,7 +40,8 @@ export default function location() {
   const [borrowbotton ,setborrowbotton ] = useState(false);
   // Session
   const { data: session, status } = useSession();
- 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchUser = async () => {
     if (!session?.user?.username) return; // Check if username exists in the session
     if (session.user.id) {
@@ -58,26 +61,52 @@ export default function location() {
   }, [status, router]);
 
   useEffect(() => {
-    fetchassetlocation();
+    fetchassetlocationandborrow();
   }, []);
+  const fetchassetlocationandborrow = async () => {
+    try {
+      const response = await axios.get(`/api/borrow/location/${id}`);
+      const res = await axios.get(`/api/assetlocationroom?location=${id}`);
+      const newassetLocation = []
+      console.log(res.data)
+      for (let i = 0; i < res.data.length; i++) {
+        
+        newassetLocation.push({ id: res.data[i].id, 
+           asset: res.data[i].asset, 
+           assetId: res.data[i].assetId, 
+           inRoomaunavailableValue: res.data[i].inRoomaunavailableValue, 
+           inRoomavailableValue: res.data[i].inRoomavailableValue, 
+           location: res.data[i].location,
+           locationId: res.data[i].locationId,
+           borrowed: 0
+          });
+        for (let j = 0; j < response.data.length; j++) {
+          if(response.data[j].asset.name === res.data[i].asset.name && response.data[j].ReturnStatus === 'w' ){
+             newassetLocation[i].inRoomavailableValue -= response.data[j].valueBorrow;
+             newassetLocation[i].borrowed += response.data[j].valueBorrow;
+          }
+        }
+      }
+      // for (let j = 0; j < newassetLocation.length; j++) {
+      //       console.log(newassetLocation[j])
+      // }
+      setAssetLocation(newassetLocation);
+      senewFilteredLocation(newassetLocation);
+
+      setFilteredborrow(response.data)
+    } catch (err) {
+      setError('Failed to fetch borrow history');
+    } 
+  }
 
   useEffect(() => {
     const filtered = assetLocation.filter((As: any) =>
       As.asset.name.toLowerCase().includes(searchLocation.toLowerCase()) ||
       As.location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
     );
-    setFilteredLocation(filtered);
+    senewFilteredLocation(filtered);
   }, [searchLocation, assetLocation]);
 
-  const fetchassetlocation = async () => {
-    try {
-      const res = await axios.get(`/api/assetlocationroom?location=${id}`);
-      setAssetLocation(res.data);
-      setFilteredLocation(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const fetchlocation = async () => {
     try {
@@ -224,10 +253,10 @@ export default function location() {
 
   return (
     <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-center mb-6">
-            <div className="relative w-full sm:w-96">
-        {/* ไอคอนค้นหา */}
-            <input
+      <div className="flex justify-center mb-6">
+        <div className="relative w-full sm:w-96">
+          {/* ไอคอนค้นหา */}
+          <input
             type="text"
             placeholder="ค้นหาครุภัณฑ์..."
             value={searchLocation}
@@ -244,36 +273,44 @@ export default function location() {
         </div>
       </div>
       <h1 className='mb-4 text-xl'>ครุภัณฑ์ในห้อง</h1>
-      {/*  Grid Layout for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {filteredLocation.map((As: any) => (
-          <div key={As.id} className="bg-white shadow-lg rounded-lg overflow-hidden w-full">
-            <img
-              src={As.asset.img || 'https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png'}
-              alt={As.asset.name}
-              className="h-48 w-full object-cover"
-            />
-            <div className="p-4">
-              <h2 className="text-lg font-semibold">{As.asset.name} </h2>
-              <p className="text-gray-600">สถานที่: {As.location.namelocation}</p>
-              <p className="text-gray-700">จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
-              <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
-              <div className="mt-4">
-                <button onClick={() => clisckbutton(As,As.inRoomavailableValue,As.inRoomaunavailableValue)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                  ยืม
-                </button>
+  
+      {/* เช็คว่ามีข้อมูลใน newfilteredLocation หรือไม่ */}
+      {newfilteredLocation.length === 0 ? (
+        <div className="text-center text-gray-500 text-xl font-semibold">
+          ⏳ ไม่มีข้อมูล
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {newfilteredLocation.map((As: any) => (
+            <div key={As.id} className="bg-white shadow-lg rounded-lg overflow-hidden w-full">
+              <img
+                src={As.asset.img || 'https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png'}
+                alt={As.asset.name}
+                className="h-48 w-full object-cover"
+              />
+              <div className="p-4">
+                <h2 className="text-lg font-semibold">{As.asset.name} </h2>
+                <p className="text-gray-600">สถานที่: {As.location.namelocation}</p>
+                <p className="text-gray-700">จำนวนที่ใช้งานได้: {As.inRoomavailableValue + As.borrowed}</p>
+                <p className="text-gray-700">พร้อมให้ยืม: {As.inRoomavailableValue}</p>
+                <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
+                <div className="mt-4">
+                  <button onClick={() => clisckbutton(As, As.inRoomavailableValue, As.inRoomaunavailableValue)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                    ยืม
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
+          ))}
+        </div>
+      )}
+  
       {isModalOpen && selectedDetailAsset && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="  mb-4">ครุภัณฑ์ที่ยืม : {selectedDetailAsset.asset.name} </h2>
-            <h2 className=" mb-4">รหัสครุภัณฑ์ : {selectedDetailAsset.asset.assetid} </h2>
-            <h2 className=" mb-4">สถานที่ของครุภัณฑ์  : {selectedDetailAsset.location.namelocation} </h2>
+            <h2 className="mb-4">ครุภัณฑ์ที่ยืม: {selectedDetailAsset.asset.name}</h2>
+            <h2 className="mb-4">รหัสครุภัณฑ์: {selectedDetailAsset.asset.assetid}</h2>
+            <h2 className="mb-4">สถานที่ของครุภัณฑ์: {selectedDetailAsset.location.namelocation}</h2>
             <Select
               showSearch
               placeholder="เลือกสถานที่ยืม"
@@ -325,7 +362,7 @@ export default function location() {
               className="mt-4 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={clickborrow} disabled={borrowbotton} type="primary" className="w-full">
+              <Button onClick={clickborrow} disabled={ borrowbotton|| Number(maxinputvalue)===0} type="primary" className="w-full">
                 ยืม
               </Button>
               <Button onClick={closeModal} className="w-full">
@@ -337,4 +374,5 @@ export default function location() {
       )}
     </div>
   );
+  
 }
