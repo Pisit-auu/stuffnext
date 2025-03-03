@@ -34,7 +34,7 @@ COPY --from=builder /app ./
 RUN npm ci --only=production
 
 # เปิด port 3001
-EXPOSE 3001
+EXPOSE 3000
 
 # รันโปรเจกต์
 CMD ["npm", "start"]
