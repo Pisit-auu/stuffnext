@@ -34,78 +34,79 @@ export default function SignUp() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="mt-4 bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+      <div className="mt-4 bg-white p-8 rounded-xl shadow-md w-full max-w-2xl">
         {errorMessage && <div className="text-red-600 text-center text-sm mb-4">{errorMessage}</div>}
         <form onSubmit={handleSignUpSubmit}>
           <h2 className="text-3xl font-bold text-center text-black mb-2">สมัครรหัสผ่าน</h2>
-          <h1 className="text-1xl text-center text-black mb-1">
+          <h1 className="text-xl text-center text-black mb-4">
             โปรดกรอกข้อมูลเพื่อสมัครรหัสผ่าน
           </h1>
-
-    
-
-
-          {/* ชื่อผู้ใช้ */}
-          <div className="mb-6">
-            <label htmlFor="username" className="block text-xl font-medium text-black mb-1">ชื่อผู้ใช้</label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+  
+          {/* Grid สำหรับจัดวาง input */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ชื่อผู้ใช้ */}
+            <div>
+              <label htmlFor="username" className="block text-xl font-medium text-black mb-1">ชื่อผู้ใช้</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+  
+            {/* รหัสผ่าน */}
+            <div>
+              <label htmlFor="password" className="block text-xl font-medium text-black mb-1">รหัสผ่าน</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+  
+            {/* ชื่อจริง */}
+            <div>
+              <label htmlFor="firstName" className="block text-xl font-medium text-black mb-1">ชื่อจริง</label>
+              <input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+  
+            {/* นามสกุล */}
+            <div>
+              <label htmlFor="lastName" className="block text-xl font-medium text-black mb-1">นามสกุล</label>
+              <input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
-
-          {/* รหัสผ่าน */}
-          <div className="mb-8">
-            <label htmlFor="password" className="block text-xl font-medium text-black">รหัสผ่าน</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          {/* ชื่อจริง */}
-          <div className="mb-6">
-            <label htmlFor="firstName" className="block text-xl font-medium text-black mb-1">ชื่อจริง</label>
-            <input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* นามสกุล */}
-          <div className="mb-6">
-            <label htmlFor="lastName" className="block text-xl font-medium text-black mb-1">นามสกุล</label>
-            <input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+  
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-[#7EDBE9] text-white py-3 rounded-lg text-2xl font-semibold hover:bg-[#00CCFF] transition duration-300"
+            className="w-full mt-6 bg-[#7EDBE9] text-white py-3 rounded-lg text-2xl font-semibold hover:bg-[#00CCFF] transition duration-300"
             disabled={loading}
           >
             {loading ? 'กำลังตรวจสอบ...' : 'สมัครสมาชิก'}
           </button>
         </form>
-
       </div>
     </div>
-  )
+  );  
 }

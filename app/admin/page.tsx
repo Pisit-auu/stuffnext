@@ -112,41 +112,48 @@ export default function Admin() {
         />
       </div>
     
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        {selectedMenu === 'asset' && (
-          <div className="max-w-6xl mx-auto px-4 py-8">
-              <h1 className="text-2xl font-semibold mb-6">ครุภัณฑ์</h1>
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex gap-4">
-                  <input
-                    type="text"
-                    placeholder="ค้นหาครุภัณฑ์"
-                    value={searchAsset}
-                    onChange={(e) => setSearchAsset(e.target.value)}
-                    className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 "
-                  />
-                  <select
-                    value={category}
-                    onChange={(e) => setSelectCategory(e.target.value)}
-                    className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-                  >
-                    <option value="">เลือกประเภทครุภัณฑ์</option>
-                    {categorys.map((cat: any) => (
-                      <option key={cat.idname} value={cat.name}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value)}
-                    className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-                  >
-                    <option value="desc">ล่าสุด</option>
-                    <option value="asc">เก่าสุด</option>
-                  </select>
-                </div>
+              {/* Main Content */}
+              <div className="flex-1 p-8">
+                {selectedMenu === 'asset' && (
+                  <div className="max-w-6xl mx-auto px-4 py-8">
+                      <h1 className="text-2xl font-semibold mb-6">ครุภัณฑ์</h1>
+                      <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="ค้นหาครุภัณฑ์"
+            value={searchAsset}
+            onChange={(e) => setSearchAsset(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            value={category}
+            onChange={(e) => setSelectCategory(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+          >
+            <option value="">เลือกประเภทครุภัณฑ์</option>
+            {categorys.map((cat: any) => (
+              <option key={cat.idname} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+          >
+            <option value="desc">ล่าสุด</option>
+            <option value="asc">เก่าสุด</option>
+          </select>
+          <Link
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            href="/admin/createasset"
+          >
+            เพิ่มครุภัณฑ์
+          </Link>
+        </div>
+
               </div>
 
               <div className="shadow overflow-x-auto border-b border-gray-200 sm:rounded-l">
@@ -193,12 +200,6 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
-              <Link
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                href="/admin/createasset"
-              >
-                เพิ่มครุภัณฑ์
-              </Link>
             </div>
           )}
     
@@ -212,6 +213,12 @@ export default function Admin() {
                     onChange={(e) => setSearchCategory(e.target.value)}
                     className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                                  <Link
+                  className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  href="/admin/createcategory"
+                >
+                  เพิ่มประเภทของครุภัณฑ์
+                </Link>
               <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -252,12 +259,6 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
-              <Link
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                href="/admin/createcategory"
-              >
-                เพิ่มประเภทของครุภัณฑ์
-              </Link>
             </div>
           )}
     
@@ -271,6 +272,12 @@ export default function Admin() {
                           onChange={(e) => setSearchLocation(e.target.value)}
                           className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
+                                            <Link
+                      className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      href="/admin/createlocation"
+                    >
+                      เพิ่มสถานที่
+                    </Link>
                     <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -316,12 +323,6 @@ export default function Admin() {
                         </tbody>
                       </table>
                     </div>
-                    <Link
-                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      href="/admin/createlocation"
-                    >
-                      เพิ่มสถานที่
-                    </Link>
                   </div>
                 
         

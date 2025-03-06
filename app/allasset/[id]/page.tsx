@@ -8,6 +8,8 @@ export default function Manageroom() {
   const [groupedAssets, setGroupedAssets] = useState<any>({});
   const [asset, setAsset] = useState<any | null>(null);
   const { id } = useParams() as { id: string };
+  const [allvalueallroom , setallvalueallroom] = useState(0) 
+  const [allvalueallroomunavailible , setallvalueallroomunavailible] = useState(0) 
 
   useEffect(() => {
     fetchAssetLocation();
@@ -27,7 +29,6 @@ export default function Manageroom() {
     try {
       const res = await axios.get(`/api/asset/${decodeURIComponent(id)}`);
       setAsset(res.data);
-      console.log(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -47,7 +48,17 @@ export default function Manageroom() {
       });
     });
     setGroupedAssets(grouped);
-    console.log(grouped)
+    let valueallroomavailible = 0;
+    let valueallroomunavailible =0;
+    Object.values(grouped).forEach((items) => {
+      (items as { inRoomavailableValue: number , inRoomaunavailableValue: number }[]).forEach((item) => {
+        valueallroomavailible = valueallroomavailible+ item.inRoomavailableValue
+        valueallroomunavailible = valueallroomunavailible + item.inRoomaunavailableValue 
+      });
+    });
+    console.log(valueallroomavailible);
+    setallvalueallroom(valueallroomavailible)
+    setallvalueallroomunavailible(valueallroomunavailible)
   };
 
   return (
@@ -71,22 +82,36 @@ export default function Manageroom() {
                 <p className="text-xl font-semibold text-gray-700">
                   {asset?.category?.name || "ประเภท"}
                 </p>
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold text-gray-700">
-                    📦 จำนวนในคลัง
-                  </h4>
-                  <p className="text-gray-600">
-                    ✅ พร้อมใช้งาน: {asset?.availableValue || 0}
-                  </p>
-                  <p className="text-gray-600">
-                    ❌ ไม่พร้อมใช้งาน: {asset?.unavailableValue || 0}
-                  </p>
+                <div className="grid grid-cols-2 gap-6 mt-4">
+                  {/* คลัง */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-700">
+                      📦 จำนวนในคลัง
+                    </h4>
+                    <p className="text-gray-600">
+                      ✅ พร้อมใช้งาน: {asset?.availableValue || 0}
+                    </p>
+                    <p className="text-gray-600">
+                      ❌ ไม่พร้อมใช้งาน: {asset?.unavailableValue || 0}
+                    </p>
+                  </div>
+                  {/* ทุกห้อง */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-700">
+                      📦 จำนวนทั้งหมดทุกห้อง
+                    </h4>
+                    <p className="text-gray-600">
+                      ✅ พร้อมใช้งาน: {allvalueallroom || 0}
+                    </p>
+                    <p className="text-gray-600">
+                      ❌ ไม่พร้อมใช้งาน: {allvalueallroomunavailible || 0}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
   
-          {/* แสดงตารางเฉพาะเมื่อ groupedAssets มีข้อมูล */}
           {Object.keys(groupedAssets).length > 0 ? (
             <div className="mt-4">
               <h3 className="text-lg font-semibold text-gray-700">สถานที่จัดเก็บ</h3>
@@ -124,4 +149,5 @@ export default function Manageroom() {
       )}
     </div>
   );
+  
 }

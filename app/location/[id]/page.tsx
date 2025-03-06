@@ -295,7 +295,7 @@ export default function location() {
                 <p className="text-gray-700">พร้อมให้ยืม: {As.inRoomavailableValue}</p>
                 <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
                 <div className="mt-4">
-                  <button onClick={() => clisckbutton(As, As.inRoomavailableValue, As.inRoomaunavailableValue)} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                  <button onClick={() => clisckbutton(As, As.inRoomavailableValue, As.inRoomaunavailableValue)} className="w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
                     ยืม
                   </button>
                 </div>

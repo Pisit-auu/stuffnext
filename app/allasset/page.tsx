@@ -11,7 +11,6 @@ export default function Allasset() {
   const [assetlocation, setAssetlocation] = useState<any[]>([])  
   const [assetCount, setAssetCount] = useState<any[]>([])  
   const [categorys, setCategory] = useState([])
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -40,6 +39,7 @@ export default function Allasset() {
         totalAvailable += loc.inRoomavailableValue
         totalUnavailable += loc.inRoomaunavailableValue
       })
+
 
       return {
         assetId: assetItem.assetid,
@@ -123,7 +123,7 @@ export default function Allasset() {
                 </div>
                 <div className="flex justify-center mt-6">
                   <Link
-                    className="w-full text-center px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md"
+                    className="w-full text-center px-4 py-3 rounded-lg bg-[#113FB3] text-white hover:bg-indigo-600 transition-all shadow-md"
                     href={`allasset/${assetItem.assetid}`}
                   >
                     ดูรายละเอียด
