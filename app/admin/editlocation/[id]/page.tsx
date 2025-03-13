@@ -8,17 +8,32 @@ export default function Edit() {
   const [nameteacher, setNameteacher] = useState('')
   const router = useRouter()
   const { id } = useParams() as { id: string }
+  const [listcategory, setlistCategory] = useState([]);
+  const [categoryroomid,setcategoryroomid]= useState('')
 
   const fetchPost = async (id:string) => {
     try {
       const res = await axios.get(`/api/location/${id}`)
       setNamelocation(res.data.namelocation)
       setNameteacher(res.data.nameteacher)
+      setcategoryroomid(res.data.categoryIdroom)
     } catch (error) {
       console.error(error)
     }
   }
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get('/api/categoryroom');
+      setlistCategory(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useEffect(() => {
     if (id) {
       fetchPost(id)
@@ -32,6 +47,7 @@ export default function Edit() {
       await axios.put(`/api/location/${id}`, {
         namelocation,
         nameteacher,
+        categoryIdroom:Number(categoryroomid)
       })
       router.push('/admin')
     } catch (error) {
@@ -76,6 +92,21 @@ export default function Edit() {
             onChange={(e) => setNameteacher(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           ></textarea>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">ประเภทของสถานที่</label>
+          <select
+            value={categoryroomid}
+            onChange={(e) => setcategoryroomid(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
+          >
+            <option value="">เลือกประเภทของสถานที่</option>
+            {listcategory.map((category: any) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <button

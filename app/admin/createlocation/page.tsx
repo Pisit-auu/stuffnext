@@ -75,13 +75,13 @@ export default function Create() {
 
         {/* Select category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">ประเภทครุภัณฑ์</label>
+          <label className="block text-sm font-medium text-gray-700">ประเภทของสถานที่</label>
           <select
             value={categoryIdroom}
             onChange={(e) => setCategory(e.target.value)}
             className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
           >
-            <option value="">เลือกประเภทครุภัณฑ์</option>
+            <option value="">เลือกประเภทของสถานที่</option>
             {listcategory.map((category: any) => (
               <option key={category.id} value={category.id}>
                 {category.name}
