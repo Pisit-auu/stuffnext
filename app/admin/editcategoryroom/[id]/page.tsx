@@ -30,7 +30,7 @@ export default function EditCategory() {
       await axios.put(`/api/categoryroom/${id}`, { name })
       router.push('/admin')
     } catch (error) {
-      alert('รหัสตัวแรกของประเภทครุภัณฑ์ซ้ำ ไม่สามารถแก้ไขได้')
+      alert('ชื่อห้องถูกตั้งไปแล้ว')
     }
   }
 
