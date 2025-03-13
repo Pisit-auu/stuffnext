@@ -238,30 +238,42 @@ export default function Manageroom() {
       </button>
 
       {/* 🏠 Grid Layout for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {filteredLocation.map((As: any) => (
-          <div key={As.id} className="bg-white shadow-lg rounded-lg overflow-hidden w-full">
-            <img
-              src={As.asset.img || "https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png"}
-              alt={As.asset.name}
-              className="h-48 w-full object-cover"
-            />
-            <div className="p-4">
-              <h2 className="text-lg font-semibold">{As.asset.name}</h2>
-              <p className="text-gray-600">📍 สถานที่: {As.location.namelocation}</p>
-              
-              <p className="text-gray-700">📦 จำนวนที่ใช้งานได้: {As.inRoomavailableValue}</p>
-              <p className="text-gray-700">📦 จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
-
-              <div className="mt-4">
-                <button onClick={() => openModal(As)} className="w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                  ดูรายละเอียด
-                </button>
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow-lg rounded-lg">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left border-b">รูปภาพ</th>
+                  <th className="px-4 py-2 text-left border-b">ชื่อครุภัณฑ์</th>
+                  <th className="px-4 py-2 text-left border-b">สถานที่</th>
+                  <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานได้</th>
+                  <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานไม่ได้</th>
+                  <th className="px-4 py-2 text-left border-b">การดำเนินการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLocation.map((As: any) => (
+                  <tr key={As.id} className="border-b">
+                    <td className="px-4 py-2">
+                      <img
+                        src={As.asset.img || "https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png"}
+                        alt={As.asset.name}
+                        className="h-14 w-14 object-cover rounded-md"
+                      />
+                    </td>
+                    <td className="px-4 py-2">{As.asset.name}</td>
+                    <td className="px-4 py-2">{As.location.namelocation}</td>
+                    <td className="px-4 py-2">{As.inRoomavailableValue}</td>
+                    <td className="px-4 py-2">{As.inRoomaunavailableValue}</td>
+                    <td className="px-4 py-2">
+                      <button onClick={() => openModal(As)} className="bg-[#113FB3] text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
+                        ดูรายละเอียด
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
 
       {/* Modal */}
       {isaddAssetOpen && (

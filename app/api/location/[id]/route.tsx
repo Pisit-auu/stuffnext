@@ -6,7 +6,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;  // ใช้ await ที่นี่
 
     const result = await prisma.location.findUnique({
-      where: { namelocation: id },
+      where: { namelocation: id }, include: {
+        categoryroom : true,
+      }
     });
 
     if (!result) {
@@ -21,12 +23,12 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { namelocation, nameteacher } = await request.json();
+    const { namelocation, nameteacher,categoryIdroom} = await request.json();
     const { id } = await context.params;  // ใช้ await ที่นี่
 
     const update = await prisma.location.update({
       where: { namelocation: id },
-      data: { namelocation, nameteacher },
+      data: { namelocation, nameteacher,categoryIdroom },
     });
 
     return NextResponse.json(update);

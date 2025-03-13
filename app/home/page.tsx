@@ -9,6 +9,8 @@ export default function Home() {
   const [locations, setLocations] = useState<any[]>([]);
   const [searchLocation, setSearchLocation] = useState('');
   const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]); // สถานะสำหรับประเภท
+  const [selectedCategory, setSelectedCategory] = useState(''); // สถานะสำหรับประเภทที่เลือก
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -20,22 +22,35 @@ export default function Home() {
         console.error(error);
       }
     };
+
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`/api/categoryroom`);
+        setCategories(res.data); // รับข้อมูลประเภท
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     fetchLocations();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
-    // ค้นหาจากข้อมูลที่มีอยู่ ไม่ต้องเรียก API ใหม่
+    // ค้นหาจากข้อมูลที่มีอยู่ และกรองตามประเภทที่เลือก
     setFilteredLocations(
       locations.filter(location => 
-        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
+        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase()) &&
+        (selectedCategory ? location.categoryroom.name === selectedCategory : true) // กรองตามประเภท
       )
     );
-  }, [searchLocation, locations]);
+  }, [searchLocation, selectedCategory, locations]);
 
   return (
     <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
-      {/* Input Search */}
-      <div className="flex justify-center mb-8">
+      {/* Input Search and Category Filter */}
+      <div className="flex justify-center items-center gap-4 mb-8">
+        {/* Input Search */}
         <div className="relative w-full sm:w-96">
           <input
             type="text"
@@ -52,42 +67,52 @@ export default function Home() {
             />
           </button>
         </div>
-      </div>
 
-      {/* Grid Layout for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredLocations.map((location) => (
-          <Card
-            key={location.id}
-            variant={"outlined"}
-            className="shadow-lg hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden"
+        {/* Category Filter Dropdown */}
+        <div className="relative w-48">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
           >
-            {/* รูปภาพสถานที่ */}
-            {location.image && (
-              <div className="relative w-full h-40 rounded-t-lg overflow-hidden">
-                <Image
-                  src={location.image}
-                  alt={location.namelocation}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-t-lg"
-                />
-              </div>
-            )}
-
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">{location.namelocation}</h3>
-              <p className="text-gray-600 mt-2">ผู้รับผิดชอบ: {location.nameteacher}</p>
-              <Link
-                href={`location/${location.namelocation}`}
-                className="mt-4 block w-full text-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
-              >
-                ยืมของภายในห้อง
-              </Link>
-            </div>
-          </Card>
-        ))}
+            <option value="">เลือกประเภทสถานที่</option>
+            {categories.map((category: any) => (
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {/* Table Layout */}
+      <table className="min-w-full table-auto border-collapse border border-gray-300">
+  <thead>
+    <tr className="bg-gray-100">
+      <th className="py-2 px-4 border-b text-left text-sm font-semibold">สถานที่</th>
+      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ผู้รับผิดชอบ</th>
+      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ประเภท</th>
+      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ดำเนินการ</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredLocations.map((location) => (
+      <tr key={location.id} className="odd:bg-gray-50 even:bg-white">
+        <td className="py-2 px-4 border-b text-sm">{location.namelocation}</td>
+        <td className="py-2 px-4 border-b text-sm">{location.nameteacher}</td>
+        <td className="py-2 px-4 border-b text-sm">{location.categoryroom?.name}</td>
+        <td className="py-2 px-4 border-b text-left">
+          <Link
+            href={`location/${location.namelocation}`}
+            className="inline-block px-4 py-2 rounded-lg bg-[#113FB3] text-white text-center hover:bg-indigo-600 focus:outline-none transition duration-300 text-sm"
+          >
+            ยืมของภายในห้อง
+          </Link>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Select, Input, Button, Popconfirm } from 'antd';
+
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import '@ant-design/v5-patch-for-react-19';
@@ -22,6 +23,7 @@ export default function location() {
   const [assetLocation, setAssetLocation] = useState<any[]>([]);
   const [filteredborrow, setFilteredborrow] = useState<any[]>([]);
   const [newfilteredLocation, senewFilteredLocation] = useState<any[]>([]);
+  const [category, setSelectCategory] = useState<string>("");
 
   const [searchLocation, setSearchLocation] = useState('');
   const [allLoction, setallLocation] = useState<Location[]>([]);
@@ -41,6 +43,7 @@ export default function location() {
   // Session
   const { data: session, status } = useSession();
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]); // สถานะสำหรับประเภท
 
   const fetchUser = async () => {
     if (!session?.user?.username) return; // Check if username exists in the session
@@ -57,9 +60,18 @@ export default function location() {
       setchecksession(true);
       fetchUser();
       fetchlocation();
+      fetchCategories();
     }
   }, [status, router]);
-
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get(`/api/category`);
+      console.log(res.data)
+      setCategories(res.data); // รับข้อมูลประเภท
+    } catch (error) {
+      console.error(error);
+    }
+  }
   useEffect(() => {
     fetchassetlocationandborrow();
   }, []);
@@ -68,7 +80,7 @@ export default function location() {
       const response = await axios.get(`/api/borrow/location/${id}`);
       const res = await axios.get(`/api/assetlocationroom?location=${id}`);
       const newassetLocation = []
-      console.log(res.data)
+      //console.log(res.data)
       for (let i = 0; i < res.data.length; i++) {
         
         newassetLocation.push({ id: res.data[i].id, 
@@ -102,10 +114,20 @@ export default function location() {
   useEffect(() => {
     const filtered = assetLocation.filter((As: any) =>
       As.asset.name.toLowerCase().includes(searchLocation.toLowerCase()) ||
-      As.location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
+      As.location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())||
+      As.asset.category.name.toLowerCase().includes(category.toLowerCase())
     );
+
     senewFilteredLocation(filtered);
   }, [searchLocation, assetLocation]);
+  useEffect(() => {
+    const filtered = assetLocation.filter((As: any) =>
+      As.asset.category.name.toLowerCase().includes(category.toLowerCase())
+    );
+
+    senewFilteredLocation(filtered);
+  }, [category]);
+
 
 
   const fetchlocation = async () => {
@@ -138,7 +160,6 @@ export default function location() {
       alert('โปรด login ก่อนยืม');
     }
   };
-
   const clickborrow = async () => {
     if(!selectBorrowLocation){
       alert("กรุณาเลือกสถานที่ที่จะยืม")
@@ -253,9 +274,8 @@ export default function location() {
 
   return (
     <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-between mb-6">
         <div className="relative w-full sm:w-96">
-          {/* ไอคอนค้นหา */}
           <input
             type="text"
             placeholder="ค้นหาครุภัณฑ์..."
@@ -264,47 +284,77 @@ export default function location() {
             className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
           />
           <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <img 
-              src="/search.png" 
-              alt="ค้นหา"
-              className="w-6 h-6"
-            />
+            <img src="/search.png" alt="ค้นหา" className="w-6 h-6" />
           </button>
         </div>
-      </div>
-      <h1 className='mb-4 text-xl'>ครุภัณฑ์ในห้อง</h1>
-  
-      {/* เช็คว่ามีข้อมูลใน newfilteredLocation หรือไม่ */}
-      {newfilteredLocation.length === 0 ? (
-        <div className="text-center text-gray-500 text-xl font-semibold">
-          ⏳ ไม่มีข้อมูล
+        {/* เพิ่ม Select สำหรับการจัดเรียง */}
+        <div>
+        <select
+            value={category}
+            onChange={(e) => setSelectCategory(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          >
+            <option value="">เลือกประเภทครุภัณฑ์</option>
+            {categories.map((cat: any) => (
+              <option key={cat.idname} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
+  
+      <h1 className="mb-4 text-xl">ครุภัณฑ์ในห้อง</h1>
+  
+      {newfilteredLocation.length === 0 ? (
+        <div className="text-center text-gray-500 text-xl font-semibold">⏳ ไม่มีข้อมูล</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {newfilteredLocation.map((As: any) => (
-            <div key={As.id} className="bg-white shadow-lg rounded-lg overflow-hidden w-full">
-              <img
-                src={As.asset.img || 'https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png'}
-                alt={As.asset.name}
-                className="h-48 w-full object-cover"
-              />
-              <div className="p-4">
-                <h2 className="text-lg font-semibold">{As.asset.name} </h2>
-                <p className="text-gray-600">สถานที่: {As.location.namelocation}</p>
-                <p className="text-gray-700">จำนวนที่ใช้งานได้: {As.inRoomavailableValue + As.borrowed}</p>
-                <p className="text-gray-700">พร้อมให้ยืม: {As.inRoomavailableValue}</p>
-                <p className="text-gray-700">จำนวนที่ใช้งานไม่ได้: {As.inRoomaunavailableValue}</p>
-                <div className="mt-4">
-                  <button onClick={() => clisckbutton(As, As.inRoomavailableValue, As.inRoomaunavailableValue)} className="w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                    ยืม
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 border text-left">รูป</th>
+                <th className="px-4 py-2 border text-left">ชื่อครุภัณฑ์</th>
+                <th className="px-4 py-2 border text-left">ประเภทครุภัณฑ์</th>
+                <th className="px-4 py-2 border text-left">สถานที่</th>
+                <th className="px-4 py-2 border text-left">จำนวนใช้งานได้</th>
+                <th className="px-4 py-2 border text-left">จำนวนใช้งานไม่ได้</th>
+                <th className="px-4 py-2 border text-left">พร้อมให้ยืม</th>
+                <th className="px-4 py-2 border text-left">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {newfilteredLocation.map((As: any) => (
+                <tr key={As.id} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-2 border">
+                    <img
+                      src={As.asset.img || 'https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png'}
+                      alt={As.asset.name}
+                      className="w-24 h-12 object-cover rounded-md"
+                    />
+                  </td>
+                  <td className="px-4 py-2 border">{As.asset.name}</td>
+                  <td className="px-4 py-2 border">{As.asset.category.name}</td>
+                  <td className="px-4 py-2 border">{As.location.namelocation}</td>
+                  <td className="px-4 py-2 border">{As.inRoomavailableValue + As.borrowed}</td>
+                  <td className="px-4 py-2 border">{As.inRoomaunavailableValue}</td>
+                  <td className="px-4 py-2 border">{As.inRoomavailableValue}</td>
+                  <td className="px-4 py-2 border">
+                    <button
+                      onClick={() => clisckbutton(As, As.inRoomavailableValue, As.inRoomaunavailableValue)}
+                      className="px-4 py-2 rounded-lg bg-[#113FB3] text-white hover:bg-blue-600 transition w-full"
+                    >
+                      ยืม
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
   
+      {/* Modal สำหรับยืมครุภัณฑ์ */}
       {isModalOpen && selectedDetailAsset && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-96">
@@ -327,9 +377,7 @@ export default function location() {
                   </Option>
                 ))
               ) : (
-                <Option value={""} disabled>
-                  ไม่พบข้อมูล
-                </Option>
+                <Option value={""} disabled>ไม่พบข้อมูล</Option>
               )}
             </Select>
             <Input
@@ -362,17 +410,16 @@ export default function location() {
               className="mt-4 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={clickborrow} disabled={ borrowbotton|| Number(maxinputvalue)===0} type="primary" className="w-full">
+              <Button onClick={clickborrow} disabled={borrowbotton || Number(maxinputvalue) === 0} type="primary" className="w-full">
                 ยืม
               </Button>
-              <Button onClick={closeModal} className="w-full">
-                ปิด
-              </Button>
+              <Button onClick={closeModal} className="w-full">ปิด</Button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
+  
   
 }

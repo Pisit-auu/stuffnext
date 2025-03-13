@@ -8,7 +8,11 @@ export async function GET(request: NextRequest) {
   try {
     const assets = await prisma.assetLocation.findMany({
       include: {
-        asset: true,
+        asset: {
+          include: {
+            category: true, // ดึง location ของ asset
+          },
+        },
         location: true,
       },
       where: {

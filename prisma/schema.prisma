@@ -26,6 +26,7 @@ model Category {
   idname String  @unique
   name   String
   asset  Asset[]
+  
 }
 
 model Location {
@@ -34,8 +35,14 @@ model Location {
   nameteacher  String?
   assets       AssetLocation[]
   borrow       borrow[]
+  categoryIdroom       Int
+  categoryroom     Categoryroom      @relation(fields: [categoryIdroom], references: [id], onDelete: Cascade)
 }
-
+model Categoryroom {
+  id     Int     @id @default(autoincrement())
+  name   String @unique
+  location  Location[]
+}
 model AssetLocation {
   id                      Int      @id @default(autoincrement())
   assetId                 String
