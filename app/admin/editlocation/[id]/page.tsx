@@ -51,7 +51,7 @@ export default function Edit() {
       })
       router.push('/admin')
     } catch (error) {
-      alert('ชื่อห้องถูกใช้ไปแล้ว ไม่สามารถใช้ซ้ำได้')
+      alert('ชื่อห้องถูกใช้ไปแล้ว ไม่สามารถอัพเดตซ้ำได้')
     }
   }
 

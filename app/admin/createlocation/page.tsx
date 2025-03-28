@@ -29,7 +29,7 @@ export default function Create() {
     e.preventDefault()
 
     try {
-      await axios.post('/api/location', { namelocation, nameteacher, categoryIdroom: Number(categoryIdroom) })
+      const response = await axios.post('/api/location', { namelocation, nameteacher, categoryIdroom: Number(categoryIdroom) })
       router.push('/admin')
     } catch (error) {
       alert('ชื่อห้องถูกตั้งไปแล้ว')

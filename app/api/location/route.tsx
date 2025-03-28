@@ -64,7 +64,6 @@ export async function POST(request: Request){
   if (error instanceof Error) {
       return Response.json({ error: 'เกิดข้อผิดพลาด', details: error.message });
   } else {
-      // กรณีที่ error ไม่ใช่ instance ของ Error
       return Response.json({ error: 'เกิดข้อผิดพลาดที่ไม่สามารถระบุได้' });
   }
 }

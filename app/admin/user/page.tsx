@@ -36,7 +36,6 @@ export default function AdminDashboard() {
           limit: 15,    // กำหนดให้ดึงข้อมูล 15 รายการ
         },
       });
-      console.log("API Response:", res.data);
       setUsers(res.data.users); 
       setTotalCount(res.data.totalCount); // เก็บจำนวนผู้ใช้ทั้งหมด
     } catch (error) {
@@ -49,6 +48,11 @@ export default function AdminDashboard() {
       alert("ไม่สามารถลบรหัสของตนเองได้");
       return;
     }
+    const isConfirmed = window.confirm("คุณต้องการลบผู้ใช้นี้จริงหรือไม่?");
+      if (!isConfirmed) {
+        return; // หากผู้ใช้ไม่ยืนยันการลบ ให้หยุดการทำงาน
+      }
+
     try {
       await axios.delete(`/api/auth/signup/${id}`);
       fetchUsers(currentPage); // รีเฟรชรายการผู้ใช้หลังจากลบ
@@ -66,6 +70,10 @@ export default function AdminDashboard() {
 
   const handleSaveUsername = async () => {
     if (!editingUser) return;
+    const isConfirmed = window.confirm("คุณต้องการแก้ไขผู้ใช้นี้จริงหรือไม่?");
+    if (!isConfirmed) {
+      return; // หากผู้ใช้ไม่ยืนยันให้หยุดการทำงาน
+    }
     try {
       if (newUsername.trim() === "") {
         alert("กรุณากรอกชื่อผู้ใช้ใหม่");
