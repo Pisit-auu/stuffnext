@@ -48,6 +48,7 @@ export default function Admin() {
     
         const res = await axios.get(`/api/location?${query}`);
         setLocation(res.data); 
+        console.log(res.data)
       } catch (error) {
         console.error(error);
       }
@@ -354,7 +355,7 @@ export default function Admin() {
                             <tr key={location.namelocation}>
                               <td className="px-6 py-4 whitespace-nowrap">{location.namelocation}</td>
                               <td className="px-6 py-4 whitespace-nowrap">{location.nameteacher}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{location.categoryroom.name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">{location.categoryroom ? location.categoryroom.name : 'ไม่มีหมวดหมู่'}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editlocation/${location.namelocation}`}>
                                 <Button type="primary" ghost>

@@ -4,53 +4,76 @@ import prisma from "@/lib/prisma";
 
 
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search') || '';  
-    const categoryroom = searchParams.get('categoryroom') || ''; 
-  
-    const location = await prisma.location.findMany({
+  const searchParams = request.nextUrl.searchParams;
+  const search = searchParams.get('search') || '';  
+  const categoryroom = searchParams.get('categoryroom') || ''; 
+
+  const location = await prisma.location.findMany({
       where: {
-        AND: [
-          {
-            namelocation: {
-              contains: search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            categoryroom: {
-              name: {
-                contains: categoryroom,
-                mode: 'insensitive',
+          AND: [
+              {
+                  namelocation: {
+                      contains: search,
+                      mode: 'insensitive',
+                  },
               },
-            },
-          },
-        ],
+              {
+                
+                  OR: [
+                      {
+                          categoryroom: {
+                              name: {
+                                  contains: categoryroom,
+                                  mode: 'insensitive',
+                              },
+                          },
+                      },
+                      {
+                          categoryroom: null,
+                      },
+                  ],
+              },
+          ],
       },
       include: {
-        categoryroom: true,
+          categoryroom: true, 
       },
-    });
-  
-    return Response.json(location);
-  }
+  });
+
+  return Response.json(location);
+}
+
   
   
 
 export async function POST(request: Request){
-    try{
-        const {namelocation,nameteacher,categoryIdroom} = await request.json()
-        const newlocation = await prisma.location.create({
-            data:{
-                namelocation,
-                nameteacher,
-                categoryIdroom
-            }
-        })
-        return Response.json(newlocation)  
-    }catch (error){
-        return new Response(error as BodyInit,{
-            status:500,
-        })
+  try {
+    const { namelocation, nameteacher, categoryIdroom } = await request.json();
+
+    // กำหนดประเภทของตัวแปร data เพื่อรองรับ categoryIdroom
+    const data: { namelocation: string; nameteacher: string; categoryIdroom?: string } = {
+        namelocation,
+        nameteacher,
+    };
+
+    // เพิ่ม categoryIdroom เฉพาะเมื่อมีค่า
+    if (categoryIdroom) {
+        data.categoryIdroom = categoryIdroom;
     }
+
+    // สร้าง location ใหม่ด้วยข้อมูลที่เตรียมไว้
+    const newLocation = await prisma.location.create({
+        data: data,
+    });
+
+    return Response.json(newLocation);
+} catch (error) {
+  if (error instanceof Error) {
+      return Response.json({ error: 'เกิดข้อผิดพลาด', details: error.message });
+  } else {
+      // กรณีที่ error ไม่ใช่ instance ของ Error
+      return Response.json({ error: 'เกิดข้อผิดพลาดที่ไม่สามารถระบุได้' });
+  }
+}
+
 }

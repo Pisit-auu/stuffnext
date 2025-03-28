@@ -96,17 +96,17 @@ export default function Edit() {
         <div>
           <label className="block text-sm font-medium text-gray-700">ประเภทของสถานที่</label>
           <select
-            value={categoryroomid}
-            onChange={(e) => setcategoryroomid(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
-          >
-            <option value="">เลือกประเภทของสถานที่</option>
-            {listcategory.map((category: any) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          value={categoryroomid || ''} 
+          onChange={(e) => setcategoryroomid(e.target.value)}
+          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
+        >
+          <option value="">เลือกประเภทของสถานที่</option>
+          {listcategory.map((category: any) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
         </div>
         <div>
           <button

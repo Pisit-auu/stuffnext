@@ -23,12 +23,16 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { namelocation, nameteacher,categoryIdroom} = await request.json();
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { namelocation, nameteacher, categoryIdroom } = await request.json();
+    const { id } = await context.params; 
 
     const update = await prisma.location.update({
       where: { namelocation: id },
-      data: { namelocation, nameteacher,categoryIdroom },
+      data: {
+        namelocation,
+        nameteacher,
+        categoryIdroom: categoryIdroom || null, 
+      },
     });
 
     return NextResponse.json(update);
@@ -39,7 +43,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { id } = await context.params;
 
     const deletelocation = await prisma.location.delete({
       where: { namelocation: id },
