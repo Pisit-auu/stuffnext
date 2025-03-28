@@ -48,7 +48,6 @@ export default function Admin() {
     
         const res = await axios.get(`/api/location?${query}`);
         setLocation(res.data); 
-        console.log(res.data)
       } catch (error) {
         console.error(error);
       }

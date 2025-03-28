@@ -36,13 +36,11 @@ const UserBorrowHistory = () => {
   const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const [Returned, setReturned] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>(borrowHistory);
-  const [day ,setday] = useState<string>('');
   useEffect(() => {
     if (!session?.user?.id) {
       setError('User is not logged in');

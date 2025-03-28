@@ -14,7 +14,7 @@ export default function SignIn() {
         <img
             src="head.jpg"
             alt="Picture of the school"
-            className=" rounded-lg shadow-md w-[400px] h-full" // ใช้ class สำหรับกำหนดขนาด
+            className=" rounded-lg shadow-md w-[400px] h-full" 
           />
 
         </div>
@@ -56,9 +56,9 @@ export default function SignIn() {
               <Image
                 src="/borrow.png"
                 alt="Button Icon"
-                width={200}  // ขนาดที่เท่ากัน
-                height={200} // ขนาดที่เท่ากัน
-                className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
+                width={200}  
+                height={200} 
+                className="bg-white rounded-lg shadow-md object-cover"
               />
               <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
                 BORROW
@@ -71,8 +71,8 @@ export default function SignIn() {
               <Image
                 src="/return.png"
                 alt="Button Icon"
-                width={200}  // ขนาดที่เท่ากัน
-                height={200} // ขนาดที่เท่ากัน
+                width={200} 
+                height={200} 
                 className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
               />
               <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
@@ -86,9 +86,9 @@ export default function SignIn() {
               <Image
                 src="/status.png"
                 alt="Button Icon"
-                width={200}  // ขนาดที่เท่ากัน
-                height={200} // ขนาดที่เท่ากัน
-                className="bg-white rounded-lg shadow-md object-cover" // ใช้ object-cover เพื่อขยายให้เต็มกรอบ
+                width={200}  
+                height={200} 
+                className="bg-white rounded-lg shadow-md object-cover" 
               />
               <div className="mt-6 md:mt-12 text-xl text-blackblue_111827 text-center font-semibold">
                 USER STATUS
@@ -110,7 +110,7 @@ export default function SignIn() {
 
           <div className="flex flex-col mb-4">
             <div className="text-xl md:text-2xl">Email</div>
-            <div className="indent-4 md:indent-16">Srinakzarin.school@gmail.com</div>
+            <div className="indent-4 md:indent-16">Srinakarin.school@gmail.com</div>
           </div>
 
           <div className="flex flex-col">

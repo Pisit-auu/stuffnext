@@ -4,44 +4,37 @@ import prisma from "@/lib/prisma";
 
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const search = searchParams.get('search') || '';  
-  const categoryroom = searchParams.get('categoryroom') || ''; 
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search') || '';  
+    const categoryroom = searchParams.get('categoryroom');
 
-  const location = await prisma.location.findMany({
-      where: {
-          AND: [
-              {
-                  namelocation: {
-                      contains: search,
-                      mode: 'insensitive',
-                  },
-              },
-              {
-                
-                  OR: [
-                      {
-                          categoryroom: {
-                              name: {
-                                  contains: categoryroom,
-                                  mode: 'insensitive',
-                              },
-                          },
-                      },
-                      {
-                          categoryroom: null,
-                      },
-                  ],
-              },
-          ],
-      },
-      include: {
-          categoryroom: true, 
-      },
-  });
+    const whereCondition: any = {
+        namelocation: {
+            contains: search,
+            mode: 'insensitive',
+        },
+    };
 
-  return Response.json(location);
+    // ถ้า categoryroom มีค่า ให้ใช้เงื่อนไขค้นหา
+    if (categoryroom) {
+        whereCondition.categoryroom = {
+            name: {
+                contains: categoryroom,
+                mode: 'insensitive',
+            },
+        };
+    }
+
+    const location = await prisma.location.findMany({
+        where: whereCondition,
+        include: {
+            categoryroom: true, 
+        },
+    });
+
+    return Response.json(location);
 }
+
 
   
   

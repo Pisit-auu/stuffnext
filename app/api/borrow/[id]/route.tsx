@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { id } = await context.params; 
 
     const borrow = await prisma.borrow.findUnique({
       where: { id: Number(id) },
@@ -25,7 +25,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { id } = await context.params; 
     const { Borrowstatus, ReturnStatus, dayReturn } = await request.json();
 
     // ตรวจสอบว่า dayReturn ถ้าได้รับมา ต้องเป็นรูปแบบที่ถูกต้อง
@@ -56,7 +56,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { id } = await context.params;
 
     const deleteAsset = await prisma.borrow.delete({
       where: { id: Number(id) },

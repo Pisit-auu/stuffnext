@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  // ใช้ await ที่นี่
+    const { id } = await context.params;  
 
     const result = await prisma.location.findUnique({
       where: { namelocation: id }, include: {
