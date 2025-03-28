@@ -5,7 +5,8 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  
+  directUrl = env("DIRECT_URL")
+
 }
 model Asset {
   id               Int             @id @default(autoincrement())
@@ -35,8 +36,8 @@ model Location {
   nameteacher  String?
   assets       AssetLocation[]
   borrow       borrow[]
-  categoryIdroom       Int
-  categoryroom     Categoryroom      @relation(fields: [categoryIdroom], references: [id], onDelete: Cascade)
+  categoryIdroom       Int?
+  categoryroom   Categoryroom?  @relation(fields: [categoryIdroom], references: [id], onDelete: Cascade)
 }
 model Categoryroom {
   id     Int     @id @default(autoincrement())

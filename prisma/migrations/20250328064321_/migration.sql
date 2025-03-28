@@ -32,8 +32,17 @@ CREATE TABLE "Location" (
     "id" SERIAL NOT NULL,
     "namelocation" TEXT NOT NULL,
     "nameteacher" TEXT,
+    "categoryIdroom" INTEGER,
 
     CONSTRAINT "Location_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Categoryroom" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "Categoryroom_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -91,6 +100,9 @@ CREATE UNIQUE INDEX "Category_idname_key" ON "Category"("idname");
 CREATE UNIQUE INDEX "Location_namelocation_key" ON "Location"("namelocation");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Categoryroom_name_key" ON "Categoryroom"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "AssetLocation_assetId_locationId_key" ON "AssetLocation"("assetId", "locationId");
 
 -- CreateIndex
@@ -98,6 +110,9 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- AddForeignKey
 ALTER TABLE "Asset" ADD CONSTRAINT "Asset_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("idname") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Location" ADD CONSTRAINT "Location_categoryIdroom_fkey" FOREIGN KEY ("categoryIdroom") REFERENCES "Categoryroom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AssetLocation" ADD CONSTRAINT "AssetLocation_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "Asset"("assetid") ON DELETE CASCADE ON UPDATE CASCADE;
