@@ -111,7 +111,14 @@ const UserBorrowHistory = () => {
   };
   const handlecancleReturn = async (borrowId: number, id?: number) => {
     try {
-      
+      console.log(borrowId)
+      const rescheck = await axios.get(`/api/borrow/${borrowId}`);
+      if(rescheck.data.ReturnStatus==='c'){
+        alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
+        window.location.reload()
+        return
+      }
+
       // สร้างวันที่คืนเป็น null
       const dayReturn = null
       // ส่งคำขอ PUT ไปที่ API

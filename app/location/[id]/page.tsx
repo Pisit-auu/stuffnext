@@ -66,7 +66,6 @@ export default function location() {
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`/api/category`);
-      console.log(res.data)
       setCategories(res.data); // รับข้อมูลประเภท
     } catch (error) {
       console.error(error);
@@ -165,8 +164,8 @@ export default function location() {
       alert("กรุณาเลือกสถานที่ที่จะยืม")
       return
     }
-    if(parseInt(avilablevaluecanput) < 1){
-      alert("จำนวนที่ยืมต้อง > 0")
+    if(parseInt(avilablevaluecanput) < 1|| avilablevaluecanput ===''){
+      alert("จำนวนที่ยืมต้อง > 0 หรือ กรอกตัวเลข")
       return
     }
     setborrowbotton(true)

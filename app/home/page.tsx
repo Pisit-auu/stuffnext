@@ -41,7 +41,7 @@ export default function Home() {
     setFilteredLocations(
       locations.filter(location => 
         location.namelocation.toLowerCase().includes(searchLocation.toLowerCase()) &&
-        (selectedCategory ? location.categoryroom.name === selectedCategory : true) // กรองตามประเภท
+        (selectedCategory ? location.categoryroom?.name === selectedCategory : true) 
       )
     );
   }, [searchLocation, selectedCategory, locations]);
