@@ -146,13 +146,14 @@ const UserBorrowHistory = () => {
 
     try {
 
-      const rescheck = await axios.get(`/api/borrow/${id}`);
-      if(rescheck.data.ReturnStatus==='c'){
+
+
+      const response = await axios.get(`/api/borrow/${id}`)
+      if(response.data.ReturnStatus==='c'){
         alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
         window.location.reload()
         return
       }
-      const response = await axios.get(`/api/borrow/${id}`)
       let presentlocation = ''
       let locationreturn = ''
       presentlocation =response.data.borrowLocationId
