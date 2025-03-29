@@ -165,6 +165,10 @@ export default function location() {
       alert("กรุณาเลือกสถานที่ที่จะยืม")
       return
     }
+    if(parseInt(avilablevaluecanput) < 1){
+      alert("จำนวนที่ยืมต้อง > 0")
+      return
+    }
     setborrowbotton(true)
     try {
       const getborrowlocation = await axios.get(`/api/assetlocationroom?location=${selectBorrowLocation}`);
