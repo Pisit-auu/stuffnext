@@ -44,7 +44,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       data: {
         Borrowstatus,
         ReturnStatus,
-        dayReturn: formattedDayReturn,
+        dayReturn: dayReturn ? formattedDayReturn : null,
       },
     });
 

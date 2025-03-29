@@ -36,7 +36,6 @@ const UserBorrowHistory = () => {
   const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [Returned, setReturned] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -106,7 +105,6 @@ const UserBorrowHistory = () => {
           )
         );
       }
-      setReturned(true)
       alert("สถานะการคืนจะอัพเดต เมื่อแอดมินตรวจสอบเสร็จสิ้น")
     } catch (err) {
       setError('Failed to update return date');
@@ -114,6 +112,7 @@ const UserBorrowHistory = () => {
   };
   const handlecancleReturn = async (borrowId: number, id?: number) => {
     try {
+      
       // สร้างวันที่คืนเป็น null
       const dayReturn = null
       // ส่งคำขอ PUT ไปที่ API
@@ -132,7 +131,6 @@ const UserBorrowHistory = () => {
           )
         );
       }
-      setReturned(false)
     } catch (err) {
       setError('Failed to update return date');
     }
@@ -315,14 +313,14 @@ const UserBorrowHistory = () => {
                 <td className="px-4 py-2">{borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString() : 'ยังไม่ได้คืน'}</td>
                 <td className="px-4 py-2">{borrow.note}</td>
                 <td className="px-4 py-2">
-                  {borrow.ReturnStatus !== 'c' && !Returned && (
+                  {borrow.ReturnStatus !== 'c' && !borrow.dayReturn && (
                                     <Button type="primary" ghost  onClick={() => handleReturn(borrow.id, borrow.asset.id)}
                                     className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
                                               คืน
                                            </Button>
                     
                   )}
-                  {borrow.ReturnStatus !== 'c' && Returned && (
+                  {borrow.ReturnStatus !== 'c' && borrow.dayReturn && (
                                     <Button type="primary" ghost  onClick={() => handlecancleReturn(borrow.id, borrow.asset.id)}
                                     className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
                                               ยกเลิกการคืน
