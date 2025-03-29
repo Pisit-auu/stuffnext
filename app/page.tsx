@@ -99,27 +99,28 @@ export default function SignIn() {
       </div>
 
       {/* Content Bottom */}
-      <div className="flex flex-col items-center w-full bg-secondary">
-        <div className="flex flex-col text-md text-white transition my-8 md:my-16 px-4 md:px-0">
-          <div className="flex flex-col mb-4">
-            <div className="text-xl md:text-2xl">Address</div>
-            <div className="indent-4 md:indent-16">
-              119 ถนนเพชรเกษม ตำบลคลองทราย อำเภอนาทวี จังหวัดสงขลา 90160
-            </div>
-          </div>
+      <div className="flex flex-col md:flex-row items-center justify-center w-full bg-secondary p-8">
+  <div className="flex flex-col text-md text-white transition text-center md:text-left px-6 py-4 rounded-lg bg-opacity-80 hover:bg-opacity-90 space-y-4">
+    <div className="text-xl md:text-2xl font-semibold">Address</div>
+    <div className="indent-4 md:indent-16">
+      119 ถนนเพชรเกษม ตำบลคลองทราย อำเภอนาทวี จังหวัดสงขลา 90160
+    </div>
+  </div>
 
-          <div className="flex flex-col mb-4">
-            <div className="text-xl md:text-2xl">Email</div>
-            <div className="indent-4 md:indent-16">Srinakarin.school@gmail.com</div>
-          </div>
+  <div className="flex flex-col text-md text-white transition text-center md:text-left px-6 py-4 rounded-lg bg-opacity-80 hover:bg-opacity-90 space-y-4">
+    <div className="text-xl md:text-2xl font-semibold">Email</div>
+    <div className="indent-4 md:indent-16">Srinakarin.school@gmail.com</div>
+  </div>
 
-          <div className="flex flex-col">
-            <div className="text-xl md:text-2xl">Phone</div>
-            <div className="indent-4 md:indent-16">074-371744-5</div>
-            <div className="indent-4 md:indent-16">082-5234382</div>
-          </div>
-        </div>
-      </div>
+  <div className="flex flex-col text-md text-white transition text-center md:text-left px-6 py-4 rounded-lg bg-opacity-80 hover:bg-opacity-90 space-y-4">
+    <div className="text-xl md:text-2xl font-semibold">Phone</div>
+    <div className="indent-4 md:indent-16">074-371744-5</div>
+    <div className="indent-4 md:indent-16">082-5234382</div>
+  </div>
+</div>
+
+
+
     </div>
   )
 }

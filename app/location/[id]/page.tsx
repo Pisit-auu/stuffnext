@@ -3,6 +3,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Select, Input, Button, Popconfirm } from 'antd';
+import { signOut } from "next-auth/react";
 
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -48,6 +49,12 @@ export default function location() {
   const fetchUser = async () => {
     if (!session?.user?.username) return; // Check if username exists in the session
     if (session.user.id) {
+      const res = await axios.get(`/api/auth/signup/${session?.user.username}`);
+      if(!res.data){
+        alert('ไม่พบบัญชีผู้ใช้')
+        signOut();
+        return;
+      }
       setUserId(session.user.id); // Set the user ID
     }
     setnameuser(session.user.name ?? ""); // ถ้าเป็น null/undefined ใช้ค่าเป็น "" แทน
@@ -63,6 +70,7 @@ export default function location() {
       fetchCategories();
     }
   }, [status, router]);
+
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`/api/category`);

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import '@ant-design/v5-patch-for-react-19';
+import { signOut } from "next-auth/react";
 
 interface BorrowHistory {
   id: number;
@@ -82,10 +83,31 @@ const UserBorrowHistory = () => {
     setFilteredHistory(filtered);
   }, [startDate, endDate, searchTerm, borrowHistory]);
   
-
+  const fetchuser = async () => {
+    try {
+      const res = await axios.get(`/api/auth/signup/${session?.user?.username}`);
+      
+      if (!res.data) {
+        alert('ไม่พบบัญชีผู้ใช้');
+        signOut();
+        return;
+      }
+    } catch (err) {
+      setError('Failed to fetch user');
+    }
+  };
+  const fethcheckclocation = async (response: any) => {
+    try{
+      const reschecklocation = await axios.get(`/api/location/${response.data.returnLocationId}`)
+    }catch(error){
+      alert('ไม่มีห้องนี้อยู่แล้ว')
+      return
+    }
+  };
   const handleReturn = async (borrowId: number, id?: number) => {
     try {
       // สร้างวันที่คืนเป็นวันที่ปัจจุบัน
+      fetchuser();
       const dayReturn = new Date().toISOString();
   
       // ส่งคำขอ PUT ไปที่ API
@@ -93,7 +115,7 @@ const UserBorrowHistory = () => {
         id : borrowId,
         dayReturn, // ส่งวันที่คืน
       });
-  
+      fethcheckclocation(response)
       if (response.status === 200) {
         // อัพเดตข้อมูลใน state
         setBorrowHistory((prevHistory) =>
@@ -110,8 +132,10 @@ const UserBorrowHistory = () => {
     }
   };
   const handlecancleReturn = async (borrowId: number, id?: number) => {
+    fetchuser();
     try {
       const rescheck = await axios.get(`/api/borrow/${borrowId}`);
+      fethcheckclocation(rescheck)
       if(rescheck.data.ReturnStatus==='c'){
         alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
         window.location.reload()
@@ -143,12 +167,11 @@ const UserBorrowHistory = () => {
   const handlecancle = async (
     id: number,
   ) => {
-
+    fetchuser();
     try {
 
-
-
       const response = await axios.get(`/api/borrow/${id}`)
+      fethcheckclocation(response)
       if(response.data.ReturnStatus==='c'){
         alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
         window.location.reload()
