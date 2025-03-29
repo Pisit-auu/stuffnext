@@ -108,14 +108,14 @@ const UserBorrowHistory = () => {
     try {
       // สร้างวันที่คืนเป็นวันที่ปัจจุบัน
       fetchuser();
+      const rescheck = await axios.get(`/api/borrow/${borrowId}`);
+      fethcheckclocation(rescheck)
       const dayReturn = new Date().toISOString();
-  
       // ส่งคำขอ PUT ไปที่ API
       const response = await axios.put(`/api/borrow/${borrowId}`, {
         id : borrowId,
         dayReturn, // ส่งวันที่คืน
       });
-      fethcheckclocation(response)
       if (response.status === 200) {
         // อัพเดตข้อมูลใน state
         setBorrowHistory((prevHistory) =>
