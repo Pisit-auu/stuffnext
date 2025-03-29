@@ -111,7 +111,6 @@ const UserBorrowHistory = () => {
   };
   const handlecancleReturn = async (borrowId: number, id?: number) => {
     try {
-      console.log(borrowId)
       const rescheck = await axios.get(`/api/borrow/${borrowId}`);
       if(rescheck.data.ReturnStatus==='c'){
         alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
@@ -147,7 +146,12 @@ const UserBorrowHistory = () => {
 
     try {
 
-     
+      const rescheck = await axios.get(`/api/borrow/${id}`);
+      if(rescheck.data.ReturnStatus==='c'){
+        alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
+        window.location.reload()
+        return
+      }
       const response = await axios.get(`/api/borrow/${id}`)
       let presentlocation = ''
       let locationreturn = ''
