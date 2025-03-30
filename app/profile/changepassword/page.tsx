@@ -6,10 +6,10 @@ import axios from 'axios';
 
 
 const ChangePasswordPage = () => {
-  const { data: session } = useSession();
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { data: session } = useSession(); //เก็บ session
+  const [oldPassword, setOldPassword] = useState("");  //เก็บรหัสเก่า
+  const [newPassword, setNewPassword] = useState("");//เก็บรหัสใหม่
+  const [confirmPassword, setConfirmPassword] = useState(""); 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const router = useRouter(); // ใช้ useRouter

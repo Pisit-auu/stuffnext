@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignIn() {
-  const [username, setUsername] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
+  const [username, setUsername] = useState<string>('')   //เก็บ username
+  const [password, setPassword] = useState<string>('')   //เก็บ password
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
 
+  //ฟังก์ชันเมื่อกดปุ่ม login
   const handleSignInSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!username || !password) {

@@ -15,6 +15,8 @@ export default function EditCategory() {
     }
   }, [id])
 
+
+  //ดึงข้อมูลเก่าประเภทของห้อง
   const fetchCategory = async (id: string) => {
     try {
       const res = await axios.get(`/api/categoryroom/${id}`)
@@ -23,7 +25,7 @@ export default function EditCategory() {
       alert('เกิดข้อผิดพลาด')
     }
   }
-
+ //อัพเดตข้อมูล
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {

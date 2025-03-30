@@ -16,6 +16,7 @@ export default function Create() {
     fetchCategories();
   }, []);
 
+  //ดึงข้อมูลประเภทของห้อง
   const fetchCategories = async () => {
     try {
       const res = await axios.get('/api/categoryroom');
@@ -25,6 +26,7 @@ export default function Create() {
     }
   };
 
+  // สร้างสถานที่
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 

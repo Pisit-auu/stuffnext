@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
-
+//ดึงข้อมูล
 export async function GET(request:NextRequest){
     const seaarchParams = request.nextUrl.searchParams
     const search = seaarchParams.get('search') || ''
@@ -15,7 +15,7 @@ export async function GET(request:NextRequest){
     })
     return Response.json(category)
 }
-
+//สร้างข้อมูล
 export async function POST(request: Request){
     try{
         const {idname,name} = await request.json()

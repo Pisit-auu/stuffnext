@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
-
+// ดึงข้อมูล assetlocation
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-
+//สร้างของในห้อง
 export async function POST(request: Request){
     const {assetId,locationId,inRoomavailableValue,inRoomaunavailableValue} = await request.json()
     const intInRoomavailableValue = parseInt(inRoomavailableValue, 10);

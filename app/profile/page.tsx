@@ -7,11 +7,11 @@ import bcrypt from 'bcryptjs';
 import Link from 'next/link';
 
 export default function Profile() {
-  const { data: session, status, update } = useSession();
-  const [getuser, setUser] = useState<any>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [password, setPassword] = useState('');
-  const [formData, setFormData] = useState<any>({
+  const { data: session, status, update } = useSession(); //ดึงข้อมูลเซสชันของผู้ใช้ มี อัปเดตข้อมูลเซสชัน เมื่อเปลี่ยนแปลงข้อมูลผู้ใช้
+  const [getuser, setUser] = useState<any>(null);      //เก็บข้อมูลuser
+  const [isEditing, setIsEditing] = useState(false);   //เก็บสถานะว่า กำลัง editไหม
+  const [password, setPassword] = useState('');   //เก็บรหัสผ่านเพื่อยืนยันตัวตน
+  const [formData, setFormData] = useState<any>({     //เก็บข้อมูลuser
     username: '',
     name: '',
     surname: '',
@@ -22,7 +22,7 @@ export default function Profile() {
 
   const router = useRouter();
 
-  // ฟังก์ชันดึงข้อมูลผู้ใช้ L:>
+  // ฟังก์ชันดึงข้อมูลผู้ใช้ 
   const fetchUser = async () => {
     if (!session?.user?.username) return;
     try {

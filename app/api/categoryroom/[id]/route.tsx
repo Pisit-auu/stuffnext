@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-
+//ดึงข้อมูลตาม id 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
 
@@ -10,7 +10,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
   return NextResponse.json(result);
 }
-
+//อัพเดตข้อมูลตาม id 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const {  name } = await request.json();
@@ -29,7 +29,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
+//ลบข้อมูลตาม id
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;

@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
-
+//ดึงข้อมูลทั้งหมด
 export async function GET(request:NextRequest){
-    const seaarchParams = request.nextUrl.searchParams
-    const search = seaarchParams.get('search') || ''
+    const seaarchParams = request.nextUrl.searchParams // รับ request 
+    const search = seaarchParams.get('search') || '' //ดึงค่า search จาก URL
     const category = await prisma.categoryroom.findMany({
         where:{
             name: {
@@ -16,6 +16,7 @@ export async function GET(request:NextRequest){
     return Response.json(category)
 }
 
+//สร้างข้อมูล
 export async function POST(request: Request){
     try{
         const {name} = await request.json()

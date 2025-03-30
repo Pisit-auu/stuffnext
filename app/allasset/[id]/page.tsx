@@ -4,18 +4,18 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 
-export default function Manageroom() {
-  const [groupedAssets, setGroupedAssets] = useState<any>({});
-  const [asset, setAsset] = useState<any | null>(null);
+export default function detailAsset() {
+  const [groupedAssets, setGroupedAssets] = useState<any>({}); //เก็บข้อมูลครุภัณฑ์ที่อยู๋ทุกห้อง
+  const [asset, setAsset] = useState<any | null>(null); //เก็บข้อมูลครุภัณฑ์
   const { id } = useParams() as { id: string };
-  const [allvalueallroom , setallvalueallroom] = useState(0) 
-  const [allvalueallroomunavailible , setallvalueallroomunavailible] = useState(0) 
+  const [allvalueallroom , setallvalueallroom] = useState(0)  //จำนวนทั้งหมดทุกห้องที่ใช้ได้
+  const [allvalueallroomunavailible , setallvalueallroomunavailible] = useState(0) //จำนวนทั้งหมดทุกห้องที่ใช้ไม่ได้
 
   useEffect(() => {
     fetchAssetLocation();
     fetchAsset();
   }, []);
-
+  //ฟังก์ชันดึงข้อมูลครุภัณฑ์แต่ละห้อง
   const fetchAssetLocation = async () => {
     try {
       const res = await axios.get(`/api/assetlocation`);
@@ -24,7 +24,7 @@ export default function Manageroom() {
       console.error(error);
     }
   };
-
+  //ฟังก์ชันดึงข้อมูลครุภัณฑ์
   const fetchAsset = async () => {
     try {
       const res = await axios.get(`/api/asset/${decodeURIComponent(id)}`);
@@ -33,7 +33,8 @@ export default function Manageroom() {
       console.error(error);
     }
   };
-
+  
+  //นับจำนวนของทั้งหมดทุกห้อง
   const groupAssetsById = (data: any[]) => {
     const grouped: any = {};
     data.forEach((item: any) => {
@@ -43,7 +44,7 @@ export default function Manageroom() {
       }
       grouped[item.assetId].push({
         location: item.location.namelocation,
-        inRoomavailableValue: item.inRoomavailableValue,
+        inRoomavailableValue: item.inRomavailableValue,
         inRoomaunavailableValue: item.inRoomaunavailableValue,
       });
     });
@@ -56,7 +57,7 @@ export default function Manageroom() {
         valueallroomunavailible = valueallroomunavailible + item.inRoomaunavailableValue 
       });
     });
-    console.log(valueallroomavailible);
+    //console.log(valueallroomunavailible);
     setallvalueallroom(valueallroomavailible)
     setallvalueallroomunavailible(valueallroomunavailible)
   };

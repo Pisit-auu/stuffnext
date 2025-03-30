@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-
+//ดึงข้อมูลตาม id 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;  
-
+  
     const result = await prisma.location.findUnique({
       where: { namelocation: id }, include: {
         categoryroom : true,
@@ -21,6 +21,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 }
 
+//อัพเดตข้อมูลตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { namelocation, nameteacher, categoryIdroom } = await request.json();
@@ -41,6 +42,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 
+//ลบข้อมูลตาม id
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;

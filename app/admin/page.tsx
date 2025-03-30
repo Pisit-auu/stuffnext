@@ -7,13 +7,15 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Flex, Menu } from 'antd';
 
 export default function Admin() {
+  //ประเภทครุภัณฑ์
     const [categorys, setCategory] = useState([])
+  //ประเภทของห้อง
     const [categoryrooms, setCategoryroom] = useState([])
-
+  //ครุภัณฑ์
     const [asset, setAsset] = useState([])
+     //เก็บการค้นหา
     const [searchCategory, setSearchCategory] = useState('')
     const [searchCategoryroom, setSearchCategoryroom] = useState('')
-
     const [searchAsset, setSearchAsset] = useState('')
     const [category, setSelectCategory] = useState('')
     const [sort, setSort] = useState('desc')
@@ -21,7 +23,7 @@ export default function Admin() {
     const [searchLocation, setSearchLocation] = useState('')
     const [categoryroom, setSelectCategoryroom] = useState('')
 
-
+    
     const [locations, setLocation] = useState([])
     const [selectedMenu, setSelectedMenu] = useState('asset') // State to control which section to display
 

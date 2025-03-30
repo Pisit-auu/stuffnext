@@ -43,7 +43,7 @@ const BorrowHistoryPage = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const params = useParams();
-
+  //ดึงข้อมูลการยืมทั้งหมด
   useEffect(() => {
     const fetchBorrowHistory = async () => {
       try {
@@ -97,7 +97,7 @@ const BorrowHistoryPage = () => {
 
       
   
-      
+      //อัพเดตสถานะการยืม
   const updateBorrowStatus = async (
     id: number,
     Borrowstatus: string,
@@ -121,7 +121,7 @@ const BorrowHistoryPage = () => {
       console.error('Error updating borrow status:', error);
     }
   };
-  
+      //อัพเดตสถานะการคืน
   const updateReturnStatus = async (
   id: number,
   Borrowstatus: string,

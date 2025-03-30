@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
-
+//ดึงครุภัณฑ์ทั้งหมด
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get('search') || ''
@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
+
+  // สร้างครุภัณฑ์ 
 export async function POST(request: Request){
     const {name,img,assetid,categoryId,availableValue,unavailableValue} = await request.json()
     const availableValueNumber = parseInt(availableValue, 10);

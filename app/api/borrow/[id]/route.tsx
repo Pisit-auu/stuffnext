@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-
+//ดึงข้อมูล ตาม id
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params; 
@@ -22,7 +22,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ error: "Failed to fetch borrow record" }, { status: 500 });
   }
 }
-
+// อัพเดตข้อใูลตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params; 
@@ -53,7 +53,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ error: "Error updating borrow" }, { status: 500 });
   }
 }
-
+// ลบข้อมูลตามid
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;

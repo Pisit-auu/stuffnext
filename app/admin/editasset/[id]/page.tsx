@@ -21,7 +21,7 @@ export default function Edit() {
   const router = useRouter();
 
   const [file, setFile] = useState<File | null>(null);
-
+  //ฟังก์ชันอัพโหลด รูปภาพ
   const handleUpload = async () => {
     if (!file) return;
   
@@ -52,7 +52,7 @@ export default function Edit() {
   };
   
   
-
+// ดึงข้อมูลเก่า asset และประเภทของครุภัณฑ์
   const fetchPost = async (id: string) => {
     try {
       const resasset = await axios.get(`/api/asset/${id}`);
@@ -75,6 +75,7 @@ export default function Edit() {
     }
   }, [id]);
 
+    //อัพเดตข้อมูล
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

@@ -14,7 +14,7 @@ export default function Edit() {
       fetchPost(id)
     }
   }, [id])
-
+//ดึงข้อมูลเก่าประเภทของครุภัณฑ์
   const fetchPost = async (id: string) => {
     try {
       const res = await axios.get(`/api/category/${id}`)
@@ -24,7 +24,7 @@ export default function Edit() {
       console.error(error)
     }
   }
-
+//อัพเดตประเภทของครุภัณฑ์
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {

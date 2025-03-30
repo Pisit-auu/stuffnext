@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 
+
+//ดึงของในห้องตาม id
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;  // ใช้ await ที่นี่
 
@@ -11,6 +13,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   return Response.json(result);
 }
 
+
+//update ของในห้องตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue } = await request.json();

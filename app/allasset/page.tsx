@@ -5,13 +5,14 @@ import axios from 'axios'
 import React, { useEffect, useState } from 'react';
 
 export default function Allasset() {
-  const [category, setSelectCategory] = useState('')  
-  const [searchAsset, setSearchAsset] = useState('')  
-  const [asset, setAsset] = useState<any[]>([])  
+  const [category, setSelectCategory] = useState('')   //เก็บประเภทครุภัณฑ์ที่เลือก
+  const [searchAsset, setSearchAsset] = useState('')  //เก็บชื่อครุภัณฑ์ที่ค้นหา
+  const [asset, setAsset] = useState<any[]>([])  //เก็บครุภัณฑ์ ทั้งหมดที่ดึงเข้ามา
   const [assetlocation, setAssetlocation] = useState<any[]>([])  
   const [assetCount, setAssetCount] = useState<any[]>([])  
-  const [categorys, setCategory] = useState([])
+  const [categorys, setCategory] = useState([])  //เก็บ ประเภทครุภัณฑ์
 
+  // ดึงข้อมูล ประเภทของครุภัณฑ์ ชื่อครุภัณฑ์  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -29,7 +30,7 @@ export default function Allasset() {
     };
     fetchData();
   }, []);
-
+  //ฟังก์ชันนับ รวมจำนวนของที่อยู่ในห้องอื่นๆ มาแสดง
   const count = () => {
     const countData = asset.map((assetItem) => {
       const matchingLocations = assetlocation.filter((loc) => loc.assetId === assetItem.assetid)

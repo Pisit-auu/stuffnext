@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 }
 
-
+//ดึงข้อมูล user
 
 export async function GET(req: NextRequest) {
   // ตรวจสอบว่า req.query มีค่าแล้วหรือไม่

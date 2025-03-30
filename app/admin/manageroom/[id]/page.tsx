@@ -15,20 +15,22 @@ interface Asset {
   assetid: string;
   availableValue: number;
   unavailableValue: number;
-  // Add other properties as needed
+ 
 }
 export default function Manageroom() {
-      const router = useRouter();
+  const router = useRouter();
   const { id } = useParams() as { id: string };
   const [assetLocation, setAssetLocation] = useState<any[]>([]);
   const [filteredLocation, setFilteredLocation] = useState<any[]>([]);
   const [searchLocation, setSearchLocation] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
   const [isaddAssetOpen, setIsaddAssetOpen] = useState(false);
   const [newselectedAsset, setnewSelectedAsset] = useState<any | undefined>(undefined);
   const [Asset, setAsset] = useState<any[] | null>(null);
   const [inputvalueAssetselect, setinputvalueAssetselect] = useState(false);
+
   const [addInRoomavailableValue , setinRoomavailableValue] = useState('')
   const [addInRoomunavailableValue , setinRoomunavailableValue] = useState('')
   const [updateInRoomavailableValue , setupdateinRoomavailableValue] = useState('')
@@ -36,6 +38,7 @@ export default function Manageroom() {
   const [addlocationid , setaddlocationid] = useState('')
   const [Iddelete , setIddelete] = useState('')
   const [statusedit , seteditstatus] = useState(false)
+  
   const [unavilablevaluecanput , setunavilablevaluecanput] = useState('')
   const [avilablevaluecanput , setavilablevaluecanput] = useState('')
   const fetchAsset = async () => {
@@ -197,7 +200,7 @@ export default function Manageroom() {
   const closeModal = () => {
     setIsModalOpen(false);
     seteditstatus(false)
-    setSelectedAsset(undefined); // Use undefined instead of null
+    setSelectedAsset(undefined);
     
   };
 

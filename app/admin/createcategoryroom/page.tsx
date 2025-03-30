@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 export default function CreateCategory() {
   const [name, setCategoryname] = useState('')
   const router = useRouter()
-
+  //สร้างประเภทของห้อง
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 

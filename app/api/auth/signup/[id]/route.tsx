@@ -1,17 +1,16 @@
 import bcrypt from 'bcryptjs';
 import prisma from "@/lib/prisma";
-
+//ดึงข้อมูล user ตาม id
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;  // ใช้ await ที่นี่
+  const { id } = await context.params;  
 
   const result = await prisma.user.findUnique({
     where: { username: id },
-    //include: { category: true },
   });
 
   return Response.json(result);
 }
-
+//อัพเดตข้อมูล ตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     // รับข้อมูลที่อาจจะมีค่าบางฟิลด์ที่ต้องการอัปเดต
@@ -47,7 +46,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     });
   }
 }
-
+//ลบ ข้อมูลตาม id
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     //  ต้อง await ก่อนเข้าถึงค่า params

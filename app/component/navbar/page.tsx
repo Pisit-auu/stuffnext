@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from 'next-auth/react';
 
 export default function NavbarGlobal() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
-  const [checksession, setchecksession] = useState(false);
-  const [name, setName] = useState<string>(''); 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);  //เก็บสถานะเพื่อเปิดปิดสำหรับ โทรศัพท์
+  const { data: session, status } = useSession(); //เก็บ session 
+  const [checksession, setchecksession] = useState(false); // เก็บว่ามี session ไหม
+  const [name, setName] = useState<string>(''); // เก็บชื่อผู้ใข้
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // เก็บสถานะเพื่อเปิดปิด Dropdown ตรงชิ่อผู้ใช้
   const router = useRouter();
   
   useEffect(() => {

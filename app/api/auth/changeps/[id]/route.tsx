@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
-
+// อัพเดตรหัสผ่าน ของuser ตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   // รอให้ params resolve ก่อนแล้วดึงค่า id
   const { id } = await context.params;

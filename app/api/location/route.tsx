@@ -4,9 +4,9 @@ import prisma from "@/lib/prisma";
 
 
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search') || '';  
-    const categoryroom = searchParams.get('categoryroom');
+    const searchParams = request.nextUrl.searchParams; // รับ request 
+    const search = searchParams.get('search') || '';   //ดึงค่า search จาก URL
+    const categoryroom = searchParams.get('categoryroom'); //ค้นหา query parameter ที่ชื่อว่า categoryroom ใน URL
 
     const whereCondition: any = {
         namelocation: {

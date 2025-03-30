@@ -33,13 +33,16 @@ interface BorrowHistory {
 
 const UserBorrowHistory = () => {
   const { data: session } = useSession(); // ดึง session ของผู้ใช้
-  const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);
+  const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);   //เก็บข้อมูลการยืม
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>(borrowHistory);
+  const [endDate, setEndDate] = useState<string>('');  //ยืมถึงวันที่
+  const [searchTerm, setSearchTerm] = useState<string>(''); //เก็บคำค้นหา
+  const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>(borrowHistory); //ผลลัพธ์ที่ค้นหา
+
+
+  //ดึงข้อมูลประวัติการยืมของผู้ใช้ที่ล็อกอินอยู่ เก็บไว้ใน setBorrowHistory
   useEffect(() => {
     if (!session?.user?.id) {
       setError('User is not logged in');
@@ -65,6 +68,7 @@ const UserBorrowHistory = () => {
     fetchBorrowHistory();
   }, [session]);
 
+  //กรอง (filter) ข้อมูลประวัติการยืม (borrowHistory) ตามวันที่และคำค้นหา แล้วอัปเดตไปที่ setFilteredHistory
   useEffect(() => {
     const filtered = borrowHistory.filter((borrow) => {
       const borrowDate = new Date(borrow.createdAt).setHours(0, 0, 0, 0);
@@ -83,6 +87,7 @@ const UserBorrowHistory = () => {
     setFilteredHistory(filtered);
   }, [startDate, endDate, searchTerm, borrowHistory]);
   
+  //ฟังก์ชันสำหรับ ดึงข้อมูล user
   const fetchuser = async () => {
     try {
       const res = await axios.get(`/api/auth/signup/${session?.user?.username}`);
@@ -96,6 +101,8 @@ const UserBorrowHistory = () => {
       setError('Failed to fetch user');
     }
   };
+
+  //ฟังก์ชันสำหรับ ดึงข้อมูล location
   const fethcheckclocation = async (response: any) => {
     try{
       const reschecklocation = await axios.get(`/api/location/${response.data.returnLocationId}`)
@@ -104,6 +111,8 @@ const UserBorrowHistory = () => {
       return
     }
   };
+
+ //ฟังก์ชันเมื่อกดปุ่มคืน
   const handleReturn = async (borrowId: number, id?: number) => {
     try {
       // สร้างวันที่คืนเป็นวันที่ปัจจุบัน
@@ -131,6 +140,8 @@ const UserBorrowHistory = () => {
       setError('Failed to update return date');
     }
   };
+
+  //ฟังก์ชันเมื่อกดปุ่มยกเลิกการคืน
   const handlecancleReturn = async (borrowId: number, id?: number) => {
     fetchuser();
     try {
@@ -164,6 +175,8 @@ const UserBorrowHistory = () => {
       setError('Failed to update return date');
     }
   };
+
+  //ฟังก์ชันปุ่มยกเลิก
   const handlecancle = async (
     id: number,
   ) => {
@@ -195,7 +208,7 @@ const UserBorrowHistory = () => {
 
       //เช็คว่าห้องนั้นมีของซ้ำไหม
       const hasReturnAsset = getreturnlocation.data.some((item: { assetId: any; }) => item.assetId === response.data.assetId );
-
+      
       if(hasReturnAsset){
           const getupdateReturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
           let idAssetReturn: number = 0;
@@ -223,6 +236,7 @@ const UserBorrowHistory = () => {
           alert("ยกเลิกสำเร็จ");
           window.location.reload();
       }else{
+
         await axios.post('/api/assetlocation', { 
               assetId: response.data.assetId,
               locationId: locationreturn,  

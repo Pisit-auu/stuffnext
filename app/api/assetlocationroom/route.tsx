@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
-
+//ดึงข้อมูล asset loaction ในห้อง ตามที่ search
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const locationFilter = searchParams.get('location') || '';  // รับค่าจาก query parameter หรือเป็นค่าว่าง

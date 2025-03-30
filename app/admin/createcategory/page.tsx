@@ -8,7 +8,7 @@ export default function CreateCategory() {
   const [idname, setCategoryid] = useState('')
   const [name, setCategoryname] = useState('')
   const router = useRouter()
-
+  //ประเภทของครุภัณฑ์
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 

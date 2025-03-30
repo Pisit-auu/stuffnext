@@ -6,12 +6,13 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [locations, setLocations] = useState<any[]>([]);
-  const [searchLocation, setSearchLocation] = useState('');
-  const [filteredLocations, setFilteredLocations] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]); // สถานะสำหรับประเภท
-  const [selectedCategory, setSelectedCategory] = useState(''); // สถานะสำหรับประเภทที่เลือก
-
+  const [locations, setLocations] = useState<any[]>([]);//ข้อมูล locationทุกที่ 
+  const [searchLocation, setSearchLocation] = useState(''); //เก็บข้อมูลที่ sort
+  const [filteredLocations, setFilteredLocations] = useState<any[]>([]); //กรองข้อมูลlocation ตามที่ค้นหา 
+  const [categories, setCategories] = useState<any[]>([]); // ประเภทของcategoryของห้อง
+  const [selectedCategory, setSelectedCategory] = useState(''); // เก็บประเภทที่เลือก
+ 
+  //ดึงข้อมูล locationทุกที่ และ ประเภทของcategoryของห้อง
   useEffect(() => {
     const fetchLocations = async () => {
       try {

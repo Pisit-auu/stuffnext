@@ -10,7 +10,7 @@ export default function Edit() {
   const { id } = useParams() as { id: string }
   const [listcategory, setlistCategory] = useState([]);
   const [categoryroomid,setcategoryroomid]= useState('')
-
+  //ดึงข้อมูลเก่า
   const fetchPost = async (id:string) => {
     try {
       const res = await axios.get(`/api/location/${id}`)
@@ -25,7 +25,7 @@ export default function Edit() {
   useEffect(() => {
     fetchCategories();
   }, []);
-
+  //ดึงข้อมูลปรเภทของห้อง
   const fetchCategories = async () => {
     try {
       const res = await axios.get('/api/categoryroom');
@@ -40,6 +40,7 @@ export default function Edit() {
     }
   }, [id])
 
+  //อัพเดตข้อมูล
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 

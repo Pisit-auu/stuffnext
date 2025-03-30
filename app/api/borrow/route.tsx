@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; 
 
-
+//ดึงข้อมูล
 export async function GET(req: Request) {
   try {
     const borrowList = await prisma.borrow.findMany({
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 }
 
-
+//สร้างรายการยืม
 export async function POST(req: Request) {
   try {
     const { userId, assetId, borrowLocationId,returnLocationId, dayReturn,note, valueBorrow } = await req.json();

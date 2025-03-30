@@ -15,7 +15,7 @@ export default function CreateAsset() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false); // สถานะการอัปโหลด
-
+  // ฟังก์ชันอัพโหลดรูปภาพ
   const handleUpload = async () => {
     if (!file) return;
   
@@ -50,7 +50,7 @@ export default function CreateAsset() {
   useEffect(() => {
     fetchCategories();
   }, []);
-
+  //ดึงข้อมูลประเภทครุภัณฑ์
   const fetchCategories = async () => {
     try {
       const res = await axios.get('/api/category');
@@ -59,7 +59,7 @@ export default function CreateAsset() {
       console.error(error);
     }
   };
-
+  //สร้างครุภัณฑ์
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryId) {

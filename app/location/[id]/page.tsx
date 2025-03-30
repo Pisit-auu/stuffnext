@@ -21,33 +21,33 @@ interface Location {
 export default function location() {
   const router = useRouter();
   const { id } = useParams() as { id: string };
-  const [assetLocation, setAssetLocation] = useState<any[]>([]);
-  const [filteredborrow, setFilteredborrow] = useState<any[]>([]);
-  const [newfilteredLocation, senewFilteredLocation] = useState<any[]>([]);
-  const [category, setSelectCategory] = useState<string>("");
+  const [assetLocation, setAssetLocation] = useState<any[]>([]); // เก็บ asset ที่อยู่ในห้อง
+  const [newfilteredLocation, senewFilteredLocation] = useState<any[]>([]);  //ให้แสดงเฉพาะข้อมูลที่ตรงกับคำค้นหา
+  const [category, setSelectCategory] = useState<string>("");  //เก็บcategory ที่เลือกเพื่อกรองข้อมูล
 
-  const [searchLocation, setSearchLocation] = useState('');
-  const [allLoction, setallLocation] = useState<Location[]>([]);
-  const [thisLocation, setthisLocation] = useState<Location | null>(null); // Properly type thisLocation
-  const [nameuser, setnameuser] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchLocation, setSearchLocation] = useState('');//เก็บsearchLocationที่เลือกเพื่อกรองข้อมูล
+  const [allLoction, setallLocation] = useState<Location[]>([]);  //เก็บlocation อื่นๆ
+  const [thisLocation, setthisLocation] = useState<Location | null>(null); // เก็บ locationปัจจุบัน
+  const [nameuser, setnameuser] = useState(''); // เก็บชื่อผู้ใช้
+  const [isModalOpen, setIsModalOpen] = useState(false); //เก็บสถานะเพื่อแสดงหน้ายืม
   const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
   const [avilablevaluecanput, setupdateinRoomavailableValue] = useState(''); //จำนวนที่จะยืม
-  const [note, setNote] = useState('');
-  const [maxinputvalue, setmaxinputvalue] = useState('');  
-  const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined);
+  const [note, setNote] = useState(''); //เก็บ หมายเหตุที่จะยืม
+  const [maxinputvalue, setmaxinputvalue] = useState('');  //จำนวนที่สามารถยืมได้มากสุด
+  const [selectBorrowLocation, setselectBorrowLocation] = useState<any | undefined>(undefined); //เก็บสถานที่ที่จะยืมไป
   const [checksession, setchecksession] = useState(false);
-  const [userId, setUserId] = useState('');
-  const [valueinroom, setvalueinroom] = useState(0);
-  const [unvalueinroom, setunvalueinroom] = useState(0);
-  const [borrowbotton ,setborrowbotton ] = useState(false);
+  const [userId, setUserId] = useState('');  //เก็บ id user
+  const [valueinroom, setvalueinroom] = useState(0);  //จำนวนของที่ยืมในห้อง
+  const [unvalueinroom, setunvalueinroom] = useState(0);//จำนวนของที่ยืมในห้อง
+  const [borrowbotton ,setborrowbotton ] = useState(false); //เก็บสถานะปุ่มยืม
   // Session
   const { data: session, status } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]); // สถานะสำหรับประเภท
 
+  //ฟังก์ชัน เช็ค user ว่ามี sessionไหม
   const fetchUser = async () => {
-    if (!session?.user?.username) return; // Check if username exists in the session
+    if (!session?.user?.username) return; //เช็คว่ามี session ไหม
     if (session.user.id) {
       const res = await axios.get(`/api/auth/signup/${session?.user.username}`);
       if(!res.data){
@@ -55,11 +55,12 @@ export default function location() {
         signOut();
         return;
       }
-      setUserId(session.user.id); // Set the user ID
+      setUserId(session.user.id); // เก็บ id user
     }
     setnameuser(session.user.name ?? ""); // ถ้าเป็น null/undefined ใช้ค่าเป็น "" แทน
   };
 
+  //ตรวจสอบสถานะของผู้ใช้ (status) คอย setchecksession และ ดึงข้อมูล user , สถานที่ๆเลือก , ดึงข้อมูลประเภท
   useEffect(() => {
     if (status === 'unauthenticated') {
       setchecksession(false);
@@ -71,6 +72,7 @@ export default function location() {
     }
   }, [status, router]);
 
+  //ฟังก์ชัน ดึงข้อมูลประเภท
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`/api/category`);
@@ -79,11 +81,17 @@ export default function location() {
       console.error(error);
     }
   }
+
+  //เรียกใช้งานฟังก์ชัน fetchassetlocationandborrow()
   useEffect(() => {
     fetchassetlocationandborrow();
   }, []);
+
+
+  
   const fetchassetlocationandborrow = async () => {
     try {
+      //ดึงข้อมูลการยืม (borrow) และตำแหน่งสินทรัพย์ (assetlocationroom)
       const response = await axios.get(`/api/borrow/location/${id}`);
       const res = await axios.get(`/api/assetlocationroom?location=${id}`);
       const newassetLocation = []
@@ -99,6 +107,8 @@ export default function location() {
            locationId: res.data[i].locationId,
            borrowed: 0
           });
+
+          // ลดจำนวนที่สามารถให้ยืมได้ และ  เพิ่มจำนวนสินทรัพย์ที่ถูกยืม
         for (let j = 0; j < response.data.length; j++) {
           if(response.data[j].asset.name === res.data[i].asset.name && response.data[j].ReturnStatus === 'w' ){
              newassetLocation[i].inRoomavailableValue -= response.data[j].valueBorrow;
@@ -106,18 +116,17 @@ export default function location() {
           }
         }
       }
-      // for (let j = 0; j < newassetLocation.length; j++) {
-      //       console.log(newassetLocation[j])
-      // }
       setAssetLocation(newassetLocation);
       senewFilteredLocation(newassetLocation);
 
-      setFilteredborrow(response.data)
+
     } catch (err) {
       setError('Failed to fetch borrow history');
     } 
   }
 
+
+  //กรองข้อมูลตำแหน่งสินทรัพย์ assetLocationและอัปเดตผลลัพธ์ที่กรองไว้ใน senewFilteredLocation
   useEffect(() => {
     const filtered = assetLocation.filter((As: any) =>
       As.asset.name.toLowerCase().includes(searchLocation.toLowerCase()) ||
@@ -127,6 +136,8 @@ export default function location() {
 
     senewFilteredLocation(filtered);
   }, [searchLocation, assetLocation]);
+
+  // กรองสินทรัพย์ตามหมวดหมู่ category
   useEffect(() => {
     const filtered = assetLocation.filter((As: any) =>
       As.asset.category.name.toLowerCase().includes(category.toLowerCase())
@@ -136,7 +147,7 @@ export default function location() {
   }, [category]);
 
 
-
+  //อัปเดต thisLocation และ allLocation กรองข้อมูลตำแหน่งให้ไม่ซ้ำซ้อน allLocation ไม่รวม thisLocation
   const fetchlocation = async () => {
     try {
       const [res, getlocation] = await Promise.all([
@@ -150,6 +161,7 @@ export default function location() {
     }
   };
 
+  //ฟังก์ชันเมื่อเลือกของที่ยิม
   const clisckbutton = (asset: any,savevalueinroom: number,saveunvalueinroom: number) => {
     if (checksession) {
       setmaxinputvalue(asset.inRoomavailableValue);
@@ -167,6 +179,9 @@ export default function location() {
       alert('โปรด login ก่อนยืม');
     }
   };
+
+
+  //เมื่อกดปุ่มยืมของ
   const clickborrow = async () => {
     if(!selectBorrowLocation){
       alert("กรุณาเลือกสถานที่ที่จะยืม")
@@ -270,11 +285,14 @@ export default function location() {
     }
   };
 
+
+  // ปิดpopup ของที่ยืม
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedAsset(undefined);
   };
 
+  //อัพเดตสถานที่ๆยืม
   const onChange = async (value: string) => {
     setselectBorrowLocation(value);
   };
