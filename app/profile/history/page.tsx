@@ -375,7 +375,7 @@ const UserBorrowHistory = () => {
                                            </Button>
                     
                   )}
-                  {borrow.ReturnStatus !== 'c' && (
+                  {borrow.Borrowstatus ==='c' || borrow.ReturnStatus !== 'c' && (
                                           <Popconfirm
                                           title="Delete the task"
                                           description="ยืนยันที่จะลบหรือไม่?"

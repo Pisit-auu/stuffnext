@@ -10,32 +10,24 @@ if (!process.env.NEXTAUTH_SECRET) {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  providers: [
-    CredentialsProvider({
-      name: 'Credentials',
+  providers: [ CredentialsProvider({  name: 'Credentials',
       credentials: {
         username: { label: 'Username', type: 'text', placeholder: 'your_username' },
         password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials, req) {
+      }, async authorize(credentials, req) {
         if (!credentials?.username || !credentials?.password) {
           throw new Error('Missing credentials');
-        }
-
-        try {
+        } try {
           const user = await prisma.user.findUnique({
             where: { username: credentials.username },
           });
-
           if (!user) {
             throw new Error('User not found');
           }
-
           const isValidPassword = await bcrypt.compare(credentials.password, user.password);
           if (!isValidPassword) {
             throw new Error('Invalid password');
           }
-
           return {
             id: String(user.id), // Ensure the id is included
             name: user.name,
@@ -49,13 +41,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('CredentialsSignin');
         }
       },
-    }),
-  ],
-  adapter: PrismaAdapter(prisma),
+    }), ], adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt', // Use JWT for session management
-  },
-  callbacks: {
+  },  callbacks: {
     jwt: async ({ token, user }) => {
       if (user) {
         token.id = user.id;
@@ -64,19 +53,15 @@ export const authOptions: NextAuthOptions = {
         token.username = user.username;
         token.email = user.email;
         token.image = user.image;
-      }
-      return token;
-    },
-    session: async ({ session, token }) => {
+      }  return token;
+    },  session: async ({ session, token }) => {
       if (session.user) {
         session.user.id = token.id;
         session.user.name = token.name; // ✅ เพิ่ม name เข้า session
         session.user.role = token.role;
         session.user.username = token.username;
         session.user.image = token.image;
-      }
-      return session;
+      } return session;
     },
   },
-  
 };

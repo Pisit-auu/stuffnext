@@ -34,12 +34,15 @@ export async function POST(request: Request) {
 
 export async function GET(req: NextRequest) {
   // ตรวจสอบว่า req.query มีค่าแล้วหรือไม่
-  const page = req.nextUrl.searchParams.get('page') ? parseInt(req.nextUrl.searchParams.get('page')!) : 1;
-  const limit = req.nextUrl.searchParams.get('limit') ? parseInt(req.nextUrl.searchParams.get('limit')!) : 15;
+  const page = req.nextUrl.searchParams.get('page') 
+  ? parseInt(req.nextUrl.searchParams.get('page')!) : 1;
+  const limit = req.nextUrl.searchParams.get('limit') 
+  ? parseInt(req.nextUrl.searchParams.get('limit')!) : 15;
 
   // ตรวจสอบว่า page และ limit เป็นตัวเลขที่สามารถใช้ได้หรือไม่
   if (isNaN(page) || isNaN(limit)) {
-    return NextResponse.json({ error: "Invalid page or limit" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid page or limit" }, { status: 400 });
   }
 
   const offset = (page - 1) * limit;
@@ -58,6 +61,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" }, { status: 500 });
   }
 }

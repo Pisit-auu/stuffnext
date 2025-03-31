@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
 
   // สร้างครุภัณฑ์ 
 export async function POST(request: Request){
-    const {name,img,assetid,categoryId,availableValue,unavailableValue} = await request.json()
+    const {name,img,assetid,categoryId,
+      availableValue,unavailableValue} = await request.json()
     const availableValueNumber = parseInt(availableValue, 10);
     const unavailableValueNumber = parseInt(unavailableValue, 10);
     try{

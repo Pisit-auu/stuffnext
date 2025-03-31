@@ -22,18 +22,19 @@ export async function GET(req: Request) {
 //สร้างรายการยืม
 export async function POST(req: Request) {
   try {
-    const { userId, assetId, borrowLocationId,returnLocationId, dayReturn,note, valueBorrow } = await req.json();
-
-    if (!userId || !assetId || !borrowLocationId ||!returnLocationId|| valueBorrow === undefined) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const { userId, assetId, borrowLocationId,returnLocationId,
+       dayReturn,note, valueBorrow } = await req.json();
+    if (!userId || !assetId || !borrowLocationId 
+      ||!returnLocationId|| valueBorrow === undefined) {
+      return NextResponse.json({ error: "Missing required fields" }
+        , { status: 400 });
     }
-
     // แปลง userId เป็น Int
     const userIdInt = parseInt(userId, 10);
     if (isNaN(userIdInt)) {
-      return NextResponse.json({ error: "Invalid userId format" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid userId format" },
+        { status: 400 });
     }
-
     // การสร้างข้อมูลการยืมใหม่
     const newBorrow = await prisma.borrow.create({
       data: {
@@ -49,7 +50,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newBorrow, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating borrow:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "Error creating borrow" }, { status: 500 });
+    console.error("Error creating borrow:", 
+      error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "Error creating borrow" }, 
+      { status: 500 });
   }
 }

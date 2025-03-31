@@ -54,7 +54,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 // ลบข้อมูลตามid
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request,
+   context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
 
@@ -64,6 +65,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     return NextResponse.json(deleteAsset, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error" },
+       { status: 500 });
   }
 }

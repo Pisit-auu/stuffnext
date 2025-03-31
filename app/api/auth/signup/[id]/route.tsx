@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import prisma from "@/lib/prisma";
 //ดึงข้อมูล user ตาม id
-export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, 
+  context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;  
 
   const result = await prisma.user.findUnique({
@@ -15,13 +16,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     // รับข้อมูลที่อาจจะมีค่าบางฟิลด์ที่ต้องการอัปเดต
     const { name, surname, username, password, email, tel, image, role } = await request.json();
-
     // ต้อง await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
-
     // ใช้ bcrypt แฮชรหัสผ่าน ถ้ามีการเปลี่ยนแปลง
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
-
     // เตรียมข้อมูลที่ต้องการอัปเดต
     const updateData: any = {};
     if (name) updateData.name = name;
@@ -32,13 +30,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (tel) updateData.tel = tel;
     if (image) updateData.image = image;
     if (role) updateData.role = role;
-
     // อัปเดตข้อมูลในฐานข้อมูล
     const update = await prisma.user.update({
       where: { username: id },
       data: updateData,
     });
-
     return Response.json(update);
   } catch (error) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
@@ -47,7 +43,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 //ลบ ข้อมูลตาม id
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, 
+  context: { params: Promise<{ id: string }> }) {
   try {
     //  ต้อง await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
@@ -58,7 +55,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     return Response.json(deleteuser);
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+    return new Response(JSON.stringify({ 
+      error: "Internal Server Error" }), {
       status: 500,
     });
   }

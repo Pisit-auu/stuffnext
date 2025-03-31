@@ -41,14 +41,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request){
   try {
-    const { namelocation, nameteacher, categoryIdroom } = await request.json();
-
+    const { namelocation, nameteacher, 
+        categoryIdroom } = await request.json();
     // กำหนดประเภทของตัวแปร data เพื่อรองรับ categoryIdroom
-    const data: { namelocation: string; nameteacher: string; categoryIdroom?: string } = {
+    const data: { namelocation: string; 
+        nameteacher: string; categoryIdroom?: string 
+    } = {
         namelocation,
         nameteacher,
     };
-
     // เพิ่ม categoryIdroom เฉพาะเมื่อมีค่า
     if (categoryIdroom) {
         data.categoryIdroom = categoryIdroom;
@@ -67,5 +68,5 @@ export async function POST(request: Request){
       return Response.json({ error: 'เกิดข้อผิดพลาดที่ไม่สามารถระบุได้' });
   }
 }
-
 }
+
