@@ -432,7 +432,7 @@ export default function Admin() {
                           </Link>
                           <Popconfirm
                             title="Delete the task"
-                            description="ยืนยันที่จะลบหรือไม่? หากยืนยัน ข้อมูลครุภัณฑ์ของประเภทนี้จะถูกลบด้วย"
+                            description="ยืนยันที่จะลบหรือไม่?"
                             icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                             onConfirm={() => deleteCategoryroom(categoryroom.id)}
                           >
