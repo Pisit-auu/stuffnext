@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import { useSession } from 'next-auth/react';
 
 export default function detailAsset() {
   const [groupedAssets, setGroupedAssets] = useState<any>({}); //เก็บข้อมูลครุภัณฑ์ที่อยู๋ทุกห้อง
@@ -10,6 +11,8 @@ export default function detailAsset() {
   const { id } = useParams() as { id: string };
   const [allvalueallroom , setallvalueallroom] = useState(0)  //จำนวนทั้งหมดทุกห้องที่ใช้ได้
   const [allvalueallroomunavailible , setallvalueallroomunavailible] = useState(0) //จำนวนทั้งหมดทุกห้องที่ใช้ไม่ได้
+  const [statusEditasset , setstatusEditasset ] = useState(false)
+  const { data: session, status } = useSession(); //เก็บ session 
 
   useEffect(() => {
     fetchAssetLocation();
@@ -33,7 +36,30 @@ export default function detailAsset() {
       console.error(error);
     }
   };
-  
+
+// edit จำนวนของในคลัง
+  const handleEditStock = (data : any) => {
+  setstatusEditasset(true)
+};
+ const saveEditStock  = async (data : any) => {
+  try {
+      await axios.put(`/api/asset/${data.assetid}`, {
+         name : data.name,
+        img : data.img,
+        assetid : data.assetid,
+        categoryId:  data.categoryId.idname, // ใช้ categoryId.idname
+        availableValue : data.availableValue,
+        unavailableValue : data.unavailableValue,
+      });
+     window.location.reload();
+    } catch (error) {
+      alert("เกิดข้อผิดพลาด")
+    }
+  setstatusEditasset(false)
+  console.log("คลิกเพื่อแก้ไขจำนวนในคลัง");
+};
+
+
   //นับจำนวนของทั้งหมดทุกห้อง
   const groupAssetsById = (data: any[]) => {
     const grouped: any = {};
@@ -44,7 +70,7 @@ export default function detailAsset() {
       }
       grouped[item.assetId].push({
         location: item.location.namelocation,
-        inRoomavailableValue: item.inRomavailableValue,
+        inRoomavailableValue: item.inRoomavailableValue,
         inRoomaunavailableValue: item.inRoomaunavailableValue,
       });
     });
@@ -53,11 +79,10 @@ export default function detailAsset() {
     let valueallroomunavailible =0;
     Object.values(grouped).forEach((items) => {
       (items as { inRoomavailableValue: number , inRoomaunavailableValue: number }[]).forEach((item) => {
-        valueallroomavailible = valueallroomavailible+ item.inRoomavailableValue
+        valueallroomavailible = valueallroomavailible + item.inRoomavailableValue
         valueallroomunavailible = valueallroomunavailible + item.inRoomaunavailableValue 
       });
     });
-    //console.log(valueallroomunavailible);
     setallvalueallroom(valueallroomavailible)
     setallvalueallroomunavailible(valueallroomunavailible)
   };
@@ -90,11 +115,61 @@ export default function detailAsset() {
                       📦 จำนวนในคลัง
                     </h4>
                     <p className="text-gray-600">
-                      ✅ พร้อมใช้งาน: {asset?.availableValue || 0}
+                      ✅ พร้อมใช้งาน: {statusEditasset ? (
+                              <input
+                                type="number"
+                                value={asset?.availableValue}
+                                onChange={(e) => {
+                                  // เพิ่มฟังก์ชันการแก้ไขค่า
+                                  setAsset((prev: any) => ({
+                                    ...prev,
+                                    availableValue: Number(e.target.value),
+                                  }));
+                                }}
+                                className="border border-gray-300 rounded px-2 py-1 w-24"
+                              />
+                            ) : (
+                              asset?.availableValue
+                            )}
                     </p>
-                    <p className="text-gray-600">
-                      ❌ ไม่พร้อมใช้งาน: {asset?.unavailableValue || 0}
+                      <p className="text-gray-600">
+                      ❌ ไม่พร้อมใช้งาน : {statusEditasset ? (
+                              <input
+                                type="number"
+                                value={asset?.unavailableValue}
+                                onChange={(e) => {
+                                  // เพิ่มฟังก์ชันการแก้ไขค่า
+                                  setAsset((prev: any) => ({
+                                    ...prev,
+                                    unavailableValue: Number(e.target.value),
+                                  }));
+                                }}
+                                className="border border-gray-300 rounded px-2 py-1 w-24"
+                              />
+                            ) : (
+                              asset?.unavailableValue
+                            )}
                     </p>
+                    {session?.user.role === 'admin' && (
+                              statusEditasset ? (
+                                <button
+                                  onClick={() => saveEditStock(asset)}
+                                  className="mt-2 px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                                >
+                                  ✏️ บันทึก
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleEditStock(asset)}
+                                  className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                                >
+                                  ✏️ แก้ไขจำนวนในคลัง
+                                </button>
+                              )
+                      )}
+
+                  
+                     
                   </div>
                   {/* ทุกห้อง */}
                   <div>
@@ -107,6 +182,7 @@ export default function detailAsset() {
                     <p className="text-gray-600">
                       ❌ ไม่พร้อมใช้งาน: {allvalueallroomunavailible || 0}
                     </p>
+                
                   </div>
                 </div>
               </div>

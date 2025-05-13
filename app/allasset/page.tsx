@@ -1,8 +1,8 @@
 'use client'
 import Link from 'next/link'
-import { Card } from 'antd';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function Allasset() {
   const [category, setSelectCategory] = useState('')   //เก็บประเภทครุภัณฑ์ที่เลือก
@@ -11,6 +11,7 @@ export default function Allasset() {
   const [assetlocation, setAssetlocation] = useState<any[]>([])  
   const [assetCount, setAssetCount] = useState<any[]>([])  
   const [categorys, setCategory] = useState([])  //เก็บ ประเภทครุภัณฑ์
+  const { data: session, status } = useSession(); //เก็บ session 
 
   // ดึงข้อมูล ประเภทของครุภัณฑ์ ชื่อครุภัณฑ์  
   useEffect(() => {
@@ -63,7 +64,17 @@ export default function Allasset() {
     const matchesSearch = assetItem.name.toLowerCase().includes(searchAsset.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
+  const deleteasset = async (data : any) => {
+      const confirmDelete = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?");
+    if (!confirmDelete) return;
+    try { 
+       await axios.delete(`/api/asset/${data}`)
+       alert("ลบเสร็จสิ้น")
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to delete the asset', error)
+      }
+};
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* ค้นหาครุภัณฑ์ */}
@@ -132,11 +143,19 @@ export default function Allasset() {
                     </td>
                     <td className="py-2 px-4 border-b text-left">
                       <Link
-                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#113FB3] text-center text-white hover:bg-indigo-600 transition-all"
+                        className="block sm:inline-block w-full mr-4 sm:w-auto px-4 py-2 rounded-lg bg-[#113FB3] text-center text-white hover:bg-indigo-600 transition-all"
                         href={`allasset/${assetItem.assetid}`}
                       >
                         ดูรายละเอียด
                       </Link>
+                       {session?.user.role === 'admin' && (
+                              <button onClick={() => deleteasset(assetItem.assetid)}
+                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#CC0033] text-center text-white hover:bg-red-600 transition-all"
+                      >
+                        ลบ
+                      </button>
+                      )}
+                       
                     </td>
                   </tr>
                 )
