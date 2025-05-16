@@ -5,7 +5,9 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  
 }
+
 model Asset {
   id               Int             @id @default(autoincrement())
   name             String
@@ -34,7 +36,7 @@ model Location {
   nameteacher  String?
   assets       AssetLocation[]
   borrow       borrow[]
-  categoryIdroom       Int?
+  categoryIdroom Int? 
   categoryroom   Categoryroom?  @relation(fields: [categoryIdroom], references: [id], onDelete: Cascade)
 }
 model Categoryroom {
@@ -50,7 +52,7 @@ model AssetLocation {
   inRoomavailableValue    Int      @default(1)
   asset                   Asset    @relation(fields: [assetId], references: [assetid], onDelete: Cascade)
   location                Location @relation(fields: [locationId], references: [namelocation], onDelete: Cascade)
-
+  createdAt String?
   @@unique([assetId, locationId])
 }
 

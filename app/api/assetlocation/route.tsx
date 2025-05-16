@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
 //สร้างของในห้อง
 export async function POST(request: Request){
-    const {assetId,locationId,inRoomavailableValue,inRoomaunavailableValue} = await request.json()
+    const {assetId,locationId,inRoomavailableValue,inRoomaunavailableValue,createdAt} = await request.json()
     const intInRoomavailableValue = parseInt(inRoomavailableValue, 10);
     const intUnavailableValueNumber = parseInt(inRoomaunavailableValue, 10);
     try{
@@ -62,6 +62,7 @@ export async function POST(request: Request){
               location: { connect: { namelocation: locationId } }, 
               inRoomavailableValue: intInRoomavailableValue,
                 inRoomaunavailableValue: intUnavailableValueNumber,
+                createdAt
             },
           });
           

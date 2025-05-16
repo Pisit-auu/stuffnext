@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useSession } from 'next-auth/react';
+import { create } from "domain";
 
 export default function detailAsset() {
   const [groupedAssets, setGroupedAssets] = useState<any>({}); //เก็บข้อมูลครุภัณฑ์ที่อยู๋ทุกห้อง
@@ -70,6 +71,7 @@ export default function detailAsset() {
       }
       grouped[item.assetId].push({
         location: item.location.namelocation,
+        createdAt: item.createdAt,
         inRoomavailableValue: item.inRoomavailableValue,
         inRoomaunavailableValue: item.inRoomaunavailableValue,
       });
@@ -196,6 +198,7 @@ export default function detailAsset() {
                 <thead>
                   <tr>
                     <th className="border-b px-4 py-2 text-left text-gray-700">สถานที่</th>
+                    <th className="border-b px-4 py-2 text-left text-gray-700">วันที่เพิ่ม</th>
                     <th className="border-b px-4 py-2 text-left text-gray-700">พร้อมใช้งาน</th>
                     <th className="border-b px-4 py-2 text-left text-gray-700">ไม่พร้อมใช้งาน</th>
                   </tr>
@@ -205,8 +208,10 @@ export default function detailAsset() {
                     groupedAssets[assetId].map((item: any, index: number) => (
                       <tr key={index} className="hover:bg-gray-100">
                         <td className="border-b px-4 py-2 text-gray-700">{item.location}</td>
+                          <td className="border-b px-4 py-2 text-gray-600">{item.createdAt}</td>
                         <td className="border-b px-4 py-2 text-gray-600">{item.inRoomavailableValue}</td>
                         <td className="border-b px-4 py-2 text-gray-600">{item.inRoomaunavailableValue}</td>
+                      
                       </tr>
                     ))
                   )}

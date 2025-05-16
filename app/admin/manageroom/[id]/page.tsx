@@ -15,7 +15,7 @@ interface Asset {
   assetid: string;
   availableValue: number;
   unavailableValue: number;
- 
+  createdAt: string;
 }
 export default function Manageroom() {
   const router = useRouter();
@@ -35,10 +35,13 @@ export default function Manageroom() {
   const [addInRoomunavailableValue , setinRoomunavailableValue] = useState('')
   const [updateInRoomavailableValue , setupdateinRoomavailableValue] = useState('')
   const [updateInRoomunavailableValue , setupdateinRoomunavailableValue] = useState('')
+    const [Dateedit , setDateedit] = useState('')
+
   const [addlocationid , setaddlocationid] = useState('')
   const [Iddelete , setIddelete] = useState('')
   const [statusedit , seteditstatus] = useState(false)
-  
+  const [selectedDate, setSelectedDate] = useState("");
+
   const [unavilablevaluecanput , setunavilablevaluecanput] = useState('')
   const [avilablevaluecanput , setavilablevaluecanput] = useState('')
   const fetchAsset = async () => {
@@ -71,6 +74,7 @@ export default function Manageroom() {
           locationId: addlocationid,
           inRoomavailableValue: addInRoomavailableValue,
           inRoomaunavailableValue: addInRoomunavailableValue,
+          createdAt : selectedDate
         });
 
         // รีเฟรชข้อมูลใหม่หลังจากเพิ่มข้อมูลเสร็จ
@@ -79,6 +83,7 @@ export default function Manageroom() {
         setinRoomunavailableValue('0')
         setinRoomavailableValue('0')
         setIsaddAssetOpen(false); 
+        setSelectedDate('')
         router.push(`/admin/manageroom/${addlocationid}`);
         alert("เพิ่มข้อมูลครุภัณฑ์สำเร็จ");
         
@@ -133,12 +138,13 @@ export default function Manageroom() {
           const unvalueasset = getasset.data.unavailableValue
          // console.log(valueasset+ saveinRoomavailableValue - updateInRoomavailableValue)
          // console.log(unvalueasset+saveinRoomunavailableValue - updateInRoomunavailableValue)
-    
+            console.log(Dateedit)
             await axios.put(`/api/assetlocation/${Iddelete}`, {
                 inRoomavailableValue: updateInRoomavailableValue,
                 inRoomaunavailableValue: updateInRoomunavailableValue,
+                createdAt: Dateedit
             })
-
+            
             await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
               availableValue: valueasset + saveinRoomavailableValue - Number(updateInRoomavailableValue),
               unavailableValue: unvalueasset + saveinRoomunavailableValue - Number(updateInRoomunavailableValue),
@@ -187,6 +193,7 @@ export default function Manageroom() {
     setIddelete(asset.id)
     setupdateinRoomavailableValue(asset.inRoomavailableValue)
     setupdateinRoomunavailableValue(asset.inRoomaunavailableValue)
+    setDateedit(asset.createdAt)
     setSelectedAsset(asset);
     setIsModalOpen(true);
   };
@@ -250,6 +257,7 @@ export default function Manageroom() {
                   <th className="px-4 py-2 text-left border-b">สถานที่</th>
                   <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานได้</th>
                   <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานไม่ได้</th>
+                   <th className="px-4 py-2 text-left border-b">วันที่เพิ่ม</th>
                   <th className="px-4 py-2 text-left border-b">การดำเนินการ</th>
                 </tr>
               </thead>
@@ -267,6 +275,7 @@ export default function Manageroom() {
                     <td className="px-4 py-2">{As.location.namelocation}</td>
                     <td className="px-4 py-2">{As.inRoomavailableValue}</td>
                     <td className="px-4 py-2">{As.inRoomaunavailableValue}</td>
+                    <td className="px-4 py-2">{As.createdAt}</td>
                     <td className="px-4 py-2">
                       <button onClick={() => openModal(As)} className="bg-[#113FB3] text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
                         ดูรายละเอียด
@@ -360,6 +369,12 @@ export default function Manageroom() {
                         placeholder="จำนวนที่ไม่พร้อมใช้งาน"
                         className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <Input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                 )}
 
@@ -447,11 +462,22 @@ export default function Manageroom() {
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+             <div className="mb-4">
+              <p className="text-gray-700 mb-2">วันที่เพิ่ม:</p>
+                        <Input
+              type="date"
+              value={Dateedit}
+              onChange={(e) => setDateedit(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            </div>
           </>
         ) : (
           <>
             <p className="text-gray-700 mb-2">📦 จำนวนที่ใช้งานได้: {selectedDetailAsset.inRoomavailableValue}</p>
             <p className="text-gray-700 mb-4">📦 จำนวนที่ใช้งานไม่ได้: {selectedDetailAsset.inRoomaunavailableValue}</p>
+             <p className="text-gray-700 mb-4">📦 วันที่เพิ่ม: {selectedDetailAsset.createdAt}</p>
           </>
         )
       }

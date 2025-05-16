@@ -15,7 +15,7 @@ export async function GET(request: Request,
 //update ของในห้องตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue } = await request.json();
+    const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue, createdAt } = await request.json();
     const { id } = await context.params;  // ใช้ await ในการเข้าถึง params
     const availableValueNumber = Number(inRoomavailableValue);
     const unavailableValueNumber = Number(inRoomaunavailableValue);
@@ -44,6 +44,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         locationId,
         inRoomavailableValue: availableValueNumber,
         inRoomaunavailableValue: unavailableValueNumber,
+        createdAt 
       },
     });
     return new Response(JSON.stringify({ update }), {

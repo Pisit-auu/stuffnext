@@ -101,6 +101,7 @@ export default function location() {
         newassetLocation.push({ id: res.data[i].id, 
            asset: res.data[i].asset, 
            assetId: res.data[i].assetId, 
+           createdAt: res.data[i].createdAt,
            inRoomaunavailableValue: res.data[i].inRoomaunavailableValue, 
            inRoomavailableValue: res.data[i].inRoomavailableValue, 
            location: res.data[i].location,
@@ -345,6 +346,7 @@ export default function location() {
                 <th className="px-4 py-2 border text-left">รูป</th>
                 <th className="px-4 py-2 border text-left">ชื่อครุภัณฑ์</th>
                 <th className="px-4 py-2 border text-left">ประเภทครุภัณฑ์</th>
+                <th className="px-4 py-2 border text-left">วันที่เพิ่ม</th>
                 <th className="px-4 py-2 border text-left">สถานที่</th>
                 <th className="px-4 py-2 border text-left">จำนวนใช้งานได้</th>
                 <th className="px-4 py-2 border text-left">จำนวนใช้งานไม่ได้</th>
@@ -364,6 +366,7 @@ export default function location() {
                   </td>
                   <td className="px-4 py-2 border">{As.asset.name}</td>
                   <td className="px-4 py-2 border">{As.asset.category.name}</td>
+                  <td className="px-4 py-2 border">{As.createdAt}</td>
                   <td className="px-4 py-2 border">{As.location.namelocation}</td>
                   <td className="px-4 py-2 border">{As.inRoomavailableValue + As.borrowed}</td>
                   <td className="px-4 py-2 border">{As.inRoomaunavailableValue}</td>
