@@ -7,7 +7,8 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import '@ant-design/v5-patch-for-react-19';
 import { signOut } from "next-auth/react";
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 interface BorrowHistory {
   id: number;
   createdAt: string;
@@ -271,6 +272,48 @@ const UserBorrowHistory = () => {
     }
   };
 
+  const handleDownload = async () => {
+const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Borrow History');
+
+  worksheet.columns = [
+    { header: 'ผู้ยืม', key: 'user', width: 20 },
+    { header: 'ครุภัณฑ์', key: 'asset', width: 30 },
+    { header: 'จำนวนที่ยืม', key: 'valueBorrow', width: 15 },
+    { header: 'ยืมไปที่ห้อง', key: 'borrowLocation', width: 20 },
+    { header: 'ยืมจากห้อง', key: 'returnLocation', width: 20 },
+    { header: 'สถานะการยืม', key: 'borrowStatus', width: 20 },
+    { header: 'สถานะการคืน', key: 'returnStatus', width: 20 },
+    { header: 'วันที่ยืม', key: 'borrowDate', width: 20 },
+    { header: 'วันที่คืน', key: 'returnDate', width: 20 },
+    { header: 'หมายเหตุ', key: 'note', width: 30 },
+  ];
+
+filteredHistory.forEach((borrow) => {
+  worksheet.addRow({
+    user: borrow.user?.name || 'ไม่พบข้อมูล',
+    asset: borrow.asset?.name || 'ไม่พบข้อมูล',
+    valueBorrow: borrow.valueBorrow,
+    borrowLocation: borrow.borrowLocation?.namelocation || '-',
+    returnLocation: borrow.returnLocationId || 'N/A',
+    borrowStatus: borrow.Borrowstatus === 'c' ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ',
+    returnStatus: borrow.ReturnStatus === 'w' ? 'รอตรวจสอบ' : 'ตรวจสอบแล้ว',
+    borrowDate: borrow.createdAt ? new Date(borrow.createdAt).toLocaleDateString('th-TH') : '-',
+    returnDate: borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString('th-TH') : '-',
+    note: borrow.note || '',
+  });
+});
+
+
+  workbook.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    saveAs(blob, `การยืมของ ${session?.user.name} .xlsx`);
+  });
+}
+
+
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
@@ -296,6 +339,11 @@ const UserBorrowHistory = () => {
         onChange={(e) => setEndDate(e.target.value)}
         className="px-4 py-2 border rounded"
       />
+             <button onClick={handleDownload}
+                        className="ml-4 block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
     </div>
     
 

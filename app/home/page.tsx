@@ -1,10 +1,9 @@
 'use client'
-import Image from "next/image";
 import Link from 'next/link';
-import { Card } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 export default function Home() {
   const [locations, setLocations] = useState<any[]>([]);//ข้อมูล locationทุกที่ 
   const [searchLocation, setSearchLocation] = useState(''); //เก็บข้อมูลที่ sort
@@ -46,6 +45,28 @@ export default function Home() {
       )
     );
   }, [searchLocation, selectedCategory, locations]);
+ const handleDownload = async () => {
+    const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Locations')
+
+  worksheet.columns = [
+    { header: 'สถานที่', key: 'namelocation', width: 30 },
+    { header: 'ผู้รับผิดชอบ', key: 'nameteacher', width: 30 },
+    { header: 'ประเภทห้อง', key: 'categoryroom', width: 20 },
+  ]
+
+  filteredLocations.forEach(location => {
+    worksheet.addRow({
+      namelocation: location.namelocation,
+      nameteacher: location.nameteacher,
+      categoryroom: location.categoryroom?.name || '',
+    })
+  })
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  saveAs(blob, 'สถานที่ทั้งหมด.xlsx')
+}
 
   return (
     <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
@@ -84,6 +105,11 @@ export default function Home() {
             ))}
           </select>
         </div>
+                      <button onClick={handleDownload}
+                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
       </div>
 
       {/* Table Layout */}

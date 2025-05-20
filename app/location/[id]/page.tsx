@@ -1,10 +1,11 @@
 'use client';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Select, Input, Button, Popconfirm } from 'antd';
 import { signOut } from "next-auth/react";
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import '@ant-design/v5-patch-for-react-19';
@@ -24,7 +25,7 @@ export default function location() {
   const [assetLocation, setAssetLocation] = useState<any[]>([]); // เก็บ asset ที่อยู่ในห้อง
   const [newfilteredLocation, senewFilteredLocation] = useState<any[]>([]);  //ให้แสดงเฉพาะข้อมูลที่ตรงกับคำค้นหา
   const [category, setSelectCategory] = useState<string>("");  //เก็บcategory ที่เลือกเพื่อกรองข้อมูล
-
+  const [namelocation , setnamelocation] = useState('')
   const [searchLocation, setSearchLocation] = useState('');//เก็บsearchLocationที่เลือกเพื่อกรองข้อมูล
   const [allLoction, setallLocation] = useState<Location[]>([]);  //เก็บlocation อื่นๆ
   const [thisLocation, setthisLocation] = useState<Location | null>(null); // เก็บ locationปัจจุบัน
@@ -96,6 +97,7 @@ export default function location() {
       const res = await axios.get(`/api/assetlocationroom?location=${id}`);
       const newassetLocation = []
       //console.log(res.data)
+      setnamelocation(decodeURIComponent(id))
       for (let i = 0; i < res.data.length; i++) {
         
         newassetLocation.push({ id: res.data[i].id, 
@@ -301,40 +303,78 @@ export default function location() {
   const onSearch = (value: string) => {
     // console.log('search:', value);
   };
+  const handleDownload = async () => {
+    const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Assets');
 
+      // กำหนดหัวตาราง
+      worksheet.columns = [
+        { header: 'ชื่อครุภัณฑ์', key: 'name', width: 30 },
+        { header: 'ประเภทครุภัณฑ์', key: 'category', width: 20 },
+        { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
+        { header: 'สถานที่', key: 'location', width: 20 },
+        { header: 'จำนวนใช้งานได้', key: 'usableCount', width: 20 },
+        { header: 'จำนวนใช้งานไม่ได้', key: 'unusableCount', width: 20 },
+        { header: 'พร้อมให้ยืม', key: 'availableCount', width: 20 },
+      ];
+
+      // ใส่ข้อมูลแต่ละแถว
+      newfilteredLocation.forEach((item) => {
+        worksheet.addRow({
+          name: item.asset.name,
+          category: item.asset.category.name,
+          createdAt: item.createdAt,
+          location: item.location.namelocation,
+          usableCount: item.inRoomavailableValue + item.borrowed,
+          unusableCount: item.inRoomaunavailableValue,
+          availableCount: item.inRoomavailableValue,
+        });
+      });
+
+      // สร้างไฟล์ Excel แล้วดาวน์โหลด
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, `ครุภัณฑ์ในห้อง ${namelocation}.xlsx`);
+      });
+  }
   return (
     <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-between mb-6">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="ค้นหาครุภัณฑ์..."
-            value={searchLocation}
-            onChange={(e) => setSearchLocation(e.target.value)}
-            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          />
-          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <img src="/search.png" alt="ค้นหา" className="w-6 h-6" />
-          </button>
-        </div>
-        {/* เพิ่ม Select สำหรับการจัดเรียง */}
-        <div>
-        <select
-            value={category}
-            onChange={(e) => setSelectCategory(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          >
-            <option value="">เลือกประเภทครุภัณฑ์</option>
-            {categories.map((cat: any) => (
-              <option key={cat.idname} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+     <div className="flex items-center space-x-2 mb-6">
+    <div className="relative flex-1">
+      <input
+        type="text"
+        placeholder="ค้นหาครุภัณฑ์..."
+        value={searchLocation}
+        onChange={(e) => setSearchLocation(e.target.value)}
+        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+      />
+      <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+        <img src="/search.png" alt="ค้นหา" className="w-6 h-6" />
+      </button>
+    </div>
+
+    <select
+      value={category}
+      onChange={(e) => setSelectCategory(e.target.value)}
+      className="w-48 px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+    >
+      <option value="">เลือกประเภทครุภัณฑ์</option>
+      {categories.map((cat: any) => (
+        <option key={cat.idname} value={cat.name}>
+          {cat.name}
+        </option>
+      ))}
+    </select>
+
+    <button
+      onClick={handleDownload}
+      className="block sm:inline-block px-4 py-3 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+    >
+      โหลดไฟล์ Exel
+    </button>
+  </div>
   
-      <h1 className="mb-4 text-xl">ครุภัณฑ์ในห้อง</h1>
+      <h1 className="mb-4 text-xl">ครุภัณฑ์ในห้อง {namelocation}</h1>
   
       {newfilteredLocation.length === 0 ? (
         <div className="text-center text-gray-500 text-xl font-semibold">⏳ ไม่มีข้อมูล</div>
@@ -343,11 +383,9 @@ export default function location() {
           <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 border text-left">รูป</th>
                 <th className="px-4 py-2 border text-left">ชื่อครุภัณฑ์</th>
                 <th className="px-4 py-2 border text-left">ประเภทครุภัณฑ์</th>
                 <th className="px-4 py-2 border text-left">วันที่เพิ่ม</th>
-                <th className="px-4 py-2 border text-left">สถานที่</th>
                 <th className="px-4 py-2 border text-left">จำนวนใช้งานได้</th>
                 <th className="px-4 py-2 border text-left">จำนวนใช้งานไม่ได้</th>
                 <th className="px-4 py-2 border text-left">พร้อมให้ยืม</th>
@@ -357,17 +395,9 @@ export default function location() {
             <tbody>
               {newfilteredLocation.map((As: any) => (
                 <tr key={As.id} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-2 border">
-                    <img
-                      src={As.asset.img || 'https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png'}
-                      alt={As.asset.name}
-                      className="w-24 h-12 object-cover rounded-md"
-                    />
-                  </td>
                   <td className="px-4 py-2 border">{As.asset.name}</td>
                   <td className="px-4 py-2 border">{As.asset.category.name}</td>
                   <td className="px-4 py-2 border">{As.createdAt}</td>
-                  <td className="px-4 py-2 border">{As.location.namelocation}</td>
                   <td className="px-4 py-2 border">{As.inRoomavailableValue + As.borrowed}</td>
                   <td className="px-4 py-2 border">{As.inRoomaunavailableValue}</td>
                   <td className="px-4 py-2 border">{As.inRoomavailableValue}</td>

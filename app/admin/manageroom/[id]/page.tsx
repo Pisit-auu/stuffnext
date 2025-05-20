@@ -8,7 +8,8 @@ import { useRouter } from 'next/navigation'
 import { Button, Popconfirm } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import '@ant-design/v5-patch-for-react-19';
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 const { Option } = Select;
 
 interface Asset {
@@ -36,7 +37,6 @@ export default function Manageroom() {
   const [updateInRoomavailableValue , setupdateinRoomavailableValue] = useState('')
   const [updateInRoomunavailableValue , setupdateinRoomunavailableValue] = useState('')
     const [Dateedit , setDateedit] = useState('')
-
   const [addlocationid , setaddlocationid] = useState('')
   const [Iddelete , setIddelete] = useState('')
   const [statusedit , seteditstatus] = useState(false)
@@ -112,6 +112,7 @@ export default function Manageroom() {
   const fetchassetlocation = async () => {
     try {
       const res = await axios.get(`/api/assetlocationroom?location=${id}`);
+
       const reslocation = await axios.get(`/api/location/${id}`);
       setAssetLocation(res.data);
      setaddlocationid(reslocation.data.namelocation)
@@ -128,7 +129,7 @@ export default function Manageroom() {
         }
         try {
           const getassetlocation = await axios.get(`/api/assetlocation/${Iddelete}`);
-          console.log(getassetlocation.data.assetId)
+         // console.log(getassetlocation.data.assetId)
         //ค่าปัจจุบันในห้อง
           const saveinRoomunavailableValue = getassetlocation.data.inRoomaunavailableValue
           const saveinRoomavailableValue = getassetlocation.data.inRoomavailableValue
@@ -231,8 +232,40 @@ export default function Manageroom() {
   const onSearch = (value: string) => {
  //   console.log('search:', value);
   };
+
+      const handleDownload = async () => {
+        const workbook = new ExcelJS.Workbook();
+          const worksheet = workbook.addWorksheet('ข้อมูลครุภัณฑ์ในสถานที่');
+
+          worksheet.columns = [
+            { header: 'ชื่อครุภัณฑ์', key: 'assetName', width: 30 },
+            { header: 'ประเภทครุภัณฑ์', key: 'categoryName', width: 30 },
+            { header: 'จำนวนที่ใช้งานได้', key: 'availableValue', width: 20 },
+            { header: 'จำนวนที่ใช้งานไม่ได้', key: 'unavailableValue', width: 20 },
+            { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
+          ];
+
+          filteredLocation.forEach((item) => {
+            worksheet.addRow({
+              assetName: item.asset?.name || '-',
+              categoryName: item.asset?.category?.name || '-',
+              availableValue: item.inRoomavailableValue ?? '-',
+              unavailableValue: item.inRoomaunavailableValue ?? '-',
+              createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-',
+            });
+          });
+
+          const buffer = await workbook.xlsx.writeBuffer();
+          const blob = new Blob([buffer], {
+            type:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          });
+
+          saveAs(blob, `ข้อมูลครุภัณฑ์ ห้อง${addlocationid}.xlsx`);
+        };
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+             <div className='text-2xl'> สถานที่ {addlocationid} </div>
       {/* 🔍 Input Search */}
       <div className="flex justify-center mb-6">
         <input
@@ -242,19 +275,24 @@ export default function Manageroom() {
           onChange={(e) => setSearchLocation(e.target.value)}
           className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
         />
+        <button onClick={handleDownload}
+                        className="ml-4 block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
       </div>
-      <button onClick={() => openaddasset()} className="m-4 w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
+ 
+      <button onClick={() => openaddasset()} className="mb-4 w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
         เพิ่มครุภัณฑ์ในห้อง
       </button>
-
+     
       {/* 🏠 Grid Layout for Cards */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow-lg rounded-lg">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left border-b">รูปภาพ</th>
                   <th className="px-4 py-2 text-left border-b">ชื่อครุภัณฑ์</th>
-                  <th className="px-4 py-2 text-left border-b">สถานที่</th>
+                  <th className="px-4 py-2 text-left border-b">ประเภทครุภัณฑ์</th>
                   <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานได้</th>
                   <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานไม่ได้</th>
                    <th className="px-4 py-2 text-left border-b">วันที่เพิ่ม</th>
@@ -264,15 +302,8 @@ export default function Manageroom() {
               <tbody>
                 {filteredLocation.map((As: any) => (
                   <tr key={As.id} className="border-b">
-                    <td className="px-4 py-2">
-                      <img
-                        src={As.asset.img || "https://res.cloudinary.com/dqod78cp8/image/upload/v1739554101/uploads/qgphknmc83jbkshsshp0.png"}
-                        alt={As.asset.name}
-                        className="h-14 w-14 object-cover rounded-md"
-                      />
-                    </td>
                     <td className="px-4 py-2">{As.asset.name}</td>
-                    <td className="px-4 py-2">{As.location.namelocation}</td>
+                    <td className="px-4 py-2">{As.asset.category.name}</td>
                     <td className="px-4 py-2">{As.inRoomavailableValue}</td>
                     <td className="px-4 py-2">{As.inRoomaunavailableValue}</td>
                     <td className="px-4 py-2">{As.createdAt}</td>

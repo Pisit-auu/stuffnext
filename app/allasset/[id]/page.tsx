@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useSession } from 'next-auth/react';
-import { create } from "domain";
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function detailAsset() {
   const [groupedAssets, setGroupedAssets] = useState<any>({}); //เก็บข้อมูลครุภัณฑ์ที่อยู๋ทุกห้อง
@@ -89,6 +90,37 @@ export default function detailAsset() {
     setallvalueallroomunavailible(valueallroomunavailible)
   };
 
+
+      const handleDownload = async () => {
+     const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Assets Detail')
+
+  // กำหนดคอลัมน์
+  worksheet.columns = [
+    { header: 'สถานที่', key: 'location', width: 30 },
+    { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
+    { header: 'พร้อมใช้งาน', key: 'inRoomavailableValue', width: 15 },
+    { header: 'ไม่พร้อมใช้งาน', key: 'inRoomaunavailableValue', width: 15 },
+  ]
+
+    // วนลูปข้อมูล groupedAssets (object ที่เก็บ array ของ item แต่ละ assetId)
+    Object.keys(groupedAssets).forEach(assetId => {
+      groupedAssets[assetId].forEach((item: any) => {
+        worksheet.addRow({
+          location: item.location,
+          createdAt: item.createdAt,
+          inRoomavailableValue: item.inRoomavailableValue,
+          inRoomaunavailableValue: item.inRoomaunavailableValue,
+        })
+      })
+    })
+
+    // สร้างไฟล์ excel และดาวน์โหลด
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    saveAs(blob, `รหัสครุภัณฑ์ (${asset.assetid}) ชื่อ (${asset?.name}) ประเภท ${asset?.category?.name } จำนวนที่พร้อมใช้งาน =${asset?.availableValue}.xlsx`)
+    }
+
   return (
     <div className="mt-4 max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl">
       {asset ? (
@@ -169,6 +201,12 @@ export default function detailAsset() {
                                 </button>
                               )
                       )}
+                         <button onClick={handleDownload}
+                        className="m-4 mt-2 px-4 py-1  bg-[#006600] text-center text-white rounded hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
+                      
 
                   
                      

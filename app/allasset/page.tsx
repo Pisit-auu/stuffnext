@@ -3,8 +3,10 @@ import Link from 'next/link'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 export default function Allasset() {
+
   const [category, setSelectCategory] = useState('')   //เก็บประเภทครุภัณฑ์ที่เลือก
   const [searchAsset, setSearchAsset] = useState('')  //เก็บชื่อครุภัณฑ์ที่ค้นหา
   const [asset, setAsset] = useState<any[]>([])  //เก็บครุภัณฑ์ ทั้งหมดที่ดึงเข้ามา
@@ -12,6 +14,37 @@ export default function Allasset() {
   const [assetCount, setAssetCount] = useState<any[]>([])  
   const [categorys, setCategory] = useState([])  //เก็บ ประเภทครุภัณฑ์
   const { data: session, status } = useSession(); //เก็บ session 
+
+
+    const handleDownload = async () => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Assets')
+
+    // หัวตาราง
+    worksheet.columns = [
+      { header: 'ชื่อครุภัณฑ์', key: 'name', width: 30 },
+      { header: 'จำนวนทั้งหมด', key: 'totalValue', width: 15 },
+      { header: 'จำนวนพร้อมใช้งาน', key: 'availableValue', width: 15 },
+    ]
+
+    // ใส่ข้อมูล
+    filteredAssets.forEach(assetItem => {
+      const countData = assetCount.find(item => item.assetId === assetItem.assetid)
+
+      worksheet.addRow({
+        name: assetItem.name,
+        totalValue: assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0),
+        availableValue: assetItem.availableValue + (countData?.totalAvailable || 0),
+      })
+    })
+
+    // สร้างไฟล์ Excel เป็น buffer
+    const buffer = await workbook.xlsx.writeBuffer()
+
+    // สร้าง Blob และบันทึกไฟล์
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    saveAs(blob, 'ครุภัณฑ์ทั้งหมด.xlsx')
+  }
 
   // ดึงข้อมูล ประเภทของครุภัณฑ์ ชื่อครุภัณฑ์  
   useEffect(() => {
@@ -111,7 +144,13 @@ export default function Allasset() {
               </option>
             ))}
           </select>
+          
         </div>
+                     <button onClick={handleDownload}
+                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
       </div>
 
       {filteredAssets.length === 0 ? (

@@ -4,7 +4,9 @@ import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Flex, Menu } from 'antd';
+import { Button, Popconfirm, Menu } from 'antd';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function Admin() {
   //ประเภทครุภัณฑ์
@@ -53,8 +55,7 @@ export default function Admin() {
       } catch (error) {
         console.error(error);
       }
-    };
-    
+    };   
 
     const fetchAsset = async () => {
       try {
@@ -65,8 +66,6 @@ export default function Admin() {
         console.error(error)
       }
     }
-
-
 
     const fetchCategory = async () => {
       try {
@@ -133,6 +132,137 @@ export default function Admin() {
       }
     }
 
+
+
+  const handleDownloadAsset = async () => {
+   const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('ครุภัณฑ์');
+
+  // กำหนดหัวตาราง
+  worksheet.columns = [
+    { header: 'รหัสครุภัณฑ์', key: 'assetid', width: 15 },
+    { header: 'ชื่อครุภัณฑ์', key: 'name', width: 20 },
+    { header: 'ประเภท', key: 'category', width: 20 },
+    { header: 'จำนวนใช้งานได้', key: 'availableValue', width: 20 },
+    { header: 'จำนวนใช้งานไม่ได้', key: 'unavailableValue', width: 20 },
+    { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
+  ];
+
+  // เพิ่มข้อมูล
+  asset.forEach((item: any) => {
+    worksheet.addRow({
+      assetid: item.assetid,
+      name: item.name,
+      category: item.category?.name || '-',
+      availableValue: item.availableValue,
+      unavailableValue: item.unavailableValue,
+      createdAt: new Date(item.createdAt).toLocaleDateString('th-TH'),
+    });
+  });
+
+  // สร้างไฟล์
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, 'รายการครุภัณฑ์.xlsx');
+};
+interface Category {
+  id: number;
+  idname: string;
+  name: string;
+}
+  const handleDownloadcategoryAsset = async () => {
+ const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('ประเภทครุภัณฑ์');
+
+  // กำหนดหัวตาราง
+  worksheet.columns = [
+    { header: 'รหัสครุภัณฑ์', key: 'idname', width: 20 },
+    { header: 'ประเภท', key: 'name', width: 30 },
+  ];
+
+  // เพิ่มข้อมูลแต่ละแถว
+  categorys.forEach((cat:Category) => {
+    worksheet.addRow({
+      idname: cat.idname,
+      name: cat.name,
+    });
+  });
+
+  // สร้างไฟล์
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  saveAs(blob, 'ประเภทครุภัณฑ์.xlsx');
+};
+  const handleDownloadLocation = async () => {
+const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('สถานที่');
+
+  // หัวตาราง
+  worksheet.columns = [
+    { header: 'สถานที่', key: 'namelocation', width: 30 },
+    { header: 'ผู้รับผิดชอบ', key: 'nameteacher', width: 30 },
+    { header: 'ประเภท', key: 'categoryname', width: 30 },
+  ];
+interface Location {
+  namelocation: string;
+  nameteacher: string;
+  categoryroom?: {
+    name: string;
+  } | null;
+}
+  // เพิ่มข้อมูล
+  locations.forEach((loc:Location) => {
+    worksheet.addRow({
+      namelocation: loc.namelocation || '-',
+      nameteacher: loc.nameteacher || '-',
+      categoryname: loc.categoryroom?.name || 'ไม่มีหมวดหมู่',
+    });
+  });
+
+  // บันทึกไฟล์
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  saveAs(blob, 'สถานที่.xlsx');
+};
+
+interface CategoryRoom {
+  id: number;
+  name: string;
+  // ถ้ามีฟิลด์อื่น ๆ ก็เพิ่มได้
+}
+  const handleDownloadcategoryLocation = async () => {
+ const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('ประเภทห้อง');
+
+  worksheet.columns = [
+    { header: 'id', key: 'id', width: 10 },
+    { header: 'ชื่อประเภท', key: 'name', width: 30 },
+    // คุณอาจเว้นว่างหรือเพิ่มคอลัมน์สำหรับ "ดำเนินการ" ได้ถ้าต้องการ
+  ];
+
+  categoryrooms.forEach((cat: CategoryRoom) => {
+    worksheet.addRow({
+      id: cat.id,
+      name: cat.name,
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type:
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  saveAs(blob, 'ประเภทห้อง.xlsx');
+};
+
+
     return (
       <div className="flex min-h-screen">
       {/* Side Menu */}
@@ -191,6 +321,11 @@ export default function Admin() {
           >
             เพิ่มครุภัณฑ์
           </Link>
+                    <button onClick={handleDownloadAsset}
+                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
         </div>
 
               </div>
@@ -218,6 +353,7 @@ export default function Admin() {
                       <tr key={Asset.assetid}>
                         <td className="px-6 py-4 whitespace-nowrap">{Asset.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{Asset.assetid}</td>
+                       
                         <td className="px-6 py-4 whitespace-nowrap">{Asset.category.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editasset/${Asset.assetid}`}>
@@ -256,8 +392,13 @@ export default function Admin() {
                   className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   href="/admin/createcategory"
                 >
-                  เพิ่มประเภทของครุภัณฑ์
+                  เพิ่มประเภทของครุภัณฑ์ 
                 </Link>
+                   <button onClick={handleDownloadcategoryAsset}
+                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
               <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -331,8 +472,13 @@ export default function Admin() {
                       className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       href="/admin/createlocation"
                     >
-                      เพิ่มสถานที่
+                      เพิ่มสถานที
                     </Link>
+                     <button onClick={handleDownloadLocation}
+                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
                     <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -404,6 +550,12 @@ export default function Admin() {
                 >
                   เพิ่มประเภทของสถานที่
                 </Link>
+
+                 <button onClick={handleDownloadcategoryLocation}
+                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        โหลดไฟล์ Exel
+                      </button>
               <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">

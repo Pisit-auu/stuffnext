@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 interface User {
   id: number;
   name: string | null;
@@ -104,24 +105,60 @@ export default function AdminDashboard() {
   // คำนวณจำนวนหน้าทั้งหมด
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / 15) : 1; // ตรวจสอบ totalCount เพื่อหลีกเลี่ยง NaN
 
+
+  const handleDownload = async () => {
+     const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Users');
+
+    worksheet.columns = [
+      { header: 'ชื่อผู้ใช้ (username)', key: 'username', width: 20 },
+      { header: 'ชื่อ-นามสกุล', key: 'fullname', width: 30 },
+      { header: 'บทบาท', key: 'role', width: 15 },
+    ];
+
+    users.forEach((user) => {
+      worksheet.addRow({
+        username: user.username || '-',
+        fullname: `${user.name || ''} ${user.surname || ''}`.trim(),
+        role: user.role || '-',
+      });
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      saveAs(blob, 'users.xlsx');
+    });
+  }
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="mt-4 text-xl mb-4 font-bold">ผู้ใช้งานทั้งหมด</h1>
-      <div className="flex flex-wrap justify-between items-center mb-4 space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
         <input
           type="text"
           placeholder="ค้นหาหน้านี้จากชื่อผู้ใช้ หรือ ชื่อ-นามสกุล"
-          className="px-4 py-2 border rounded-md w-full max-w-xs mb-2 sm:mb-0"
+          className="px-4 py-2 border rounded-md w-full sm:w-72"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        
-        <Link href={"/admin/user/singupuser"}>
-          <button className="bg-green-400 text-white px-4 py-2 rounded-md">
-            เพิ่มผู้ใช้งาน
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={handleDownload}
+            className="px-4 py-2 rounded-lg bg-[#006600] text-white hover:bg-green-600 transition-all"
+          >
+            โหลดไฟล์ Excel
           </button>
-        </Link>
+
+          <Link href="/admin/user/singupuser">
+            <button className="bg-green-400 text-white px-4 py-2 rounded-md hover:bg-green-500 transition">
+              เพิ่มผู้ใช้งาน
+            </button>
+          </Link>
+        </div>
       </div>
+
 
       {/* ตารางแสดงผู้ใช้ */}
       <div className="overflow-x-auto">
