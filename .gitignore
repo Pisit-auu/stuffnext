@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ไฟล์ทำงานของเครื่องมือออกแบบ (ภาพหลักฐาน ฯลฯ) ไม่ใช่ซอร์ส
+.impeccable/

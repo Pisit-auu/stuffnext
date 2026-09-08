@@ -1,145 +1,223 @@
-'use client'
-import Link from 'next/link';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+"use client";
+
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { ButtonLink, Button } from "../component/ui/Button";
+import { FilterSelect, SearchField } from "../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  type Column,
+} from "../component/ui/Data";
+import { IconArrowRight, IconSheet } from "../component/ui/icons";
+import { useToast } from "../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage } from "@/lib/format";
+import type { CategoryRoom, Location } from "@/lib/types";
+
 export default function Home() {
-  const [locations, setLocations] = useState<any[]>([]);//ข้อมูล locationทุกที่ 
-  const [searchLocation, setSearchLocation] = useState(''); //เก็บข้อมูลที่ sort
-  const [filteredLocations, setFilteredLocations] = useState<any[]>([]); //กรองข้อมูลlocation ตามที่ค้นหา 
-  const [categories, setCategories] = useState<any[]>([]); // ประเภทของcategoryของห้อง
-  const [selectedCategory, setSelectedCategory] = useState(''); // เก็บประเภทที่เลือก
- 
-  //ดึงข้อมูล locationทุกที่ และ ประเภทของcategoryของห้อง
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [categories, setCategories] = useState<CategoryRoom[]>([]);
+  const [searchLocation, setSearchLocation] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [locationRes, categoryRes] = await Promise.all([
+        axios.get<Location[]>("/api/location"),
+        axios.get<CategoryRoom[]>("/api/categoryroom"),
+      ]);
+      setLocations(locationRes.data);
+      setCategories(categoryRes.data);
+    } catch (err) {
+      setError(errorMessage(err, "โหลดรายชื่อสถานที่ไม่สำเร็จ"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const res = await axios.get(`/api/location`);
-        setLocations(res.data);
-        setFilteredLocations(res.data); // กำหนดค่าเริ่มต้น
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`/api/categoryroom`);
-        setCategories(res.data); // รับข้อมูลประเภท
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchLocations();
-    fetchCategories();
+    load();
   }, []);
 
-  useEffect(() => {
-    // ค้นหาจากข้อมูลที่มีอยู่ และกรองตามประเภทที่เลือก
-    setFilteredLocations(
-      locations.filter(location => 
-        location.namelocation.toLowerCase().includes(searchLocation.toLowerCase()) &&
-        (selectedCategory ? location.categoryroom?.name === selectedCategory : true) 
-      )
-    );
-  }, [searchLocation, selectedCategory, locations]);
- const handleDownload = async () => {
-    const workbook = new ExcelJS.Workbook()
-  const worksheet = workbook.addWorksheet('Locations')
+  const filtered = useMemo(() => {
+    const term = searchLocation.trim().toLowerCase();
+    return locations.filter((location) => {
+      const matchName =
+        location.namelocation.toLowerCase().includes(term) ||
+        (location.nameteacher ?? "").toLowerCase().includes(term);
+      const matchCategory = selectedCategory
+        ? location.categoryroom?.name === selectedCategory
+        : true;
+      return matchName && matchCategory;
+    });
+  }, [locations, searchLocation, selectedCategory]);
 
-  worksheet.columns = [
-    { header: 'สถานที่', key: 'namelocation', width: 30 },
-    { header: 'ผู้รับผิดชอบ', key: 'nameteacher', width: 30 },
-    { header: 'ประเภทห้อง', key: 'categoryroom', width: 20 },
-  ]
+  const handleDownload = async () => {
+    try {
+      await exportSheet<Location>({
+        filename: "สถานที่ทั้งหมด",
+        sheetName: "สถานที่",
+        rows: filtered,
+        columns: [
+          { header: "สถานที่", width: 30, value: (l) => l.namelocation },
+          { header: "ผู้รับผิดชอบ", width: 30, value: (l) => l.nameteacher },
+          { header: "ประเภทห้อง", width: 20, value: (l) => l.categoryroom?.name },
+        ],
+      });
+      toast.success(`บันทึกไฟล์ Excel แล้ว ${filtered.length} รายการ`);
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
+    }
+  };
 
-  filteredLocations.forEach(location => {
-    worksheet.addRow({
-      namelocation: location.namelocation,
-      nameteacher: location.nameteacher,
-      categoryroom: location.categoryroom?.name || '',
-    })
-  })
-
-  const buffer = await workbook.xlsx.writeBuffer()
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-  saveAs(blob, 'สถานที่ทั้งหมด.xlsx')
-}
+  const columns: Column<Location>[] = [
+    {
+      key: "name",
+      header: "สถานที่",
+      primary: true,
+      render: (l) => (
+        <div className="min-w-0">
+          <CodeTag>{l.namelocation}</CodeTag>
+          {l.nameteacher && (
+            <p className="mt-1.5 text-meta text-ink-2 md:hidden">
+              ผู้รับผิดชอบ {l.nameteacher}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "teacher",
+      header: "ผู้รับผิดชอบ",
+      hideOnCard: true,
+      render: (l) => <span className="text-ink-2">{l.nameteacher || "—"}</span>,
+    },
+    {
+      key: "category",
+      header: "ประเภทห้อง",
+      render: (l) => (
+        <span className="text-ink-2">{l.categoryroom?.name || "ไม่ระบุประเภท"}</span>
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "12rem",
+      actions: true,
+      render: (l) => (
+        <ButtonLink
+          href={`/location/${encodeURIComponent(l.namelocation)}`}
+          size="sm"
+          variant="secondary"
+          iconAfter={<IconArrowRight size={15} />}
+          className="max-md:w-full"
+        >
+          ดูของในห้องนี้
+        </ButtonLink>
+      ),
+    },
+  ];
 
   return (
-    <div className="mt-8 max-w-7xl mx-auto px-4 py-8">
-      {/* Input Search and Category Filter */}
-      <div className="flex justify-center items-center gap-4 mb-8">
-        {/* Input Search */}
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="ค้นหาครุภัณฑ์..."
-            value={searchLocation}
-            onChange={(e) => setSearchLocation(e.target.value)}
-            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          />
-          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <img 
-              src="search.png" 
-              alt="ค้นหา"
-              className="w-6 h-6"
-            />
-          </button>
-        </div>
-
-        {/* Category Filter Dropdown */}
-        <div className="relative w-48">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+    <PageShell>
+      <PageHeader
+        title="สถานที่ทั้งหมด"
+        trail={[{ label: "หน้าแรก", href: "/" }, { label: "สถานที่" }]}
+        meta={
+          loading
+            ? "กำลังโหลด..."
+            : `${filtered.length.toLocaleString("th-TH")} ห้อง${
+                filtered.length !== locations.length
+                  ? ` จากทั้งหมด ${locations.length.toLocaleString("th-TH")} ห้อง`
+                  : ""
+              }`
+        }
+        actions={
+          <Button
+            onClick={handleDownload}
+            icon={<IconSheet size={16} />}
+            disabled={loading || filtered.length === 0}
           >
-            <option value="">เลือกประเภทสถานที่</option>
-            {categories.map((category: any) => (
-              <option key={category.id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-                      <button onClick={handleDownload}
-                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-      </div>
+            ดาวน์โหลด Excel
+          </Button>
+        }
+      />
 
-      {/* Table Layout */}
-      <table className="min-w-full table-auto border-collapse border border-gray-300">
-  <thead>
-    <tr className="bg-gray-100">
-      <th className="py-2 px-4 border-b text-left text-sm font-semibold">สถานที่</th>
-      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ผู้รับผิดชอบ</th>
-      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ประเภท</th>
-      <th className="py-2 px-4 border-b text-left text-sm font-semibold">ดำเนินการ</th>
-    </tr>
-  </thead>
-  <tbody>
-    {filteredLocations.map((location) => (
-      <tr key={location.id} className="odd:bg-gray-50 even:bg-white">
-        <td className="py-2 px-4 border-b text-sm">{location.namelocation}</td>
-        <td className="py-2 px-4 border-b text-sm">{location.nameteacher}</td>
-        <td className="py-2 px-4 border-b text-sm">{location.categoryroom?.name}</td>
-        <td className="py-2 px-4 border-b text-left">
-          <Link
-            href={`location/${location.namelocation}`}
-            className="inline-block px-4 py-2 rounded-lg bg-[#113FB3] text-white text-center hover:bg-indigo-600 focus:outline-none transition duration-300 text-sm"
-          >
-            ยืมของภายในห้อง
-          </Link>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-    </div>
+      <Toolbar>
+        <SearchField
+          label="ค้นหาสถานที่หรือผู้รับผิดชอบ"
+          placeholder="ค้นหาชื่อห้อง หรือผู้รับผิดชอบ..."
+          value={searchLocation}
+          onChange={(e) => setSearchLocation(e.target.value)}
+          className="w-full sm:w-80"
+        />
+        <FilterSelect
+          label="กรองตามประเภทห้อง"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-full sm:w-56"
+        >
+          <option value="">ทุกประเภทห้อง</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.name}>
+              {category.name}
+            </option>
+          ))}
+        </FilterSelect>
+      </Toolbar>
+
+      {error ? (
+        <ErrorState
+          title="โหลดข้อมูลไม่สำเร็จ"
+          description={error}
+          action={
+            <Button variant="primary" onClick={load}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(l) => l.id}
+          loading={loading}
+          caption="รายชื่อสถานที่ทั้งหมดในโรงเรียน"
+          empty={
+            locations.length === 0 ? (
+              <EmptyState
+                title="ยังไม่มีสถานที่ในระบบ"
+                description="แอดมินสามารถเพิ่มห้องได้ที่หน้าจัดการทะเบียน"
+              />
+            ) : (
+              <EmptyState
+                title="ไม่พบห้องที่ตรงกับที่ค้นหา"
+                description="ลองเปลี่ยนคำค้นหา หรือล้างตัวกรองประเภทห้อง"
+                action={
+                  <Button
+                    onClick={() => {
+                      setSearchLocation("");
+                      setSelectedCategory("");
+                    }}
+                  >
+                    ล้างตัวกรอง
+                  </Button>
+                }
+              />
+            )
+          }
+        />
+      )}
+    </PageShell>
   );
 }

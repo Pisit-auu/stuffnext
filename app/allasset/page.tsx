@@ -1,208 +1,310 @@
-'use client'
-import Link from 'next/link'
-import axios from 'axios'
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-export default function Allasset() {
+"use client";
 
-  const [category, setSelectCategory] = useState('')   //เก็บประเภทครุภัณฑ์ที่เลือก
-  const [searchAsset, setSearchAsset] = useState('')  //เก็บชื่อครุภัณฑ์ที่ค้นหา
-  const [asset, setAsset] = useState<any[]>([])  //เก็บครุภัณฑ์ ทั้งหมดที่ดึงเข้ามา
-  const [assetlocation, setAssetlocation] = useState<any[]>([])  
-  const [assetCount, setAssetCount] = useState<any[]>([])  
-  const [categorys, setCategory] = useState([])  //เก็บ ประเภทครุภัณฑ์
-  const { data: session, status } = useSession(); //เก็บ session 
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Button, ButtonLink } from "../component/ui/Button";
+import { FilterSelect, SearchField } from "../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  TickBar,
+  type Column,
+} from "../component/ui/Data";
+import { ConfirmDialog } from "../component/ui/Modal";
+import { IconArrowRight, IconSheet, IconTrash } from "../component/ui/icons";
+import { useToast } from "../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage } from "@/lib/format";
+import type { Asset, AssetLocation, Category } from "@/lib/types";
 
-
-    const handleDownload = async () => {
-    const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('Assets')
-
-    // หัวตาราง
-    worksheet.columns = [
-      { header: 'ชื่อครุภัณฑ์', key: 'name', width: 30 },
-      { header: 'จำนวนทั้งหมด', key: 'totalValue', width: 15 },
-      { header: 'จำนวนพร้อมใช้งาน', key: 'availableValue', width: 15 },
-    ]
-
-    // ใส่ข้อมูล
-    filteredAssets.forEach(assetItem => {
-      const countData = assetCount.find(item => item.assetId === assetItem.assetid)
-
-      worksheet.addRow({
-        name: assetItem.name,
-        totalValue: assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0),
-        availableValue: assetItem.availableValue + (countData?.totalAvailable || 0),
-      })
-    })
-
-    // สร้างไฟล์ Excel เป็น buffer
-    const buffer = await workbook.xlsx.writeBuffer()
-
-    // สร้าง Blob และบันทึกไฟล์
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    saveAs(blob, 'ครุภัณฑ์ทั้งหมด.xlsx')
-  }
-
-  // ดึงข้อมูล ประเภทของครุภัณฑ์ ชื่อครุภัณฑ์  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoryRes, assetRes, assetlocationRes] = await Promise.all([
-          axios.get(`/api/category`),
-          axios.get(`/api/asset`),
-          axios.get(`/api/assetlocation`)
-        ]);
-        setCategory(categoryRes.data);
-        setAsset(assetRes.data);
-        setAssetlocation(assetlocationRes.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData();
-  }, []);
-  //ฟังก์ชันนับ รวมจำนวนของที่อยู่ในห้องอื่นๆ มาแสดง
-  const count = () => {
-    const countData = asset.map((assetItem) => {
-      const matchingLocations = assetlocation.filter((loc) => loc.assetId === assetItem.assetid)
-      let totalAvailable = 0
-      let totalUnavailable = 0
-
-      matchingLocations.forEach((loc) => {
-        totalAvailable += loc.inRoomavailableValue
-        totalUnavailable += loc.inRoomaunavailableValue
-      })
-
-      return {
-        assetId: assetItem.assetid,
-        totalAvailable,
-        totalUnavailable,
-        totalCount: totalAvailable + totalUnavailable,
-      }
-    })
-    setAssetCount(countData)
-  }
-
-  useEffect(() => {
-    if (asset.length > 0 && assetlocation.length > 0) {
-      count()  
-    }
-  }, [asset, assetlocation])
-
-  const filteredAssets = asset.filter((assetItem) => {
-    const matchesCategory = category ? assetItem.category.name === category : true;
-    const matchesSearch = assetItem.name.toLowerCase().includes(searchAsset.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-  const deleteasset = async (data : any) => {
-      const confirmDelete = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?");
-    if (!confirmDelete) return;
-    try { 
-       await axios.delete(`/api/asset/${data}`)
-       alert("ลบเสร็จสิ้น")
-        window.location.reload();
-      } catch (error) {
-        console.error('Failed to delete the asset', error)
-      }
+/** ยอดของครุภัณฑ์หนึ่งชิ้น = ยอดในคลัง + ยอดที่กระจายอยู่ตามห้อง */
+type AssetRow = Asset & {
+  totalAll: number;
+  totalAvailable: number;
 };
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* ค้นหาครุภัณฑ์ */}
-      <div className="flex justify-center items-center gap-4 mb-8">
-        {/* Input Search */}
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="ค้นหาครุภัณฑ์..."
-            value={searchAsset}
-            onChange={(e) => setSearchAsset(e.target.value)}
-            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          />
-          <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <img 
-              src="search.png" 
-              alt="ค้นหา"
-              className="w-6 h-6"
-            />
-          </button>
-        </div>
 
-        {/* Category Dropdown */}
-        <div className="relative w-48">
-          <select
-            value={category}
-            onChange={(e) => setSelectCategory(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+export default function AllAsset() {
+  const { data: session } = useSession();
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [assetLocations, setAssetLocations] = useState<AssetLocation[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [category, setCategory] = useState("");
+  const [searchAsset, setSearchAsset] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AssetRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const toast = useToast();
+
+  const isAdmin = session?.user?.role === "admin";
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [categoryRes, assetRes, assetLocationRes] = await Promise.all([
+        axios.get<Category[]>("/api/category"),
+        axios.get<Asset[]>("/api/asset"),
+        axios.get<AssetLocation[]>("/api/assetlocation"),
+      ]);
+      setCategories(categoryRes.data);
+      setAssets(assetRes.data);
+      setAssetLocations(assetLocationRes.data);
+    } catch (err) {
+      setError(errorMessage(err, "โหลดรายการครุภัณฑ์ไม่สำเร็จ"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const rows = useMemo<AssetRow[]>(() => {
+    const term = searchAsset.trim().toLowerCase();
+    return assets
+      .filter((asset) => {
+        const matchesCategory = category ? asset.category?.name === category : true;
+        const matchesSearch =
+          asset.name.toLowerCase().includes(term) ||
+          asset.assetid.toLowerCase().includes(term);
+        return matchesCategory && matchesSearch;
+      })
+      .map((asset) => {
+        let inRoomAvailable = 0;
+        let inRoomUnavailable = 0;
+        assetLocations.forEach((loc) => {
+          if (loc.assetId !== asset.assetid) return;
+          inRoomAvailable += loc.inRoomavailableValue;
+          inRoomUnavailable += loc.inRoomaunavailableValue;
+        });
+        return {
+          ...asset,
+          totalAll:
+            asset.availableValue +
+            asset.unavailableValue +
+            inRoomAvailable +
+            inRoomUnavailable,
+          totalAvailable: asset.availableValue + inRoomAvailable,
+        };
+      });
+  }, [assets, assetLocations, category, searchAsset]);
+
+  const handleDownload = async () => {
+    try {
+      await exportSheet<AssetRow>({
+        filename: "ครุภัณฑ์ทั้งหมด",
+        sheetName: "ครุภัณฑ์",
+        rows,
+        columns: [
+          { header: "รหัสครุภัณฑ์", width: 20, value: (a) => a.assetid },
+          { header: "ชื่อครุภัณฑ์", width: 30, value: (a) => a.name },
+          { header: "ประเภท", width: 20, value: (a) => a.category?.name },
+          { header: "จำนวนทั้งหมด", width: 16, value: (a) => a.totalAll },
+          { header: "จำนวนพร้อมใช้งาน", width: 18, value: (a) => a.totalAvailable },
+        ],
+      });
+      toast.success(`บันทึกไฟล์ Excel แล้ว ${rows.length} รายการ`);
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`/api/asset/${pendingDelete.assetid}`);
+      toast.success(`ลบ ${pendingDelete.name} ออกจากทะเบียนแล้ว`);
+      setPendingDelete(null);
+      await load();
+    } catch (err) {
+      toast.error(errorMessage(err, "ลบครุภัณฑ์ไม่สำเร็จ"));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const columns: Column<AssetRow>[] = [
+    {
+      key: "name",
+      header: "ครุภัณฑ์",
+      primary: true,
+      render: (a) => (
+        <div className="min-w-0">
+          <CodeTag>{a.assetid}</CodeTag>
+          <p className="mt-1.5 font-medium leading-snug text-ink">{a.name}</p>
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "ประเภท",
+      width: "12rem",
+      render: (a) => <span className="text-ink-2">{a.category?.name || "—"}</span>,
+    },
+    {
+      key: "stock",
+      header: "พร้อมใช้งาน",
+      width: "14rem",
+      render: (a) => (
+        <TickBar
+          available={a.totalAvailable}
+          broken={Math.max(a.totalAll - a.totalAvailable, 0)}
+          label={`พร้อมใช้งาน ${a.totalAvailable} จากทั้งหมด ${a.totalAll}`}
+        />
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: isAdmin ? "15rem" : "11rem",
+      actions: true,
+      render: (a) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          <ButtonLink
+            href={`/allasset/${encodeURIComponent(a.assetid)}`}
+            size="sm"
+            iconAfter={<IconArrowRight size={15} />}
+            className="max-md:flex-1"
           >
-            <option value="">เลือกประเภทครุภัณฑ์</option>
-            {categorys.map((cat: any) => (
-              <option key={cat.idname} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          
+            รายละเอียด
+          </ButtonLink>
+          {isAdmin && (
+            <Button
+              size="sm"
+              variant="danger"
+              icon={<IconTrash size={15} />}
+              onClick={() => setPendingDelete(a)}
+              aria-label={`ลบ ${a.name}`}
+            >
+              ลบ
+            </Button>
+          )}
         </div>
-                     <button onClick={handleDownload}
-                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-      </div>
+      ),
+    },
+  ];
 
-      {filteredAssets.length === 0 ? (
-        <div className="text-center text-gray-500 text-lg font-semibold py-6">
-          ❌ ไม่มีข้อมูลครุภัณฑ์
-        </div>
+  return (
+    <PageShell>
+      <PageHeader
+        title="ครุภัณฑ์ทั้งหมด"
+        trail={[{ label: "หน้าแรก", href: "/" }, { label: "ครุภัณฑ์" }]}
+        meta={
+          loading
+            ? "กำลังโหลด..."
+            : `${rows.length.toLocaleString("th-TH")} รายการ${
+                rows.length !== assets.length
+                  ? ` จากทั้งหมด ${assets.length.toLocaleString("th-TH")} รายการ`
+                  : ""
+              }`
+        }
+        actions={
+          <Button
+            onClick={handleDownload}
+            icon={<IconSheet size={16} />}
+            disabled={loading || rows.length === 0}
+          >
+            ดาวน์โหลด Excel
+          </Button>
+        }
+      />
+
+      <Toolbar>
+        <SearchField
+          label="ค้นหาครุภัณฑ์"
+          placeholder="ค้นหาชื่อ หรือรหัสครุภัณฑ์..."
+          value={searchAsset}
+          onChange={(e) => setSearchAsset(e.target.value)}
+          className="w-full sm:w-80"
+        />
+        <FilterSelect
+          label="กรองตามประเภทครุภัณฑ์"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full sm:w-56"
+        >
+          <option value="">ทุกประเภท</option>
+          {categories.map((c) => (
+            <option key={c.idname} value={c.name}>
+              {c.name}
+            </option>
+          ))}
+        </FilterSelect>
+      </Toolbar>
+
+      {error ? (
+        <ErrorState
+          title="โหลดข้อมูลไม่สำเร็จ"
+          description={error}
+          action={
+            <Button variant="primary" onClick={load}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 border-b text-left">ชื่อครุภัณฑ์</th>
-                <th className="py-2 px-4 border-b text-left">จำนวนทั้งหมด</th>
-                <th className="py-2 px-4 border-b text-left">จำนวนพร้อมใช้งาน</th>
-                <th className="py-2 px-4 border-b text-left">ดำเนินการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAssets.map((assetItem) => {
-                const countData = assetCount.find((item) => item.assetId === assetItem.assetid)
-                return (
-                  <tr key={assetItem.id} className="odd:bg-gray-50 even:bg-white">
-                    <td className="py-2 px-4 border-b">{assetItem.name}</td>
-                    <td className="py-2 px-4 border-b">
-                      {assetItem.availableValue + assetItem.unavailableValue + (countData?.totalCount || 0)}
-                    </td>
-                    <td className="py-2 px-4 border-b text-green-600">
-                      {assetItem.availableValue + (countData?.totalAvailable || 0)}
-                    </td>
-                    <td className="py-2 px-4 border-b text-left">
-                      <Link
-                        className="block sm:inline-block w-full mr-4 sm:w-auto px-4 py-2 rounded-lg bg-[#113FB3] text-center text-white hover:bg-indigo-600 transition-all"
-                        href={`allasset/${assetItem.assetid}`}
-                      >
-                        ดูรายละเอียด
-                      </Link>
-                       {session?.user.role === 'admin' && (
-                              <button onClick={() => deleteasset(assetItem.assetid)}
-                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#CC0033] text-center text-white hover:bg-red-600 transition-all"
-                      >
-                        ลบ
-                      </button>
-                      )}
-                       
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          rows={rows}
+          rowKey={(a) => a.assetid}
+          loading={loading}
+          caption="รายการครุภัณฑ์ทั้งหมดพร้อมยอดคงเหลือ"
+          empty={
+            assets.length === 0 ? (
+              <EmptyState
+                title="ยังไม่มีครุภัณฑ์ในทะเบียน"
+                description="แอดมินสามารถเพิ่มครุภัณฑ์ได้ที่หน้าจัดการทะเบียน"
+              />
+            ) : (
+              <EmptyState
+                title="ไม่พบครุภัณฑ์ที่ตรงกับที่ค้นหา"
+                description="ลองเปลี่ยนคำค้นหา หรือล้างตัวกรองประเภท"
+                action={
+                  <Button
+                    onClick={() => {
+                      setSearchAsset("");
+                      setCategory("");
+                    }}
+                  >
+                    ล้างตัวกรอง
+                  </Button>
+                }
+              />
+            )
+          }
+        />
       )}
-    </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        busy={deleting}
+        title="ลบครุภัณฑ์ออกจากทะเบียน"
+        description={
+          pendingDelete && (
+            <>
+              <p>
+                ลบ <span className="font-medium text-ink">{pendingDelete.name}</span>{" "}
+                (รหัส {pendingDelete.assetid}) ออกจากทะเบียนถาวร
+              </p>
+              <p className="mt-2 text-alert">
+                ข้อมูลของชิ้นนี้ในทุกห้องและประวัติการยืมที่เกี่ยวข้องจะถูกลบไปด้วย
+                และย้อนกลับไม่ได้
+              </p>
+            </>
+          )
+        }
+        confirmLabel="ลบถาวร"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </PageShell>
   );
 }

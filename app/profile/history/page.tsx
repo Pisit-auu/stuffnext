@@ -1,447 +1,555 @@
-'use client';
-import { Button, Popconfirm, Flex } from 'antd';
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import axios from 'axios';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import Link from 'next/link';
-import '@ant-design/v5-patch-for-react-19';
-import { signOut } from "next-auth/react";
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-interface BorrowHistory {
-  id: number;
-  createdAt: string;
-  dayReturn: string | null;
-  Borrowstatus: string;
-  ReturnStatus: string;
-  user: {
-    name: string;
-  };
-  asset: {
-    assetid: any;
-    name: string;
-    id: number;
-  };
-  borrowLocation: {
-    namelocation: string;
-  };
-  note: string;
-  returnLocationId: string;
-  valueBorrow: number;
-}
+"use client";
 
+import axios from "axios";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { Button, ButtonLink } from "../../component/ui/Button";
+import { SearchField, TextField } from "../../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  StatusChip,
+  type Column,
+} from "../../component/ui/Data";
+import { ConfirmDialog } from "../../component/ui/Modal";
+import {
+  IconArrowRight,
+  IconCheck,
+  IconReturn,
+  IconSheet,
+  IconTrash,
+} from "../../component/ui/icons";
+import { useToast } from "../../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage, formatDate, formatDateForSheet, statusLabel } from "@/lib/format";
+import type { AssetLocation, Borrow } from "@/lib/types";
 
-const UserBorrowHistory = () => {
-  const { data: session } = useSession(); // ดึง session ของผู้ใช้
-  const [borrowHistory, setBorrowHistory] = useState<BorrowHistory[]>([]);   //เก็บข้อมูลการยืม
-  const [loading, setLoading] = useState<boolean>(true);
+export default function UserBorrowHistory() {
+  const { data: session, status } = useSession();
+  const toast = useToast();
+
+  const [history, setHistory] = useState<Borrow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');  //ยืมถึงวันที่
-  const [searchTerm, setSearchTerm] = useState<string>(''); //เก็บคำค้นหา
-  const [filteredHistory, setFilteredHistory] = useState<BorrowHistory[]>(borrowHistory); //ผลลัพธ์ที่ค้นหา
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [pendingCancel, setPendingCancel] = useState<Borrow | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
-
-  //ดึงข้อมูลประวัติการยืมของผู้ใช้ที่ล็อกอินอยู่ เก็บไว้ใน setBorrowHistory
-  useEffect(() => {
-    if (!session?.user?.id) {
-      setError('User is not logged in');
+  const load = async () => {
+    if (!session?.user?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get<Borrow[]>(`/api/borrow/userid/${session.user.id}`);
+      setHistory(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setError(errorMessage(err, "โหลดประวัติการยืมไม่สำเร็จ"));
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    const fetchBorrowHistory = async () => {
-      try {
-        const response = await axios.get(`/api/borrow/userid/${session.user.id}`);
-        if (Array.isArray(response.data)) {
-          setBorrowHistory(response.data);
-        } else {
-          setError('Data format error');
-        }
-      } catch (err) {
-        setError('Failed to fetch borrow history');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchBorrowHistory();
-  }, [session]);
-
-  //กรอง (filter) ข้อมูลประวัติการยืม (borrowHistory) ตามวันที่และคำค้นหา แล้วอัปเดตไปที่ setFilteredHistory
   useEffect(() => {
-    const filtered = borrowHistory.filter((borrow) => {
+    if (status === "authenticated") load();
+    if (status === "unauthenticated") setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session?.user?.id]);
+
+  const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return history.filter((borrow) => {
       const borrowDate = new Date(borrow.createdAt).setHours(0, 0, 0, 0);
-      const isWithinDateRange =
+      const withinRange =
         (startDate ? borrowDate >= new Date(startDate).setHours(0, 0, 0, 0) : true) &&
         (endDate ? borrowDate <= new Date(endDate).setHours(23, 59, 59, 999) : true);
-  
-      const matchesSearchTerm =
-        borrow.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        borrow.asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        borrow.borrowLocation.namelocation.toLowerCase().includes(searchTerm.toLowerCase());
-  
-      return isWithinDateRange && matchesSearchTerm;
+      const matchesTerm =
+        !term ||
+        (borrow.asset?.name ?? "").toLowerCase().includes(term) ||
+        (borrow.asset?.assetid ?? "").toLowerCase().includes(term) ||
+        (borrow.borrowLocation?.namelocation ?? "").toLowerCase().includes(term) ||
+        (borrow.returnLocationId ?? "").toLowerCase().includes(term);
+      return withinRange && matchesTerm;
     });
-  
-    setFilteredHistory(filtered);
-  }, [startDate, endDate, searchTerm, borrowHistory]);
-  
-  //ฟังก์ชันสำหรับ ดึงข้อมูล user
-  const fetchuser = async () => {
+  }, [history, startDate, endDate, searchTerm]);
+
+  const outstanding = useMemo(
+    () => history.filter((b) => b.ReturnStatus !== "c").length,
+    [history],
+  );
+
+  /** บัญชีผู้ใช้ต้องยังอยู่จริง มิฉะนั้นเซสชันนี้ใช้ทำรายการต่อไม่ได้ */
+  const assertUserExists = async () => {
     try {
       const res = await axios.get(`/api/auth/signup/${session?.user?.username}`);
-      
-      if (!res.data) {
-        alert('ไม่พบบัญชีผู้ใช้');
-        signOut();
+      if (!res.data) throw new Error("no user");
+      return true;
+    } catch {
+      toast.error("ไม่พบบัญชีผู้ใช้นี้แล้ว ระบบจะออกจากระบบให้");
+      signOut({ callbackUrl: "/login" });
+      return false;
+    }
+  };
+
+  /** ห้องปลายทางของการคืนต้องยังมีอยู่ ไม่งั้นของจะหายระหว่างทาง */
+  const assertLocationExists = async (name: string) => {
+    try {
+      await axios.get(`/api/location/${name}`);
+      return true;
+    } catch {
+      toast.error(`ไม่พบห้อง ${name} ในระบบแล้ว กรุณาแจ้งแอดมินก่อนทำรายการนี้`);
+      return false;
+    }
+  };
+
+  const handleReturn = async (borrow: Borrow) => {
+    setBusyId(borrow.id);
+    try {
+      if (!(await assertUserExists())) return;
+      const current = await axios.get<Borrow>(`/api/borrow/${borrow.id}`);
+      if (!(await assertLocationExists(current.data.returnLocationId))) return;
+
+      const dayReturn = new Date().toISOString();
+      const response = await axios.put(`/api/borrow/${borrow.id}`, {
+        id: borrow.id,
+        dayReturn,
+      });
+
+      if (response.status === 200) {
+        setHistory((prev) =>
+          prev.map((b) => (b.id === borrow.id ? { ...b, dayReturn } : b)),
+        );
+        toast.success("แจ้งคืนแล้ว สถานะจะเปลี่ยนเมื่อแอดมินตรวจสอบเสร็จ");
+      }
+    } catch (err) {
+      toast.error(errorMessage(err, "แจ้งคืนไม่สำเร็จ"));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleCancelReturn = async (borrow: Borrow) => {
+    setBusyId(borrow.id);
+    try {
+      if (!(await assertUserExists())) return;
+      const current = await axios.get<Borrow>(`/api/borrow/${borrow.id}`);
+      if (current.data.ReturnStatus === "c") {
+        toast.error("แอดมินตรวจสอบการคืนแล้ว ยกเลิกไม่ได้");
+        await load();
         return;
       }
-    } catch (err) {
-      setError('Failed to fetch user');
-    }
-  };
+      if (!(await assertLocationExists(current.data.returnLocationId))) return;
 
-  //ฟังก์ชันสำหรับ ดึงข้อมูล location
-  const fethcheckclocation = async (response: any) => {
-    try{
-      const reschecklocation = await axios.get(`/api/location/${response.data.returnLocationId}`)
-    }catch(error){
-      alert('ไม่มีห้องนี้อยู่แล้ว')
-      return
-    }
-  };
-
- //ฟังก์ชันเมื่อกดปุ่มคืน
-  const handleReturn = async (borrowId: number, id?: number) => {
-    try {
-      // สร้างวันที่คืนเป็นวันที่ปัจจุบัน
-      fetchuser();
-      const rescheck = await axios.get(`/api/borrow/${borrowId}`);
-      fethcheckclocation(rescheck)
-      const dayReturn = new Date().toISOString();
-      // ส่งคำขอ PUT ไปที่ API
-      const response = await axios.put(`/api/borrow/${borrowId}`, {
-        id : borrowId,
-        dayReturn, // ส่งวันที่คืน
+      const response = await axios.put(`/api/borrow/${borrow.id}`, {
+        id: borrow.id,
+        dayReturn: null,
       });
+
       if (response.status === 200) {
-        // อัพเดตข้อมูลใน state
-        setBorrowHistory((prevHistory) =>
-          prevHistory.map((borrow) =>
-            borrow.id === borrowId
-              ? { ...borrow, dayReturn } // อัพเดตแค่วันที่คืน
-              : borrow
-          )
+        setHistory((prev) =>
+          prev.map((b) => (b.id === borrow.id ? { ...b, dayReturn: null } : b)),
         );
+        toast.info("ยกเลิกการแจ้งคืนแล้ว");
       }
-      alert("สถานะการคืนจะอัพเดต เมื่อแอดมินตรวจสอบเสร็จสิ้น")
     } catch (err) {
-      setError('Failed to update return date');
+      toast.error(errorMessage(err, "ยกเลิกการแจ้งคืนไม่สำเร็จ"));
+    } finally {
+      setBusyId(null);
     }
   };
 
-  //ฟังก์ชันเมื่อกดปุ่มยกเลิกการคืน
-  const handlecancleReturn = async (borrowId: number, id?: number) => {
-    fetchuser();
+  /** ยกเลิกรายการยืม = ย้ายของกลับห้องเดิม แล้วลบรายการทิ้ง */
+  const confirmCancelBorrow = async () => {
+    if (!pendingCancel) return;
+    setCancelling(true);
     try {
-      const rescheck = await axios.get(`/api/borrow/${borrowId}`);
-      fethcheckclocation(rescheck)
-      if(rescheck.data.ReturnStatus==='c'){
-        alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
-        window.location.reload()
-        return
+      if (!(await assertUserExists())) return;
+
+      const { data: borrow } = await axios.get<
+        Borrow & { assetId: string; borrowLocationId: string }
+      >(`/api/borrow/${pendingCancel.id}`);
+
+      if (borrow.ReturnStatus === "c") {
+        toast.error("แอดมินตรวจสอบแล้ว ยกเลิกรายการนี้ไม่ได้");
+        setPendingCancel(null);
+        await load();
+        return;
+      }
+      if (!(await assertLocationExists(borrow.returnLocationId))) return;
+
+      const currentRoom = borrow.borrowLocationId; // ห้องที่ของอยู่ตอนนี้
+      const originRoom = borrow.returnLocationId; // ห้องเจ้าของเดิม
+
+      const [originRes, currentRes] = await Promise.all([
+        axios.get<AssetLocation[]>(`/api/assetlocationroom?location=${originRoom}`),
+        axios.get<AssetLocation[]>(`/api/assetlocationroom?location=${currentRoom}`),
+      ]);
+
+      const inCurrentRoom = currentRes.data.find(
+        (item) => item.asset.assetid === borrow.assetId,
+      );
+      if (!inCurrentRoom) {
+        toast.error("ครุภัณฑ์ที่ยืมมาถูกย้ายไปห้องอื่นแล้ว หรือไม่มีอยู่ในห้องนี้");
+        return;
       }
 
-      // สร้างวันที่คืนเป็น null
-      const dayReturn = null
-      // ส่งคำขอ PUT ไปที่ API
-      const response = await axios.put(`/api/borrow/${borrowId}`, {
-        id: borrowId,
-        dayReturn, 
+      const amount = Number(borrow.valueBorrow);
+      const existingAtOrigin = originRes.data.find(
+        (item) => item.assetId === borrow.assetId,
+      );
+
+      if (existingAtOrigin) {
+        await axios.put(`/api/assetlocation/${existingAtOrigin.id}`, {
+          inRoomavailableValue: existingAtOrigin.inRoomavailableValue + amount,
+          inRoomaunavailableValue: existingAtOrigin.inRoomaunavailableValue,
+        });
+      } else {
+        await axios.post("/api/assetlocation", {
+          assetId: borrow.assetId,
+          locationId: originRoom,
+          inRoomavailableValue: 0,
+          inRoomaunavailableValue: 0,
+        });
+        const created = (
+          await axios.get<AssetLocation[]>(`/api/assetlocationroom?location=${originRoom}`)
+        ).data.find((item) => item.assetId === borrow.assetId);
+        if (!created) throw new Error("ไม่พบช่องเก็บของในห้องเดิม");
+        await axios.put(`/api/assetlocation/${created.id}`, {
+          inRoomavailableValue: amount,
+          inRoomaunavailableValue: 0,
+        });
+      }
+
+      await axios.put(`/api/assetlocation/${inCurrentRoom.id}`, {
+        inRoomavailableValue: inCurrentRoom.inRoomavailableValue - amount,
+        inRoomaunavailableValue: inCurrentRoom.inRoomaunavailableValue,
       });
-  
-      if (response.status === 200) {
-        // อัพเดตข้อมูลใน state
-        setBorrowHistory((prevHistory) =>
-          prevHistory.map((borrow) =>
-            borrow.id === borrowId
-              ? { ...borrow, dayReturn } // อัพเดตแค่วันที่คืน
-              : borrow
-          )
-        );
-      }
+
+      await axios.delete(`/api/borrow/${pendingCancel.id}`);
+
+      toast.success("ยกเลิกรายการยืมและคืนของกลับห้องเดิมแล้ว");
+      setPendingCancel(null);
+      await load();
     } catch (err) {
-      setError('Failed to update return date');
-    }
-  };
-
-  //ฟังก์ชันปุ่มยกเลิก
-  const handlecancle = async (
-    id: number,
-  ) => {
-    fetchuser();
-    try {
-
-      const response = await axios.get(`/api/borrow/${id}`)
-      fethcheckclocation(response)
-      if(response.data.ReturnStatus==='c'){
-        alert("แอดมินได้ตรวจสอบแล้วไม่สามารถยกเลิกได้")
-        window.location.reload()
-        return
-      }
-      let presentlocation = ''
-      let locationreturn = ''
-      presentlocation =response.data.borrowLocationId
-      locationreturn = response.data.returnLocationId// ห้องที่อยู่
-
-
-      const getreturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);//เรียก ห้องที่จะคืน
-      const getassetlocationinroom = await axios.get(`/api/assetlocationroom?location=${presentlocation}`); //เรียก assetidที่อยู่ในห้องนั้น
-      const filtered = getassetlocationinroom.data.filter((item: { asset: { assetid: any; }; }) => item.asset.assetid === response.data.assetId); // กรองว่า getassetlocationinroom == assetid
-      if(filtered[0] === undefined){
-        alert("ครุภัณฑ์ที่ยืมมาถูกยืมไปห้องอื่น หรือ ไม่มีครุภัณฑ์ในห้อง")
-        return
-      }
-      const savegetassetlocationinroomvalue = filtered[0].inRoomavailableValue //เก็บค่าของก่อนที่คืน
-      const savegetassetlocationinroomunvalue = filtered[0].inRoomaunavailableValue
-
-      //เช็คว่าห้องนั้นมีของซ้ำไหม
-      const hasReturnAsset = getreturnlocation.data.some((item: { assetId: any; }) => item.assetId === response.data.assetId );
-      
-      if(hasReturnAsset){
-          const getupdateReturnlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
-          let idAssetReturn: number = 0;
-          let saveassetlocationvalule: number = 0;  //save ค่าที่อยู่ห้องที่จะคืน
-          let saveassetlocationunvalule: number = 0;//save ค่าที่อยู่ห้องที่จะคืน
-          
-          getupdateReturnlocation.data.forEach((item: {
-            inRoomaunavailableValue: number;
-            inRoomavailableValue: number; assetId: string, id: number 
-      }) => {
-            if (response.data.assetId  === item.assetId) {
-              idAssetReturn = item.id;
-              saveassetlocationvalule = item.inRoomavailableValue
-              saveassetlocationunvalule = item.inRoomaunavailableValue
-            }
-          });
-          await axios.put(`/api/assetlocation/${idAssetReturn}`, {
-            inRoomavailableValue: saveassetlocationvalule + parseInt(response.data.valueBorrow,10),
-            inRoomaunavailableValue: saveassetlocationunvalule,
-          });
-          await axios.put(`/api/assetlocation/${filtered[0].id}`, {
-            inRoomavailableValue: parseInt(savegetassetlocationinroomvalue,10) - parseInt(response.data.valueBorrow,10),
-            inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
-          });
-          alert("ยกเลิกสำเร็จ");
-          window.location.reload();
-      }else{
-
-        await axios.post('/api/assetlocation', { 
-              assetId: response.data.assetId,
-              locationId: locationreturn,  
-              inRoomavailableValue: 0,
-              inRoomaunavailableValue: 0,
-            });
-            const getupdateborrowlocation = await axios.get(`/api/assetlocationroom?location=${locationreturn}`);
-            let idAssetborrow: number = 0;
-
-            getupdateborrowlocation.data.forEach((item: { assetId: string, id: number }) => {
-              if (response.data.assetId === item.assetId) {
-                idAssetborrow = item.id;
-              }
-            });
-            await axios.put(`/api/assetlocation/${idAssetborrow}`, {
-              inRoomavailableValue: parseInt(response.data.valueBorrow),
-              inRoomaunavailableValue: 0,
-            });
-            await axios.put(`/api/assetlocation/${filtered[0].id}`, {
-              inRoomavailableValue: parseInt(savegetassetlocationinroomvalue,10) - parseInt(response.data.valueBorrow,10),
-              inRoomaunavailableValue: parseInt(savegetassetlocationinroomunvalue,10) ,
-            });
-            alert("ยกเลิกสำเร็จ");
-            window.location.reload();
-            
-            
-
-      }
-      await axios.delete(`/api/borrow/${id}`);
-    } catch (error) {
-      console.error(error);
+      toast.error(errorMessage(err, "ยกเลิกรายการไม่สำเร็จ"));
+    } finally {
+      setCancelling(false);
     }
   };
 
   const handleDownload = async () => {
-const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Borrow History');
+    try {
+      await exportSheet<Borrow>({
+        filename: `การยืมของ ${session?.user?.name || session?.user?.username || "ผู้ใช้"}`,
+        sheetName: "ประวัติการยืม",
+        rows: filtered,
+        columns: [
+          { header: "ผู้ยืม", width: 20, value: (b) => b.user?.name },
+          { header: "ครุภัณฑ์", width: 30, value: (b) => b.asset?.name },
+          { header: "รหัสครุภัณฑ์", width: 18, value: (b) => b.asset?.assetid },
+          { header: "จำนวนที่ยืม", width: 14, value: (b) => b.valueBorrow },
+          { header: "ยืมไปที่ห้อง", width: 20, value: (b) => b.borrowLocation?.namelocation },
+          { header: "ยืมจากห้อง", width: 20, value: (b) => b.returnLocationId },
+          { header: "สถานะการยืม", width: 18, value: (b) => statusLabel(b.Borrowstatus) },
+          { header: "สถานะการคืน", width: 18, value: (b) => statusLabel(b.ReturnStatus) },
+          { header: "วันที่ยืม", width: 18, value: (b) => formatDateForSheet(b.createdAt) },
+          { header: "วันที่คืน", width: 18, value: (b) => formatDateForSheet(b.dayReturn) },
+          { header: "หมายเหตุ", width: 30, value: (b) => b.note },
+        ],
+      });
+      toast.success(`บันทึกไฟล์ Excel แล้ว ${filtered.length} รายการ`);
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
+    }
+  };
 
-  worksheet.columns = [
-    { header: 'ผู้ยืม', key: 'user', width: 20 },
-    { header: 'ครุภัณฑ์', key: 'asset', width: 30 },
-    { header: 'จำนวนที่ยืม', key: 'valueBorrow', width: 15 },
-    { header: 'ยืมไปที่ห้อง', key: 'borrowLocation', width: 20 },
-    { header: 'ยืมจากห้อง', key: 'returnLocation', width: 20 },
-    { header: 'สถานะการยืม', key: 'borrowStatus', width: 20 },
-    { header: 'สถานะการคืน', key: 'returnStatus', width: 20 },
-    { header: 'วันที่ยืม', key: 'borrowDate', width: 20 },
-    { header: 'วันที่คืน', key: 'returnDate', width: 20 },
-    { header: 'หมายเหตุ', key: 'note', width: 30 },
+  const columns: Column<Borrow>[] = [
+    {
+      key: "asset",
+      header: "ครุภัณฑ์",
+      primary: true,
+      render: (b) => (
+        <div className="min-w-0">
+          <CodeTag>{b.asset?.assetid}</CodeTag>
+          <Link
+            href={`/allasset/${encodeURIComponent(b.asset?.assetid ?? "")}`}
+            className="mt-1.5 block font-medium leading-snug text-ink underline decoration-edge-strong underline-offset-2 hover:decoration-ink"
+          >
+            {b.asset?.name}
+          </Link>
+          <p className="font-mono text-meta text-ink-2">จำนวน {b.valueBorrow} ชิ้น</p>
+        </div>
+      ),
+    },
+    {
+      key: "route",
+      header: "เส้นทาง",
+      width: "16rem",
+      render: (b) => (
+        <span className="inline-flex flex-wrap items-center gap-1.5 text-ink-2">
+          <Link
+            href={`/location/${encodeURIComponent(b.returnLocationId ?? "")}`}
+            className="hover:text-ink hover:underline"
+          >
+            {b.returnLocationId || "—"}
+          </Link>
+          <IconArrowRight size={14} className="text-ink-3" />
+          <Link
+            href={`/location/${encodeURIComponent(b.borrowLocation?.namelocation ?? "")}`}
+            className="text-ink hover:underline"
+          >
+            {b.borrowLocation?.namelocation || "—"}
+          </Link>
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "สถานะ",
+      width: "13rem",
+      render: (b) => (
+        <div className="flex flex-col items-start gap-1">
+          {b.ReturnStatus === "c" ? (
+            <StatusChip tone="stock" icon={<IconCheck size={13} />}>
+              คืนเรียบร้อยแล้ว
+            </StatusChip>
+          ) : b.dayReturn ? (
+            <StatusChip tone="tag">แจ้งคืนแล้ว รอแอดมินตรวจสอบ</StatusChip>
+          ) : (
+            <StatusChip tone="tag">กำลังยืมอยู่</StatusChip>
+          )}
+          <span className="text-meta text-ink-3">
+            การยืม: {statusLabel(b.Borrowstatus)}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "dates",
+      header: "วันที่",
+      width: "12rem",
+      render: (b) => (
+        <div className="text-ink-2">
+          <div>ยืม {formatDate(b.createdAt)}</div>
+          <div className="text-meta text-ink-3">
+            {b.dayReturn ? `คืน ${formatDate(b.dayReturn)}` : "ยังไม่ได้คืน"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "note",
+      header: "หมายเหตุ",
+      hideOnCard: true,
+      render: (b) => (
+        <span className="text-ink-2">{b.note?.trim() ? b.note : "—"}</span>
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "13rem",
+      actions: true,
+      render: (b) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          {b.ReturnStatus !== "c" && !b.dayReturn && (
+            <Button
+              size="sm"
+              variant="return"
+              icon={<IconReturn size={15} />}
+              loading={busyId === b.id}
+              onClick={() => handleReturn(b)}
+              className="max-md:flex-1"
+            >
+              แจ้งคืน
+            </Button>
+          )}
+          {b.ReturnStatus !== "c" && b.dayReturn && (
+            <Button
+              size="sm"
+              loading={busyId === b.id}
+              onClick={() => handleCancelReturn(b)}
+              className="max-md:flex-1"
+            >
+              ยกเลิกการแจ้งคืน
+            </Button>
+          )}
+          {b.Borrowstatus !== "c" && b.ReturnStatus !== "c" && (
+            <Button
+              size="sm"
+              variant="danger"
+              icon={<IconTrash size={15} />}
+              onClick={() => setPendingCancel(b)}
+            >
+              ยกเลิกการยืม
+            </Button>
+          )}
+          {b.ReturnStatus === "c" && (
+            <span className="text-meta text-ink-3">ปิดรายการแล้ว</span>
+          )}
+        </div>
+      ),
+    },
   ];
 
-filteredHistory.forEach((borrow) => {
-  worksheet.addRow({
-    user: borrow.user?.name || 'ไม่พบข้อมูล',
-    asset: borrow.asset?.name || 'ไม่พบข้อมูล',
-    valueBorrow: borrow.valueBorrow,
-    borrowLocation: borrow.borrowLocation?.namelocation || '-',
-    returnLocation: borrow.returnLocationId || 'N/A',
-    borrowStatus: borrow.Borrowstatus === 'c' ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ',
-    returnStatus: borrow.ReturnStatus === 'w' ? 'รอตรวจสอบ' : 'ตรวจสอบแล้ว',
-    borrowDate: borrow.createdAt ? new Date(borrow.createdAt).toLocaleDateString('th-TH') : '-',
-    returnDate: borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString('th-TH') : '-',
-    note: borrow.note || '',
-  });
-});
-
-
-  workbook.xlsx.writeBuffer().then((buffer) => {
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    saveAs(blob, `การยืมของ ${session?.user.name} .xlsx`);
-  });
-}
-
-
-  if (loading) return <div className="text-center">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (status === "unauthenticated") {
+    return (
+      <PageShell>
+        <EmptyState
+          title="ยังไม่ได้เข้าสู่ระบบ"
+          description="เข้าสู่ระบบเพื่อดูรายการที่คุณยืมไว้"
+          action={
+            <ButtonLink href="/login" variant="primary">
+              ไปหน้าเข้าสู่ระบบ
+            </ButtonLink>
+          }
+        />
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="container mx-auto mt-4 p-4">
-      <h1 className="text-2xl font-semibold mb-4">สถานะการยืมของ {session?.user.name}</h1>
-
-      {/* ฟอร์มการค้นหาด้วยวันที่ */}
-      <div className="mb-4">
-      <label htmlFor="startDate" className="mr-2">วันที่เริ่มต้น:</label>
-      <input
-        id="startDate"
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="px-4 py-2 border rounded"
+    <PageShell>
+      <PageHeader
+        trail={[{ label: "หน้าแรก", href: "/" }, { label: "สถานะรายการของฉัน" }]}
+        code={session?.user?.username}
+        title="สถานะการยืมของฉัน"
+        meta={
+          loading
+            ? "กำลังโหลด..."
+            : `${history.length.toLocaleString("th-TH")} รายการทั้งหมด · ยังไม่ปิดรายการ ${outstanding.toLocaleString("th-TH")} รายการ`
+        }
+        actions={
+          <Button
+            onClick={handleDownload}
+            icon={<IconSheet size={16} />}
+            disabled={loading || filtered.length === 0}
+          >
+            ดาวน์โหลด Excel
+          </Button>
+        }
       />
-      <label htmlFor="endDate" className="ml-4 mr-2">ถึงวันที่:</label>
-      <input
-        id="endDate"
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="px-4 py-2 border rounded"
-      />
-             <button onClick={handleDownload}
-                        className="ml-4 block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-    </div>
-    
 
-      {/* ฟอร์มการค้นหาด้วยข้อมูล */}
-      <div className="mb-4">
-        <input
-          type="text"
+      <Toolbar>
+        <SearchField
+          label="ค้นหาครุภัณฑ์หรือห้อง"
+          placeholder="ค้นหาครุภัณฑ์ หรือชื่อห้อง..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="ค้นหาครุภัณฑ์, หรือ ยืมจากสถานที่"
-          className="px-4 py-2 border rounded w-full"
+          className="w-full sm:w-72"
         />
-      </div>
+        <div className="flex flex-1 flex-wrap items-end gap-2">
+          <TextField
+            label="ยืมตั้งแต่วันที่"
+            type="date"
+            hint={startDate ? formatDate(startDate) : "ไม่จำกัด"}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="sm:w-44"
+          />
+          <TextField
+            label="ถึงวันที่"
+            type="date"
+            hint={endDate ? formatDate(endDate) : "ไม่จำกัด"}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="sm:w-44"
+          />
+          {(startDate || endDate) && (
+            <Button
+              size="sm"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="mb-0.5"
+            >
+              ล้างช่วงวันที่
+            </Button>
+          )}
+        </div>
+      </Toolbar>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="px-4 py-2 text-left">ผู้ยืม</th>
-              <th className="px-4 py-2 text-left">ครุภัณฑ์</th>
-              <th className="px-4 py-2 text-left">จำนวนที่ยืม</th>
-              <th className="px-4 py-2 text-left">ยืมไปที่ห้อง</th>
-              <th className="px-4 py-2 text-left">ยืมจากห้อง</th>
-              <th className="px-4 py-2 text-left">สถานะการยืม</th>
-              <th className="px-4 py-2 text-left">สถานะการคืน</th>
-              <th className="px-4 py-2 text-left">วันที่ยืม</th>
-              <th className="px-4 py-2 text-left">วันที่คืน</th>
-              <th className="px-4 py-2 text-left">หมายเหตุ</th>
-              <th className="px-4 py-2 text-left">การดำเนินการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredHistory.map((borrow) => (
-              <tr key={borrow.id} className="border-t">
-                <td className="px-4 py-2">{borrow.user.name}</td>
-                <td className="px-4 py-2"><Link
-                href={`/allasset/${borrow.asset.assetid}`}
-                className="px-4 py-2"
-                >
-                {borrow.asset.name}
-                </Link></td>
-                
-                <td className="px-4 py-2">{borrow.valueBorrow}</td>
-                <td className="px-4 py-2"><Link
-                href={`/location/${borrow.borrowLocation.namelocation}`}
-                className="px-4 py-2"
-                >
-                {borrow.borrowLocation.namelocation}
-                </Link></td>
-                <td className="px-4 py-2"><Link
-                href={`/location/${borrow.returnLocationId }`}
-                className="px-4 py-2"
-                >
-                {borrow.returnLocationId || 'N/A'}
-                </Link></td>
-                <td className="px-4 py-2">
-                  {borrow.Borrowstatus === 'c' ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ'}
-                </td>
-                <td className="px-4 py-2">
-                  {borrow.ReturnStatus === 'w' ? 'รอตรวจสอบ' : 'ตรวจสอบแล้ว'}
-                </td>
-                <td className="px-4 py-2">{new Date(borrow.createdAt).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{borrow.dayReturn ? new Date(borrow.dayReturn).toLocaleDateString() : 'ยังไม่ได้คืน'}</td>
-                <td className="px-4 py-2">{borrow.note}</td>
-                <td className="px-4 py-2">
-                  {borrow.ReturnStatus !== 'c' && !borrow.dayReturn && (
-                                    <Button type="primary" ghost  onClick={() => handleReturn(borrow.id, borrow.asset.id)}
-                                    className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
-                                              คืน
-                                           </Button>
-                    
-                  )}
-                  {borrow.ReturnStatus !== 'c' && borrow.dayReturn && (
-                                    <Button type="primary" ghost  onClick={() => handlecancleReturn(borrow.id, borrow.asset.id)}
-                                    className="mr-4 px-4 py-2 bg-blue-500 text-white rounded">
-                                              ยกเลิกการคืน
-                                           </Button>
-                    
-                  )}
-                  {borrow.Borrowstatus ==='c' || borrow.ReturnStatus !== 'c' && (
-                                          <Popconfirm
-                                          title="Delete the task"
-                                          description="ยืนยันที่จะลบหรือไม่?"
-                                          icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                                          onConfirm={() => handlecancle(borrow.id)}
-                                        >
-                                          <Button danger >ยกเลิก</Button>
-                                        </Popconfirm>
-                    
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {error ? (
+        <ErrorState
+          title="โหลดข้อมูลไม่สำเร็จ"
+          description={error}
+          action={
+            <Button variant="primary" onClick={load}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(b) => b.id}
+          loading={loading}
+          caption="รายการยืมของผู้ใช้ที่เข้าสู่ระบบอยู่"
+          empty={
+            history.length === 0 ? (
+              <EmptyState
+                title="ยังไม่มีรายการยืม"
+                description="เลือกห้องแล้วกดยืมของ รายการจะมาแสดงที่นี่"
+                action={
+                  <ButtonLink href="/home" variant="primary">
+                    ไปเลือกห้อง
+                  </ButtonLink>
+                }
+              />
+            ) : (
+              <EmptyState
+                title="ไม่พบรายการที่ตรงกับที่ค้นหา"
+                action={
+                  <Button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStartDate("");
+                      setEndDate("");
+                    }}
+                  >
+                    ล้างตัวกรอง
+                  </Button>
+                }
+              />
+            )
+          }
+        />
+      )}
+
+      <ConfirmDialog
+        open={pendingCancel !== null}
+        busy={cancelling}
+        title="ยกเลิกรายการยืม"
+        description={
+          pendingCancel && (
+            <>
+              <p>
+                ยกเลิกการยืม{" "}
+                <span className="font-medium text-ink">{pendingCancel.asset?.name}</span>{" "}
+                จำนวน {pendingCancel.valueBorrow} ชิ้น
+              </p>
+              <p className="mt-2">
+                ระบบจะย้ายของกลับไปที่ห้อง{" "}
+                <span className="font-medium text-ink">{pendingCancel.returnLocationId}</span>{" "}
+                และลบรายการนี้ออกจากประวัติถาวร
+              </p>
+            </>
+          )
+        }
+        confirmLabel="ยกเลิกการยืม"
+        cancelLabel="ไม่ใช่ตอนนี้"
+        onConfirm={confirmCancelBorrow}
+        onCancel={() => setPendingCancel(null)}
+      />
+    </PageShell>
   );
-};
-
-export default UserBorrowHistory;
+}

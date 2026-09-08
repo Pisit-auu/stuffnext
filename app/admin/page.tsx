@@ -1,604 +1,730 @@
-'use client'
-import axios from 'axios'
-import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
-import '@ant-design/v5-patch-for-react-19';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Menu } from 'antd';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+"use client";
+
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { Button, ButtonLink } from "../component/ui/Button";
+import { FilterSelect, SearchField } from "../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  TickBar,
+  type Column,
+} from "../component/ui/Data";
+import { ConfirmDialog } from "../component/ui/Modal";
+import {
+  IconAsset,
+  IconEdit,
+  IconPlus,
+  IconRoom,
+  IconSheet,
+  IconTag,
+  IconTrash,
+} from "../component/ui/icons";
+import { useToast } from "../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage, formatDate } from "@/lib/format";
+import type { Asset, Category, CategoryRoom, Location } from "@/lib/types";
+
+type TabKey = "asset" | "category" | "location" | "categoryroom";
+
+const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+  { key: "asset", label: "ครุภัณฑ์", icon: <IconAsset size={16} /> },
+  { key: "category", label: "ประเภทครุภัณฑ์", icon: <IconTag size={16} /> },
+  { key: "location", label: "สถานที่", icon: <IconRoom size={16} /> },
+  { key: "categoryroom", label: "ประเภทของสถานที่", icon: <IconTag size={16} /> },
+];
+
+type PendingDelete = {
+  kind: TabKey;
+  id: string;
+  name: string;
+  warning?: string;
+};
 
 export default function Admin() {
-  //ประเภทครุภัณฑ์
-    const [categorys, setCategory] = useState([])
-  //ประเภทของห้อง
-    const [categoryrooms, setCategoryroom] = useState([])
-  //ครุภัณฑ์
-    const [asset, setAsset] = useState([])
-     //เก็บการค้นหา
-    const [searchCategory, setSearchCategory] = useState('')
-    const [searchCategoryroom, setSearchCategoryroom] = useState('')
-    const [searchAsset, setSearchAsset] = useState('')
-    const [category, setSelectCategory] = useState('')
-    const [sort, setSort] = useState('desc')
-    
-    const [searchLocation, setSearchLocation] = useState('')
-    const [categoryroom, setSelectCategoryroom] = useState('')
+  const toast = useToast();
+  const [tab, setTab] = useState<TabKey>("asset");
 
-    
-    const [locations, setLocation] = useState([])
-    const [selectedMenu, setSelectedMenu] = useState('asset') // State to control which section to display
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [categoryRooms, setCategoryRooms] = useState<CategoryRoom[]>([]);
 
-    useEffect(() => {
-      fetchCategory()
-    }, [searchCategory])
+  const [searchAsset, setSearchAsset] = useState("");
+  const [assetCategory, setAssetCategory] = useState("");
+  const [sort, setSort] = useState("desc");
+  const [searchCategory, setSearchCategory] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
+  const [locationCategory, setLocationCategory] = useState("");
+  const [searchCategoryRoom, setSearchCategoryRoom] = useState("");
 
-    useEffect(() => {
-      fetchAsset()
-    }, [searchAsset, category, sort])
-    useEffect(() => {
-      fetchLocation()
-    }, [searchLocation, categoryroom])
-    useEffect(() => {
-      fetchCategoryroom()
-    }, [searchCategoryroom])
+  const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-    const fetchLocation = async () => {
-      try {
-        const query = new URLSearchParams({ 
-          search: searchLocation, 
-          categoryroom: categoryroom || '', 
-        }).toString();
-    
-        const res = await axios.get(`/api/location?${query}`);
-        setLocation(res.data); 
-      } catch (error) {
-        console.error(error);
-      }
-    };   
+  const fetchAssets = async () => {
+    const query = new URLSearchParams({
+      category: assetCategory,
+      search: searchAsset,
+      sort,
+    }).toString();
+    const res = await axios.get<Asset[]>(`/api/asset?${query}`);
+    setAssets(res.data);
+  };
 
-    const fetchAsset = async () => {
-      try {
-        const query = new URLSearchParams({ category, search: searchAsset, sort }).toString()
-        const resasset = await axios.get(`/api/asset?${query}`)
-        setAsset(resasset.data)
-      } catch (error) {
-        console.error(error)
-      }
+  const fetchCategories = async () => {
+    const query = new URLSearchParams({ search: searchCategory }).toString();
+    const res = await axios.get<Category[]>(`/api/category?${query}`);
+    setCategories(res.data);
+  };
+
+  const fetchLocations = async () => {
+    const query = new URLSearchParams({
+      search: searchLocation,
+      categoryroom: locationCategory || "",
+    }).toString();
+    const res = await axios.get<Location[]>(`/api/location?${query}`);
+    setLocations(res.data);
+  };
+
+  const fetchCategoryRooms = async () => {
+    const query = new URLSearchParams({ search: searchCategoryRoom }).toString();
+    const res = await axios.get<CategoryRoom[]>(`/api/categoryroom?${query}`);
+    setCategoryRooms(res.data);
+  };
+
+  const guard = async (fn: () => Promise<void>) => {
+    try {
+      await fn();
+    } catch (err) {
+      toast.error(errorMessage(err, "โหลดข้อมูลไม่สำเร็จ"));
     }
+  };
 
-    const fetchCategory = async () => {
-      try {
-        const query = new URLSearchParams({ search: searchCategory }).toString()
-        const res = await axios.get(`/api/category?${query}`)
-        setCategory(res.data)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    const fetchCategoryroom = async () => {
-      try {
-        const query = new URLSearchParams({ search: searchCategoryroom }).toString()
-        const res = await axios.get(`/api/categoryroom?${query}`)
-        setCategoryroom(res.data)
-      } catch (error) {
-        console.error(error)
-      }
-    }
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      await guard(async () => {
+        await Promise.all([
+          fetchAssets(),
+          fetchCategories(),
+          fetchLocations(),
+          fetchCategoryRooms(),
+        ]);
+      });
+      setLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const deleteCategory = async (id: string) => {
-      try {
-        await axios.delete(`/api/category/${id}`)
-        fetchCategory()
-        fetchAsset()
-        fetchLocation()
-        fetchCategoryroom()
-      } catch (error) {
-        console.error('Failed to delete the category', error)
-      }
-    }
-    const deleteCategoryroom = async (id: string) => {
-      try {
-        await axios.delete(`/api/categoryroom/${id}`)
-        fetchCategory()
-        fetchAsset()
-        fetchLocation()
-        fetchCategoryroom()
-      } catch (error) {
-        console.error('Failed to delete the category', error)
-      }
-    }
+  useEffect(() => {
+    guard(fetchAssets);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchAsset, assetCategory, sort]);
 
-    const deletelocation = async (id: string) => {
-      try {
-        await axios.delete(`/api/location/${id}`)
-        fetchCategory()
-        fetchAsset()
-        fetchLocation()
-        fetchCategoryroom()
-      } catch (error) {
-        console.error('Failed to delete the category', error)
-      }
-    }
+  useEffect(() => {
+    guard(fetchCategories);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchCategory]);
 
-    const deleteAsset = async (id: string) => {
-      try { 
-       await axios.delete(`/api/asset/${id}`)
-        fetchCategory()
-        fetchAsset()
-        fetchLocation()
-      } catch (error) {
-        console.error('Failed to delete the asset', error)
-      }
-    }
+  useEffect(() => {
+    guard(fetchLocations);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchLocation, locationCategory]);
 
+  useEffect(() => {
+    guard(fetchCategoryRooms);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchCategoryRoom]);
 
-
-  const handleDownloadAsset = async () => {
-   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('ครุภัณฑ์');
-
-  // กำหนดหัวตาราง
-  worksheet.columns = [
-    { header: 'รหัสครุภัณฑ์', key: 'assetid', width: 15 },
-    { header: 'ชื่อครุภัณฑ์', key: 'name', width: 20 },
-    { header: 'ประเภท', key: 'category', width: 20 },
-    { header: 'จำนวนใช้งานได้', key: 'availableValue', width: 20 },
-    { header: 'จำนวนใช้งานไม่ได้', key: 'unavailableValue', width: 20 },
-    { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
-  ];
-
-  // เพิ่มข้อมูล
-  asset.forEach((item: any) => {
-    worksheet.addRow({
-      assetid: item.assetid,
-      name: item.name,
-      category: item.category?.name || '-',
-      availableValue: item.availableValue,
-      unavailableValue: item.unavailableValue,
-      createdAt: new Date(item.createdAt).toLocaleDateString('th-TH'),
+  const refreshAll = async () => {
+    await guard(async () => {
+      await Promise.all([
+        fetchAssets(),
+        fetchCategories(),
+        fetchLocations(),
+        fetchCategoryRooms(),
+      ]);
     });
-  });
+  };
 
-  // สร้างไฟล์
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  saveAs(blob, 'รายการครุภัณฑ์.xlsx');
-};
-interface Category {
-  id: number;
-  idname: string;
-  name: string;
-}
-  const handleDownloadcategoryAsset = async () => {
- const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('ประเภทครุภัณฑ์');
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const endpoint: Record<TabKey, string> = {
+      asset: `/api/asset/${pendingDelete.id}`,
+      category: `/api/category/${pendingDelete.id}`,
+      location: `/api/location/${pendingDelete.id}`,
+      categoryroom: `/api/categoryroom/${pendingDelete.id}`,
+    };
+    setDeleting(true);
+    try {
+      await axios.delete(endpoint[pendingDelete.kind]);
+      toast.success(`ลบ ${pendingDelete.name} แล้ว`);
+      setPendingDelete(null);
+      await refreshAll();
+    } catch (err) {
+      toast.error(errorMessage(err, "ลบไม่สำเร็จ"));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
-  // กำหนดหัวตาราง
-  worksheet.columns = [
-    { header: 'รหัสครุภัณฑ์', key: 'idname', width: 20 },
-    { header: 'ประเภท', key: 'name', width: 30 },
-  ];
+  /* ── คอลัมน์ของแต่ละหมวด ───────────────────────────── */
 
-  // เพิ่มข้อมูลแต่ละแถว
-  categorys.forEach((cat:Category) => {
-    worksheet.addRow({
-      idname: cat.idname,
-      name: cat.name,
-    });
-  });
-
-  // สร้างไฟล์
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-
-  saveAs(blob, 'ประเภทครุภัณฑ์.xlsx');
-};
-  const handleDownloadLocation = async () => {
-const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('สถานที่');
-
-  // หัวตาราง
-  worksheet.columns = [
-    { header: 'สถานที่', key: 'namelocation', width: 30 },
-    { header: 'ผู้รับผิดชอบ', key: 'nameteacher', width: 30 },
-    { header: 'ประเภท', key: 'categoryname', width: 30 },
-  ];
-interface Location {
-  namelocation: string;
-  nameteacher: string;
-  categoryroom?: {
-    name: string;
-  } | null;
-}
-  // เพิ่มข้อมูล
-  locations.forEach((loc:Location) => {
-    worksheet.addRow({
-      namelocation: loc.namelocation || '-',
-      nameteacher: loc.nameteacher || '-',
-      categoryname: loc.categoryroom?.name || 'ไม่มีหมวดหมู่',
-    });
-  });
-
-  // บันทึกไฟล์
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-
-  saveAs(blob, 'สถานที่.xlsx');
-};
-
-interface CategoryRoom {
-  id: number;
-  name: string;
-  // ถ้ามีฟิลด์อื่น ๆ ก็เพิ่มได้
-}
-  const handleDownloadcategoryLocation = async () => {
- const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('ประเภทห้อง');
-
-  worksheet.columns = [
-    { header: 'id', key: 'id', width: 10 },
-    { header: 'ชื่อประเภท', key: 'name', width: 30 },
-    // คุณอาจเว้นว่างหรือเพิ่มคอลัมน์สำหรับ "ดำเนินการ" ได้ถ้าต้องการ
-  ];
-
-  categoryrooms.forEach((cat: CategoryRoom) => {
-    worksheet.addRow({
-      id: cat.id,
-      name: cat.name,
-    });
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type:
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-
-  saveAs(blob, 'ประเภทห้อง.xlsx');
-};
-
-
-    return (
-      <div className="flex min-h-screen">
-      {/* Side Menu */}
-      <div className="w-64 bg-white shadow-md">
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedMenu]}
-          onClick={({ key }) => setSelectedMenu(key)}
-          items={[
-            { key: 'asset', label: 'ครุภัณฑ์' },
-            { key: 'category', label: 'ประเภทครุภัณฑ์' },
-            { key: 'location', label: 'สถานที่' },
-            { key: 'categoryroom', label: 'ประเภทของสถานที่' },
-          ]}
-          style={{ height: '100vh', borderRight: 0 }} // ทำให้เมนูสูงเต็มจอ
-        />
-      </div>
-    
-              {/* Main Content */}
-              <div className="flex-1 p-8">
-            {selectedMenu === 'asset' && (
-                  <div className="max-w-6xl mx-auto px-4 py-8">
-                      <h1 className="text-2xl font-semibold mb-6">ครุภัณฑ์</h1>
-                      <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="ค้นหาครุภัณฑ์"
-            value={searchAsset}
-            onChange={(e) => setSearchAsset(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <select
-            value={category}
-            onChange={(e) => setSelectCategory(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-          >
-            <option value="">เลือกประเภทครุภัณฑ์</option>
-            {categorys.map((cat: any) => (
-              <option key={cat.idname} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-          >
-            <option value="desc">ล่าสุด</option>
-            <option value="asc">เก่าสุด</option>
-          </select>
-          <Link
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            href="/admin/createasset"
-          >
-            เพิ่มครุภัณฑ์
-          </Link>
-                    <button onClick={handleDownloadAsset}
-                        className="block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
+  const assetColumns: Column<Asset>[] = [
+    {
+      key: "name",
+      header: "ครุภัณฑ์",
+      primary: true,
+      render: (a) => (
+        <div className="min-w-0">
+          <CodeTag>{a.assetid}</CodeTag>
+          <p className="mt-1.5 font-medium leading-snug text-ink">{a.name}</p>
         </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "ประเภท",
+      width: "12rem",
+      render: (a) => <span className="text-ink-2">{a.category?.name || "—"}</span>,
+    },
+    {
+      key: "stock",
+      header: "ในคลังกลาง",
+      width: "13rem",
+      render: (a) => <TickBar available={a.availableValue} broken={a.unavailableValue} />,
+    },
+    {
+      key: "created",
+      header: "วันที่เพิ่ม",
+      width: "9rem",
+      hideOnCard: true,
+      render: (a) => <span className="text-ink-2">{formatDate(a.createdAt)}</span>,
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "12rem",
+      actions: true,
+      render: (a) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          <ButtonLink
+            href={`/admin/editasset/${encodeURIComponent(a.assetid)}`}
+            size="sm"
+            icon={<IconEdit size={15} />}
+            className="max-md:flex-1"
+          >
+            แก้ไข
+          </ButtonLink>
+          <Button
+            size="sm"
+            variant="danger"
+            icon={<IconTrash size={15} />}
+            aria-label={`ลบ ${a.name}`}
+            onClick={() =>
+              setPendingDelete({
+                kind: "asset",
+                id: a.assetid,
+                name: a.name,
+                warning: "ข้อมูลของชิ้นนี้ในทุกห้องและประวัติการยืมที่เกี่ยวข้องจะถูกลบไปด้วย",
+              })
+            }
+          >
+            ลบ
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-              </div>
+  const categoryColumns: Column<Category>[] = [
+    {
+      key: "idname",
+      header: "รหัสตัวแรก",
+      primary: true,
+      width: "10rem",
+      render: (c) => <CodeTag>{c.idname}</CodeTag>,
+    },
+    {
+      key: "name",
+      header: "ชื่อประเภท",
+      render: (c) => <span className="font-medium text-ink">{c.name}</span>,
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "12rem",
+      actions: true,
+      render: (c) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          <ButtonLink
+            href={`/admin/editcategory/${encodeURIComponent(c.idname)}`}
+            size="sm"
+            icon={<IconEdit size={15} />}
+            className="max-md:flex-1"
+          >
+            แก้ไข
+          </ButtonLink>
+          <Button
+            size="sm"
+            variant="danger"
+            icon={<IconTrash size={15} />}
+            aria-label={`ลบประเภท ${c.name}`}
+            onClick={() =>
+              setPendingDelete({
+                kind: "category",
+                id: c.idname,
+                name: c.name,
+                warning: "ครุภัณฑ์ทุกชิ้นที่อยู่ในประเภทนี้จะถูกลบไปด้วย",
+              })
+            }
+          >
+            ลบ
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-              <div className="shadow overflow-x-auto border-b border-gray-200 sm:rounded-l">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ชื่อครุภัณฑ์
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        รหัสครุภัณฑ์
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ประเภท
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ดำเนินการ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200 text-slate-800">
-                    {asset.map((Asset: any) => (
-                      <tr key={Asset.assetid}>
-                        <td className="px-6 py-4 whitespace-nowrap">{Asset.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{Asset.assetid}</td>
-                       
-                        <td className="px-6 py-4 whitespace-nowrap">{Asset.category.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editasset/${Asset.assetid}`}>
-                          <Button type="primary" ghost>
-                              แก้ไข
-                           </Button>
-                          </Link>
-                          <Popconfirm
-                            title="Delete the task"
-                            description="ยืนยันที่จะลบหรือไม่?"
-                            icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                            onConfirm={() => deleteAsset(Asset.assetid)} 
-                          >
-                            <Button danger >Delete</Button>
-                          </Popconfirm>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-    
-        {selectedMenu === 'category' && (
-          <div className="max-w-6xl mx-auto px-4 py-8">
-             <h1 className="text-2xl font-semibold mb-6">ประเภทครุภัณฑ์</h1>
-                  <input
-                    type="text"
-                    placeholder="ค้นหาประเภทครุภัณฑ์"
-                    value={searchCategory}
-                    onChange={(e) => setSearchCategory(e.target.value)}
-                    className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                                  <Link
-                  className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  href="/admin/createcategory"
-                >
-                  เพิ่มประเภทของครุภัณฑ์ 
-                </Link>
-                   <button onClick={handleDownloadcategoryAsset}
-                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        รหัสครุภัณฑ์
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ประเภท
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ดำเนินการ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {categorys.map((category: any) => (
-                      <tr key={category.idname}>
-                        <td className="px-6 py-4 whitespace-nowrap">{category.idname}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{category.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editcategory/${category.idname}`}>
-                          <Button type="primary" ghost>
-                              แก้ไข
-                           </Button>
-                          </Link>
-                          <Popconfirm
-                            title="Delete the task"
-                            description="ยืนยันที่จะลบหรือไม่? หากยืนยัน ข้อมูลครุภัณฑ์ของประเภทนี้จะถูกลบด้วย"
-                            icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                            onConfirm={() => deleteCategory(category.idname)}
-                          >
-                            <Button danger >Delete</Button>
-                          </Popconfirm>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-    
-        {selectedMenu === 'location' && (
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-semibold mb-6">สถานที่</h1>
-                  <input
-                          type="text"
-                          placeholder="ค้นหาชื่อสถานที่"
-                          value={searchLocation}
-                          onChange={(e) => setSearchLocation(e.target.value)}
-                          className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                      <select
-                      value={categoryroom}
-                      onChange={(e) => setSelectCategoryroom(e.target.value)}
-                      className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
+  const locationColumns: Column<Location>[] = [
+    {
+      key: "name",
+      header: "สถานที่",
+      primary: true,
+      render: (l) => <CodeTag>{l.namelocation}</CodeTag>,
+    },
+    {
+      key: "teacher",
+      header: "ผู้รับผิดชอบ",
+      width: "14rem",
+      render: (l) => <span className="text-ink-2">{l.nameteacher || "—"}</span>,
+    },
+    {
+      key: "category",
+      header: "ประเภทห้อง",
+      width: "12rem",
+      render: (l) => (
+        <span className="text-ink-2">{l.categoryroom?.name || "ไม่มีหมวดหมู่"}</span>
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "19rem",
+      actions: true,
+      render: (l) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          <ButtonLink
+            href={`/admin/manageroom/${encodeURIComponent(l.namelocation)}`}
+            size="sm"
+            variant="primary"
+            className="max-md:flex-1"
+          >
+            จัดการของในห้อง
+          </ButtonLink>
+          <ButtonLink
+            href={`/admin/editlocation/${encodeURIComponent(l.namelocation)}`}
+            size="sm"
+            icon={<IconEdit size={15} />}
+          >
+            แก้ไข
+          </ButtonLink>
+          <Button
+            size="sm"
+            variant="danger"
+            icon={<IconTrash size={15} />}
+            aria-label={`ลบห้อง ${l.namelocation}`}
+            onClick={() =>
+              setPendingDelete({
+                kind: "location",
+                id: l.namelocation,
+                name: l.namelocation,
+                warning: "ของที่บันทึกไว้ในห้องนี้และประวัติการยืมที่เกี่ยวข้องจะถูกลบไปด้วย",
+              })
+            }
+          >
+            ลบ
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const categoryRoomColumns: Column<CategoryRoom>[] = [
+    {
+      key: "id",
+      header: "รหัส",
+      primary: true,
+      width: "8rem",
+      render: (c) => <CodeTag>#{c.id}</CodeTag>,
+    },
+    {
+      key: "name",
+      header: "ชื่อประเภท",
+      render: (c) => <span className="font-medium text-ink">{c.name}</span>,
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "12rem",
+      actions: true,
+      render: (c) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          <ButtonLink
+            href={`/admin/editcategoryroom/${c.id}`}
+            size="sm"
+            icon={<IconEdit size={15} />}
+            className="max-md:flex-1"
+          >
+            แก้ไข
+          </ButtonLink>
+          <Button
+            size="sm"
+            variant="danger"
+            icon={<IconTrash size={15} />}
+            aria-label={`ลบประเภทห้อง ${c.name}`}
+            onClick={() =>
+              setPendingDelete({
+                kind: "categoryroom",
+                id: String(c.id),
+                name: c.name,
+                warning: "ห้องทั้งหมดที่อยู่ในประเภทนี้จะถูกลบไปด้วย",
+              })
+            }
+          >
+            ลบ
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  /* ── การส่งออก Excel ต่อหมวด ───────────────────────── */
+
+  const downloads: Record<TabKey, () => Promise<void>> = {
+    asset: () =>
+      exportSheet<Asset>({
+        filename: "รายการครุภัณฑ์",
+        sheetName: "ครุภัณฑ์",
+        rows: assets,
+        columns: [
+          { header: "รหัสครุภัณฑ์", width: 18, value: (a) => a.assetid },
+          { header: "ชื่อครุภัณฑ์", width: 30, value: (a) => a.name },
+          { header: "ประเภท", width: 20, value: (a) => a.category?.name },
+          { header: "จำนวนใช้งานได้", width: 18, value: (a) => a.availableValue },
+          { header: "จำนวนใช้งานไม่ได้", width: 20, value: (a) => a.unavailableValue },
+          { header: "วันที่เพิ่ม", width: 18, value: (a) => formatDate(a.createdAt) },
+        ],
+      }),
+    category: () =>
+      exportSheet<Category>({
+        filename: "ประเภทครุภัณฑ์",
+        sheetName: "ประเภทครุภัณฑ์",
+        rows: categories,
+        columns: [
+          { header: "รหัสตัวแรก", width: 18, value: (c) => c.idname },
+          { header: "ชื่อประเภท", width: 30, value: (c) => c.name },
+        ],
+      }),
+    location: () =>
+      exportSheet<Location>({
+        filename: "สถานที่",
+        sheetName: "สถานที่",
+        rows: locations,
+        columns: [
+          { header: "สถานที่", width: 30, value: (l) => l.namelocation },
+          { header: "ผู้รับผิดชอบ", width: 30, value: (l) => l.nameteacher },
+          { header: "ประเภท", width: 24, value: (l) => l.categoryroom?.name ?? "ไม่มีหมวดหมู่" },
+        ],
+      }),
+    categoryroom: () =>
+      exportSheet<CategoryRoom>({
+        filename: "ประเภทห้อง",
+        sheetName: "ประเภทห้อง",
+        rows: categoryRooms,
+        columns: [
+          { header: "รหัส", width: 10, value: (c) => c.id },
+          { header: "ชื่อประเภท", width: 30, value: (c) => c.name },
+        ],
+      }),
+  };
+
+  const handleDownload = async () => {
+    try {
+      await downloads[tab]();
+      toast.success("บันทึกไฟล์ Excel แล้ว");
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
+    }
+  };
+
+  const counts: Record<TabKey, number> = {
+    asset: assets.length,
+    category: categories.length,
+    location: locations.length,
+    categoryroom: categoryRooms.length,
+  };
+
+  const createHref: Record<TabKey, { href: string; label: string }> = {
+    asset: { href: "/admin/createasset", label: "เพิ่มครุภัณฑ์" },
+    category: { href: "/admin/createcategory", label: "เพิ่มประเภทครุภัณฑ์" },
+    location: { href: "/admin/createlocation", label: "เพิ่มสถานที่" },
+    categoryroom: { href: "/admin/createcategoryroom", label: "เพิ่มประเภทของสถานที่" },
+  };
+
+  const activeTab = useMemo(() => TABS.find((t) => t.key === tab)!, [tab]);
+
+  return (
+    <PageShell>
+      <PageHeader
+        trail={[{ label: "หน้าแรก", href: "/" }, { label: "จัดการทะเบียน" }]}
+        title="จัดการทะเบียน"
+        meta="เพิ่ม แก้ไข และลบครุภัณฑ์ สถานที่ และประเภทต่าง ๆ ของโรงเรียน"
+        actions={
+          <>
+            <Button onClick={handleDownload} icon={<IconSheet size={16} />}>
+              ดาวน์โหลด Excel
+            </Button>
+            <ButtonLink
+              href={createHref[tab].href}
+              variant="primary"
+              icon={<IconPlus size={16} />}
+            >
+              {createHref[tab].label}
+            </ButtonLink>
+          </>
+        }
+      />
+
+      <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
+        {/* หน้าลิ้นชักสี่ใบ — เลือกหมวดที่จะจัดการ */}
+        <nav
+          aria-label="หมวดที่จัดการ"
+          className="min-w-0 lg:sticky lg:top-[calc(var(--rail-h)+1.5rem)] lg:self-start"
+        >
+          <ul className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+            {TABS.map((t) => {
+              const active = t.key === tab;
+              return (
+                <li key={t.key} className="shrink-0 lg:shrink">
+                  <button
+                    type="button"
+                    onClick={() => setTab(t.key)}
+                    aria-current={active ? "true" : undefined}
+                    className={`flex w-full items-center gap-2 rounded border px-3 py-2.5 text-left text-base transition-colors duration-[var(--dur)] ${
+                      active
+                        ? "border-ink bg-ink text-plate"
+                        : "border-edge bg-plate text-ink-2 shadow-plate hover:border-ink-3 hover:text-ink"
+                    }`}
+                  >
+                    {t.icon}
+                    <span className="flex-1 whitespace-nowrap">{t.label}</span>
+                    <span
+                      className={`font-mono text-meta ${active ? "text-plate/70" : "text-ink-3"}`}
                     >
-                      <option value="">เลือกประเภทของสถานที่</option>
-                      {categoryrooms && categoryrooms.length > 0 ? (
-                        categoryrooms.map((cat: any) => (
-                          <option key={cat.id} value={cat.name}> {/* ใช้ cat.id แทน cat.name */}
-                            {cat.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option disabled>ไม่มีข้อมูลประเภทสถานที่</option>
-                      )}
-                    </select>
-                   <Link
-                      className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      href="/admin/createlocation"
-                    >
-                      เพิ่มสถานที
-                    </Link>
-                     <button onClick={handleDownloadLocation}
-                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-                    <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            สถานที่
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ผู้รับผิดชอบ
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ประเภท
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ดำเนินการ
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {locations.map((location: any) => (
-                            <tr key={location.namelocation}>
-                              <td className="px-6 py-4 whitespace-nowrap">{location.namelocation}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{location.nameteacher}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{location.categoryroom ? location.categoryroom.name : 'ไม่มีหมวดหมู่'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editlocation/${location.namelocation}`}>
-                                <Button type="primary" ghost>
-                                    แก้ไข
-                                </Button>
-                                </Link>
-                                <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/manageroom/${location.namelocation}`}>
-                                <Button type="primary" ghost>
-                                    จัดการของในห้อง
-                                </Button>
-                                </Link>
-                                <Popconfirm
-                                  title="Delete the task"
-                                  description="ยืนยันที่จะลบหรือไม่?"
-                                  icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                                  onConfirm={() => deletelocation(location.namelocation)}
-                                >
-                                  <Button danger >Delete</Button>
-                                </Popconfirm>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                
-        
-       
-        )}
+                      {counts[t.key]}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
-{selectedMenu === 'categoryroom' && (
-          <div className="max-w-6xl mx-auto px-4 py-8">
-             <h1 className="text-2xl font-semibold mb-6">ประเภทของสถานที่</h1>
-                  <input
-                    type="text"
-                    placeholder="ค้นหาประเภทของสถานที่"
-                    value={searchCategory}
-                    onChange={(e) => setSearchCategoryroom(e.target.value)}
-                    className="my-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                                  <Link
-                  className="ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-[#3300CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  href="/admin/createcategoryroom"
+        <section aria-label={activeTab.label} className="min-w-0">
+          {tab === "asset" && (
+            <>
+              <Toolbar>
+                <SearchField
+                  label="ค้นหาครุภัณฑ์"
+                  placeholder="ค้นหาชื่อครุภัณฑ์..."
+                  value={searchAsset}
+                  onChange={(e) => setSearchAsset(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+                <FilterSelect
+                  label="กรองตามประเภทครุภัณฑ์"
+                  value={assetCategory}
+                  onChange={(e) => setAssetCategory(e.target.value)}
+                  className="w-full sm:w-48"
                 >
-                  เพิ่มประเภทของสถานที่
-                </Link>
-
-                 <button onClick={handleDownloadcategoryLocation}
-                        className=" ml-4 mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#006600] hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg text-slate-800">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        id
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ชื่อประเภท
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ดำเนินการ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {categoryrooms.map((categoryroom: any) => (
-                      <tr key={categoryroom.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">{categoryroom.id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{categoryroom.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/admin/editcategoryroom/${categoryroom.id}`}>
-                          <Button type="primary" ghost>
-                              แก้ไข
-                           </Button>
-                          </Link>
-                          <Popconfirm
-                            title="Delete the task"
-                            description="ยืนยันที่จะลบหรือไม่?"
-                            icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                            onConfirm={() => deleteCategoryroom(categoryroom.id)}
-                          >
-                            <Button danger >Delete</Button>
-                          </Popconfirm>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  <option value="">ทุกประเภท</option>
+                  {categories.map((c) => (
+                    <option key={c.idname} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </FilterSelect>
+                <FilterSelect
+                  label="เรียงลำดับ"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="w-full sm:w-36"
+                >
+                  <option value="desc">ล่าสุดก่อน</option>
+                  <option value="asc">เก่าสุดก่อน</option>
+                </FilterSelect>
+              </Toolbar>
+              <DataTable
+                columns={assetColumns}
+                rows={assets}
+                rowKey={(a) => a.assetid}
+                loading={loading}
+                caption="ครุภัณฑ์ทั้งหมดในทะเบียน"
+                empty={
+                  <EmptyState
+                    title="ไม่พบครุภัณฑ์"
+                    description="ลองเปลี่ยนคำค้นหา หรือเพิ่มครุภัณฑ์ใหม่เข้าทะเบียน"
+                    action={
+                      <ButtonLink href="/admin/createasset" variant="primary">
+                        เพิ่มครุภัณฑ์
+                      </ButtonLink>
+                    }
+                  />
+                }
+              />
+            </>
           )}
+
+          {tab === "category" && (
+            <>
+              <Toolbar>
+                <SearchField
+                  label="ค้นหาประเภทครุภัณฑ์"
+                  placeholder="ค้นหาประเภทครุภัณฑ์..."
+                  value={searchCategory}
+                  onChange={(e) => setSearchCategory(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+              </Toolbar>
+              <DataTable
+                columns={categoryColumns}
+                rows={categories}
+                rowKey={(c) => c.idname}
+                loading={loading}
+                caption="ประเภทของครุภัณฑ์"
+                empty={
+                  <EmptyState
+                    title="ยังไม่มีประเภทครุภัณฑ์"
+                    description="ประเภทคือรหัสตัวแรกของครุภัณฑ์ เช่น ก, ข, ค"
+                    action={
+                      <ButtonLink href="/admin/createcategory" variant="primary">
+                        เพิ่มประเภทครุภัณฑ์
+                      </ButtonLink>
+                    }
+                  />
+                }
+              />
+            </>
+          )}
+
+          {tab === "location" && (
+            <>
+              <Toolbar>
+                <SearchField
+                  label="ค้นหาสถานที่"
+                  placeholder="ค้นหาชื่อสถานที่..."
+                  value={searchLocation}
+                  onChange={(e) => setSearchLocation(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+                <FilterSelect
+                  label="กรองตามประเภทของสถานที่"
+                  value={locationCategory}
+                  onChange={(e) => setLocationCategory(e.target.value)}
+                  className="w-full sm:w-52"
+                >
+                  <option value="">ทุกประเภทห้อง</option>
+                  {categoryRooms.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </FilterSelect>
+              </Toolbar>
+              <DataTable
+                columns={locationColumns}
+                rows={locations}
+                rowKey={(l) => l.namelocation}
+                loading={loading}
+                caption="สถานที่ทั้งหมด"
+                empty={
+                  <EmptyState
+                    title="ยังไม่มีสถานที่"
+                    description="เพิ่มห้องก่อน แล้วจึงจัดครุภัณฑ์เข้าไปในห้องนั้น"
+                    action={
+                      <ButtonLink href="/admin/createlocation" variant="primary">
+                        เพิ่มสถานที่
+                      </ButtonLink>
+                    }
+                  />
+                }
+              />
+            </>
+          )}
+
+          {tab === "categoryroom" && (
+            <>
+              <Toolbar>
+                <SearchField
+                  label="ค้นหาประเภทของสถานที่"
+                  placeholder="ค้นหาประเภทของสถานที่..."
+                  value={searchCategoryRoom}
+                  onChange={(e) => setSearchCategoryRoom(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+              </Toolbar>
+              <DataTable
+                columns={categoryRoomColumns}
+                rows={categoryRooms}
+                rowKey={(c) => c.id}
+                loading={loading}
+                caption="ประเภทของสถานที่"
+                empty={
+                  <EmptyState
+                    title="ยังไม่มีประเภทของสถานที่"
+                    description="เช่น ห้องเรียน ห้องปฏิบัติการ ห้องพักครู"
+                    action={
+                      <ButtonLink href="/admin/createcategoryroom" variant="primary">
+                        เพิ่มประเภทของสถานที่
+                      </ButtonLink>
+                    }
+                  />
+                }
+              />
+            </>
+          )}
+        </section>
       </div>
-    </div>
-    )
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        busy={deleting}
+        title={`ลบ ${pendingDelete?.name ?? ""}`}
+        description={
+          pendingDelete && (
+            <>
+              <p>
+                ลบ <span className="font-medium text-ink">{pendingDelete.name}</span>{" "}
+                ออกจากระบบถาวร
+              </p>
+              {pendingDelete.warning && (
+                <p className="mt-2 text-alert">{pendingDelete.warning} และย้อนกลับไม่ได้</p>
+              )}
+            </>
+          )
+        }
+        confirmLabel="ลบถาวร"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </PageShell>
+  );
 }

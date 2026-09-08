@@ -1,227 +1,203 @@
-'use client';
-import axios from 'axios';
-import { useRouter, useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+"use client";
 
-interface Category {
-  idname: string;
-  name: string;
-}
+import axios from "axios";
+import { useEffect, useState, type FormEvent } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button, ButtonLink } from "../../../component/ui/Button";
+import { SelectField, TextField } from "../../../component/ui/Field";
+import { ImageUpload } from "../../../component/ui/ImageUpload";
+import { PageShell, PageHeader } from "../../../component/ui/Layout";
+import { ErrorState, Skeleton } from "../../../component/ui/Data";
+import { useToast } from "../../../component/ui/Toast";
+import { errorMessage } from "@/lib/format";
+import type { Asset, Category } from "@/lib/types";
 
-export default function Edit() {
+export default function EditAsset() {
   const { id } = useParams() as { id: string };
-  const [assetid, setAssetid] = useState('');
-  const [name, setAssetname] = useState('');
-  const [img, setImg] = useState('');
-  const [categoryId, setCategory] = useState<Category | null>(null); // เปลี่ยนประเภทของ categoryId
-  const [listcategory, setlistCategory] = useState<Category[]>([]);
-  const [availableValue, setAvailableValue] = useState('');
-  const [unavailableValue, setunAvailableValue] = useState('');
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const assetId = decodeURIComponent(id);
   const router = useRouter();
+  const toast = useToast();
 
-  const [file, setFile] = useState<File | null>(null);
-  //ฟังก์ชันอัพโหลด รูปภาพ
-  const handleUpload = async () => {
-    if (!file) return;
-  
-    setIsUploading(true);
-  
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [name, setName] = useState("");
+  const [assetCode, setAssetCode] = useState("");
+  const [img, setImg] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [availableValue, setAvailableValue] = useState("0");
+  const [unavailableValue, setUnavailableValue] = useState("0");
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const load = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-  
-      const res = await axios.post('/api/uploadimg', formData);
-  
-      if (res.data?.url) {
-        setImg(res.data.url);
-      } else {
-        console.error('No URL returned from the server');
-      }
-    } catch (error: unknown) {
-      // Type guard for 'Error' type
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        // You can access other properties of the error like `stack`
-      } else {
-        console.error('Unknown error occurred', error);
-      }
+      const [assetRes, categoryRes] = await Promise.all([
+        axios.get<Asset>(`/api/asset/${assetId}`),
+        axios.get<Category[]>("/api/category"),
+      ]);
+      const asset = assetRes.data;
+      setName(asset.name);
+      setAssetCode(asset.assetid);
+      setImg(asset.img ?? "");
+      setCategoryId(asset.category?.idname ?? asset.categoryId);
+      setAvailableValue(String(asset.availableValue));
+      setUnavailableValue(String(asset.unavailableValue));
+      setCategories(categoryRes.data);
+    } catch (err) {
+      setLoadError(errorMessage(err, "ไม่พบครุภัณฑ์รหัสนี้"));
     } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  
-// ดึงข้อมูลเก่า asset และประเภทของครุภัณฑ์
-  const fetchPost = async (id: string) => {
-    try {
-      const resasset = await axios.get(`/api/asset/${id}`);
-      const rescategory = await axios.get('/api/category');
-      setAssetname(resasset.data.name);
-      setImg(resasset.data.img);
-      setCategory(resasset.data.category); // ตรวจสอบว่า category มีโครงสร้างถูกต้อง
-      setAssetid(resasset.data.assetid);
-      setAvailableValue(resasset.data.availableValue);
-      setunAvailableValue(resasset.data.unavailableValue);
-      setlistCategory(rescategory.data);
-    } catch (error) {
-      console.error(error);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (id) {
-      fetchPost(id);
-    }
-  }, [id]);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assetId]);
 
-    //อัพเดตข้อมูล
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!categoryId) {
-      alert('กรุณาเลือกประเภทครุภัณฑ์');
-      return;
-    }
+    const nextErrors: Record<string, string> = {};
+    if (!name.trim()) nextErrors.name = "กรอกชื่อครุภัณฑ์";
+    if (!assetCode.trim()) nextErrors.assetid = "กรอกรหัสครุภัณฑ์";
+    if (!categoryId) nextErrors.category = "เลือกประเภทครุภัณฑ์";
+    const available = Number(availableValue);
+    const unavailable = Number(unavailableValue);
+    if (!Number.isFinite(available) || available < 0)
+      nextErrors.available = "จำนวนต้องเป็นตัวเลขที่ไม่ติดลบ";
+    if (!Number.isFinite(unavailable) || unavailable < 0)
+      nextErrors.unavailable = "จำนวนต้องเป็นตัวเลขที่ไม่ติดลบ";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
+    setSaving(true);
     try {
-      await axios.put(`/api/asset/${id}`, {
-        name,
+      await axios.put(`/api/asset/${assetId}`, {
+        name: name.trim(),
         img,
-        assetid,
-        categoryId: categoryId.idname, // ใช้ categoryId.idname
-        availableValue,
-        unavailableValue,
+        assetid: assetCode.trim(),
+        categoryId,
+        availableValue: available,
+        unavailableValue: unavailable,
       });
-      router.push('/admin');
-    } catch (error) {
-      alert("รหัสครุภัณฑ์ซ้ำไม่สามารถแก้ไขได้")
+      toast.success("บันทึกการแก้ไขแล้ว");
+      router.push("/admin");
+    } catch (err) {
+      setErrors({ assetid: "รหัสครุภัณฑ์นี้ถูกใช้ไปแล้ว แก้ไขไม่ได้" });
+      toast.error(errorMessage(err, "บันทึกการแก้ไขไม่สำเร็จ"));
+    } finally {
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <PageShell width="form">
+        <Skeleton className="mb-6 h-24 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </PageShell>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <PageShell width="form">
+        <ErrorState
+          title="ไม่พบครุภัณฑ์รหัสนี้"
+          description={loadError}
+          action={
+            <ButtonLink href="/admin" variant="primary">
+              กลับไปหน้าจัดการทะเบียน
+            </ButtonLink>
+          }
+        />
+      </PageShell>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">แก้ไข ครุภัณฑ์</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="Asset" className="block text-sm font-medium text-slate">
-            ชื่อครุภัณฑ์
-          </label>
-          <input
-            type="text"
-            name="Asset"
-            id="Asset"
+    <PageShell width="form">
+      <PageHeader
+        trail={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "จัดการทะเบียน", href: "/admin" },
+          { label: "แก้ไขครุภัณฑ์" },
+        ]}
+        code={assetId}
+        title={`แก้ไข ${name}`}
+      />
+
+      <form onSubmit={handleSubmit} className="plate px-4 py-5 sm:px-6 sm:py-6" noValidate>
+        <div className="space-y-4">
+          <TextField
+            label="ชื่อครุภัณฑ์"
             required
             value={name}
-            onChange={(e) => setAssetname(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            error={errors.name}
+            onChange={(e) => setName(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="Assetid" className="block text-sm font-medium text-slate">
-            รหัสครุภัณฑ์
-          </label>
-          <input
-            type="text"
-            name="Assetid"
-            id="Assetid"
+          <TextField
+            label="รหัสครุภัณฑ์"
             required
-            value={assetid}
-            onChange={(e) => setAssetid(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            value={assetCode}
+            error={errors.assetid}
+            hint="เปลี่ยนรหัสจะกระทบการอ้างอิงของชิ้นนี้ทั้งระบบ"
+            onChange={(e) => setAssetCode(e.target.value)}
+            className="font-mono"
           />
-        </div>
-        <div>
-          <label htmlFor="Category" className="block text-sm font-medium text-slate">
-            รูปภาพ
-            <div className="p-5">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setFile(e.target.files[0]);
-                  }
-                }}
-                disabled={isUploading}
-              />
-              <button
-                type="button"
-                onClick={handleUpload}
-                className="bg-blue-500 text-white p-2 rounded"
-                disabled={isUploading}
-              >
-                {isUploading ? 'กำลังอัปโหลด...' : 'อัปโหลด'}
-              </button>
-            </div>
-          </label>
-          {img && img !== '' && (
-            <div className="mt-5">
-              <img src={img} alt="Uploaded" className="w-48 h-48 object-cover" />
-            </div>
-          )}
-        </div>
-        <div>
-          <label className="mr-8">ประเภทครุภัณฑ์</label>
-          <select
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
-            value={categoryId ? JSON.stringify(categoryId) : ''}
-            onChange={(e) => setCategory(JSON.parse(e.target.value))}
+          <SelectField
+            label="ประเภทครุภัณฑ์"
+            required
+            value={categoryId}
+            error={errors.category}
+            onChange={(e) => setCategoryId(e.target.value)}
           >
-            {categoryId && (
-              <option key={categoryId.idname} value={JSON.stringify(categoryId)}>
-                {categoryId.name}
+            <option value="">เลือกประเภทครุภัณฑ์</option>
+            {categories.map((c) => (
+              <option key={c.idname} value={c.idname}>
+                {c.name}
               </option>
-            )}
-            {listcategory
-              .filter((categorys) => categorys.idname !== categoryId?.idname)
-              .map((categorys) => (
-                <option
-                  key={categorys.idname}
-                  value={JSON.stringify({ idname: categorys.idname, name: categorys.name })}
-                >
-                  {categorys.name}
-                </option>
-              ))}
-          </select>
+            ))}
+          </SelectField>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              label="จำนวนที่พร้อมใช้งาน (ในคลังกลาง)"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              required
+              value={availableValue}
+              error={errors.available}
+              onChange={(e) => setAvailableValue(e.target.value)}
+            />
+            <TextField
+              label="จำนวนที่ไม่พร้อมใช้งาน (ในคลังกลาง)"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              required
+              value={unavailableValue}
+              error={errors.unavailable}
+              onChange={(e) => setUnavailableValue(e.target.value)}
+            />
+          </div>
+
+          <ImageUpload value={img} onChange={setImg} />
         </div>
-        <div>
-          <label htmlFor="Available" className="block text-sm font-medium text-slate">
-            จำนวนที่พร้อมใช้งาน
-          </label>
-          <input
-            type="number"
-            name="Available"
-            id="Available"
-            required
-            value={availableValue}
-            onChange={(e) => setAvailableValue(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <label htmlFor="unavailable" className="block text-sm font-medium text-slate">
-            จำนวนที่ไม่พร้อมใช้งาน
-          </label>
-          <input
-            type="number"
-            name="unavailable"
-            id="unavailable"
-            required
-            value={unavailableValue}
-            onChange={(e) => setunAvailableValue(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <button
-            type="submit"
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#113FB3] hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            แก้ไข
-          </button>
+
+        <div className="mt-6 flex flex-col gap-2 border-t border-edge pt-5 sm:flex-row">
+          <Button type="submit" variant="primary" loading={saving}>
+            บันทึกการแก้ไข
+          </Button>
+          <ButtonLink href="/admin">ยกเลิก</ButtonLink>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }
