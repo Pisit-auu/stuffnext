@@ -1,55 +1,59 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai, Bai_Jamjuree } from 'next/font/google';
+import { IBM_Plex_Sans_Thai, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import NavbarWrapper  from "@/lib/NavbarWrapper";
+import NavbarWrapper from "@/lib/NavbarWrapper";
 import SessionProvider from "./component/Session/SessionProvider";
+import { ToastProvider } from "./component/ui/Toast";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-// Fonts
-const notoSansThai = Noto_Sans_Thai({
-  weight: ['400', '700'],
-  subsets: ['thai', 'latin'],
+const plexThai = IBM_Plex_Sans_Thai({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["thai", "latin"],
+  variable: "--font-plex-thai",
+  display: "swap",
 });
 
-const baiJamjuree = Bai_Jamjuree({
-  weight: ['400', '700'],
-  subsets: ['thai', 'latin'],
+const plexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600"],
+  subsets: ["latin"],
+  variable: "--font-plex-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Srinakarin",
-  description: "Srinakarin",
+  title: {
+    default: "ทะเบียนครุภัณฑ์ · Srinakarin",
+    template: "%s · ทะเบียนครุภัณฑ์ Srinakarin",
+  },
+  description:
+    "ระบบบริหารจัดการครุภัณฑ์ของโรงเรียนศรีนครินทร์วิทยานุเคราะห์ — รู้ว่าของอยู่ห้องไหน ใครยืมไป และเหลือให้ยืมกี่ชิ้น",
 };
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  // Get the session by passing authOptions
+}: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerSession(authOptions);
 
-
   return (
-    <html lang="en">
-      <body className={`${baiJamjuree.className} text-black bg-gray-100 antialiased`}>
-        {/* Pass the session to SessionProvider */}
-        <SessionProvider session={session}>
-          <div className="">
-            {/* Hide Slidebar on small screens and show on large screens */}
-            <div className="">
-            <NavbarWrapper />
-            </div>
-            <main className="flex-1">
-              {children}
-              {/* แสดงปุ่ม admin เฉพาะถ้า session มี user และ role เป็น admin */}
+    <html lang="th" className={`${plexThai.variable} ${plexMono.variable}`}>
+      <body className="min-h-screen bg-ground font-sans text-base text-ink antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[80] focus:rounded focus:border focus:border-ink focus:bg-plate focus:px-3 focus:py-2 focus:text-base"
+        >
+          ข้ามไปยังเนื้อหาหลัก
+        </a>
 
+        <SessionProvider session={session}>
+          <ToastProvider>
+            <NavbarWrapper />
+            <main id="main" className="min-h-[60vh]">
+              {children}
             </main>
-          </div>
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>
   );
 }
-

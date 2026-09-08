@@ -1,108 +1,142 @@
-'use client'
+"use client";
 
-import { useState, FormEvent } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useState, type FormEvent } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "../component/ui/Button";
+import { TextField } from "../component/ui/Field";
+import { IconAlert, IconChevronLeft, IconLock } from "../component/ui/icons";
 
 export default function SignIn() {
-  const [username, setUsername] = useState<string>('')   //เก็บ username
-  const [password, setPassword] = useState<string>('')   //เก็บ password
-  const [errorMessage, setErrorMessage] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const router = useRouter()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  //ฟังก์ชันเมื่อกดปุ่ม login
   const handleSignInSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!username || !password) {
-      setErrorMessage('Both fields are required')
-      return
+      setErrorMessage("กรอกทั้งชื่อผู้ใช้และรหัสผ่านก่อนเข้าสู่ระบบ");
+      return;
     }
 
-    setLoading(true)
-    setErrorMessage('')
+    setLoading(true);
+    setErrorMessage("");
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         redirect: false,
         username,
         password,
-      })
+      });
 
       if (result?.error) {
-        setErrorMessage("ชื่อผู้ใช้ หรือ รหัสผ่านไม่ถูกต้อง")
+        setErrorMessage("ชื่อผู้ใช้ หรือ รหัสผ่านไม่ถูกต้อง ลองพิมพ์ใหม่อีกครั้ง");
       } else {
-        router.push('/')
+        router.push("/");
       }
-    } catch (error) {
-      setErrorMessage('เกิดข้อผิดพลาดที่ไม่คาดคิด โปรดลองอีกครั้ง.')
+    } catch {
+      setErrorMessage("เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-gray-100">
-      {/* Left - Logo & Text */}
-      <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-        <Link href="/">
-          <button className="mt-4 text-6xl font-bold text-[#113FB3] hover:text-[#3333FF] transition duration-100">▎Srinakarin</button>
+    <div className="grid min-h-screen lg:grid-cols-[1fr_1.05fr]">
+      {/* ด้านซ้าย — หน้าตู้ */}
+      <section className="flex flex-col justify-between bg-rail px-6 py-8 sm:px-10 lg:py-12">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 self-start rounded text-meta text-ink-rail-2 transition-colors hover:text-ink-rail"
+        >
+          <IconChevronLeft size={15} />
+          กลับหน้าแรก
         </Link>
-        <p className="mt-6 text-1xl text-gray-600">
-          เข้าถึงและจัดการสินค้าคงคลังอุปกรณ์ของโรงเรียน
-        </p>
-      </div>
 
-      {/* Right - Form */}
-      <div className="md:w-1/2 max-w-lg">
-        <form onSubmit={handleSignInSubmit} className="bg-white p-10 rounded-xl shadow-md w-full">
-          <h2 className="text-5xl font-bold text-center text-black mb-6">ยินดีต้อนรับ</h2>
-          <h1 className="text-2xl text-center text-black mb-8">
-            โปรดกรอกข้อมูลเพื่อเข้าสู่ระบบ
+        <div className="py-10 lg:py-0">
+          <span className="mb-6 inline-flex h-9 items-center border border-white/25 px-2.5 font-mono text-sm tracking-[0.14em] text-ink-rail">
+            SNK
+          </span>
+          <h1 className="text-[2rem] font-semibold leading-tight text-ink-rail sm:text-[2.5rem]">
+            ทะเบียนครุภัณฑ์
           </h1>
+          <p className="mt-4 max-w-[42ch] text-[1.0625rem] leading-relaxed text-ink-rail-2">
+            เข้าสู่ระบบเพื่อยืม-คืนครุภัณฑ์ ดูสถานะรายการของคุณ
+            และจัดการทะเบียนของโรงเรียน
+          </p>
+        </div>
 
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="text-red-600 text-lg mb-6">{errorMessage}</div>
-          )}
+        <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-ink-rail-2">
+          Srinakarin Wittayanukhro School
+        </p>
+      </section>
 
-          {/* Username */}
-          <div className="mb-6">
-            <label htmlFor="username" className="block text-xl font-medium text-black mb-1">ชื่อผู้ใช้</label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+      {/* ด้านขวา — แผ่นป้ายกรอกข้อมูล */}
+      <section className="flex items-center justify-center bg-ground px-4 py-10 sm:px-6">
+        <div className="w-full max-w-md">
+          <form onSubmit={handleSignInSubmit} className="plate px-5 py-6 sm:px-7 sm:py-8" noValidate>
+            <div className="mb-6 flex items-start gap-3">
+              <span className="mt-0.5 text-ink-3">
+                <IconLock size={20} />
+              </span>
+              <div>
+                <h2 className="text-xl font-semibold text-ink">เข้าสู่ระบบ</h2>
+                <p className="mt-1 text-base text-ink-2">
+                  ใช้ชื่อผู้ใช้ที่แอดมินพัสดุออกให้
+                </p>
+              </div>
+            </div>
 
-          {/* Password */}
-          <div className="mb-8">
-            <label htmlFor="password" className="block text-xl font-medium text-black">รหัสผ่าน</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 px-5 py-3 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            {errorMessage && (
+              <div
+                role="alert"
+                className="mb-5 flex items-start gap-2 rounded border border-alert/40 bg-alert-soft px-3 py-2.5 text-base text-alert"
+              >
+                <IconAlert size={17} className="mt-0.5 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-[#7EDBE9] text-white py-3 rounded-lg text-2xl font-semibold hover:bg-[#00CCFF] transition duration-300"
-            disabled={loading}
-          >
-            {loading ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
-          </button>
-        </form>
-      </div>
+            <div className="space-y-4">
+              <TextField
+                label="ชื่อผู้ใช้"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                label="รหัสผ่าน"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              block
+              loading={loading}
+              className="mt-7 h-11"
+            >
+              {loading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
+            </Button>
+
+            <p className="mt-5 border-t border-edge pt-4 text-meta text-ink-3">
+              ลืมรหัสผ่าน หรือยังไม่มีบัญชี ติดต่อเจ้าหน้าที่พัสดุเพื่อออกรหัสใหม่
+            </p>
+          </form>
+        </div>
+      </section>
     </div>
-  )
+  );
 }

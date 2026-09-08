@@ -1,244 +1,399 @@
-'use client'
-import { useEffect, useState } from "react";
-import axios from "axios";
-import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-interface User {
-  id: number;
-  name: string | null;
-  username: string;
-  surname: string;
-  role: string;
-}
+"use client";
 
-export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newUsername, setNewUsername] = useState<string>('');
-  const [saveUsername, setSaveusername] = useState<string>('');
-  const { data: session, status } = useSession();
-  
-  // เพิ่ม state สำหรับการแบ่งหน้า
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalCount, setTotalCount] = useState<number>(0); // จำนวนผู้ใช้ทั้งหมด
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { Button, ButtonLink } from "../../component/ui/Button";
+import { SearchField } from "../../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  StatusChip,
+  type Column,
+} from "../../component/ui/Data";
+import { ConfirmDialog } from "../../component/ui/Modal";
+import {
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconEdit,
+  IconPlus,
+  IconSheet,
+  IconTrash,
+} from "../../component/ui/icons";
+import { useToast } from "../../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage } from "@/lib/format";
+import type { AppUser } from "@/lib/types";
+
+const PAGE_SIZE = 15;
+
+export default function AdminUsers() {
+  const { data: session } = useSession();
+  const toast = useToast();
+
+  const [users, setUsers] = useState<AppUser[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [originalUsername, setOriginalUsername] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<AppUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const fetchUsers = async (page: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get("/api/auth/signup", {
+        params: { page, limit: PAGE_SIZE },
+      });
+      setUsers(res.data.users ?? []);
+      setTotalCount(res.data.totalCount ?? 0);
+    } catch (err) {
+      setError(errorMessage(err, "โหลดรายชื่อผู้ใช้ไม่สำเร็จ"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUsers(currentPage);
   }, [currentPage]);
 
-  const fetchUsers = async (page: number) => {
-    try {
-      const res = await axios.get("/api/auth/signup", {
-        params: {
-          page: page,  // ส่งพารามิเตอร์ page
-          limit: 15,    // กำหนดให้ดึงข้อมูล 15 รายการ
-        },
-      });
-      setUsers(res.data.users); 
-      setTotalCount(res.data.totalCount); // เก็บจำนวนผู้ใช้ทั้งหมด
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
+  const filteredUsers = useMemo(() => {
+    const term = searchQuery.trim().toLowerCase();
+    if (!term) return users;
+    return users.filter(
+      (user) =>
+        user.username.toLowerCase().includes(term) ||
+        `${user.name ?? ""} ${user.surname ?? ""}`.toLowerCase().includes(term),
+    );
+  }, [users, searchQuery]);
+
+  const totalPages = totalCount > 0 ? Math.ceil(totalCount / PAGE_SIZE) : 1;
+
+  const startEdit = (user: AppUser) => {
+    setEditingId(user.id);
+    setOriginalUsername(user.username);
+    setNewUsername(user.username);
   };
 
-  const handleDelete = async (id: number, usernameselect: string) => {
-    if (session?.user.username === usernameselect) {
-      alert("ไม่สามารถลบรหัสของตนเองได้");
+  const saveUsername = async () => {
+    if (editingId === null) return;
+    const trimmed = newUsername.trim();
+    if (!trimmed) {
+      toast.error("กรอกชื่อผู้ใช้ใหม่ก่อนบันทึก");
       return;
     }
-    const isConfirmed = window.confirm("คุณต้องการลบผู้ใช้นี้จริงหรือไม่?");
-      if (!isConfirmed) {
-        return; // หากผู้ใช้ไม่ยืนยันการลบ ให้หยุดการทำงาน
-      }
-
-    try {
-      await axios.delete(`/api/auth/signup/${id}`);
-      fetchUsers(currentPage); // รีเฟรชรายการผู้ใช้หลังจากลบ
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("เกิดข้อผิดพลาดในการลบผู้ใช้");
+    if (trimmed === originalUsername) {
+      setEditingId(null);
+      return;
     }
-  };
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setNewUsername(user.username);
-    setSaveusername(user.username)
-  };
-
-  const handleSaveUsername = async () => {
-    if (!editingUser) return;
-    const isConfirmed = window.confirm("คุณต้องการแก้ไขผู้ใช้นี้จริงหรือไม่?");
-    if (!isConfirmed) {
-      return; // หากผู้ใช้ไม่ยืนยันให้หยุดการทำงาน
-    }
+    setSavingUsername(true);
     try {
-      if (newUsername.trim() === "") {
-        alert("กรุณากรอกชื่อผู้ใช้ใหม่");
+      await axios.put(`/api/auth/signup/${originalUsername}`, { username: trimmed });
+
+      // เปลี่ยนชื่อผู้ใช้ของตัวเอง ต้องเข้าสู่ระบบใหม่ด้วยชื่อใหม่
+      if (session?.user?.username === originalUsername) {
+        toast.info("เปลี่ยนชื่อผู้ใช้ของคุณแล้ว กรุณาเข้าสู่ระบบใหม่");
+        signOut({ callbackUrl: "/login" });
         return;
       }
 
-      if (session?.user.username === saveUsername) {
-        await axios.put(`/api/auth/signup/${saveUsername}`, { username: newUsername });
-        signOut({ callbackUrl: '/login' })
-        alert('อัพเดตเสร็จสิ้น กรุณาเข้าสู่ระบบใหม่')
-        return
-      }else{
-        await axios.put(`/api/auth/signup/${saveUsername}`, { username: newUsername });
-      }
-      setEditingUser(null); // หยุดการแก้ไขหลังจากบันทึก
-      fetchUsers(currentPage); // รีเฟรชรายการผู้ใช้หลังจากอัพเดต
-      alert('อัพเดตเสร็จสิ้น')
-    } catch (error) {
-      console.error("Error updating username:", error);
+      toast.success(`เปลี่ยนชื่อผู้ใช้เป็น ${trimmed} แล้ว`);
+      setEditingId(null);
+      await fetchUsers(currentPage);
+    } catch (err) {
+      toast.error(errorMessage(err, "เปลี่ยนชื่อผู้ใช้ไม่สำเร็จ อาจมีชื่อนี้อยู่แล้ว"));
+    } finally {
+      setSavingUsername(false);
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    `${user.name} ${user.surname}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // คำนวณจำนวนหน้าทั้งหมด
-  const totalPages = totalCount > 0 ? Math.ceil(totalCount / 15) : 1; // ตรวจสอบ totalCount เพื่อหลีกเลี่ยง NaN
-
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`/api/auth/signup/${pendingDelete.id}`);
+      toast.success(`ลบผู้ใช้ ${pendingDelete.username} แล้ว`);
+      setPendingDelete(null);
+      await fetchUsers(currentPage);
+    } catch (err) {
+      toast.error(errorMessage(err, "ลบผู้ใช้ไม่สำเร็จ"));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleDownload = async () => {
-     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Users');
-
-    worksheet.columns = [
-      { header: 'ชื่อผู้ใช้ (username)', key: 'username', width: 20 },
-      { header: 'ชื่อ-นามสกุล', key: 'fullname', width: 30 },
-      { header: 'บทบาท', key: 'role', width: 15 },
-    ];
-
-    users.forEach((user) => {
-      worksheet.addRow({
-        username: user.username || '-',
-        fullname: `${user.name || ''} ${user.surname || ''}`.trim(),
-        role: user.role || '-',
+    try {
+      await exportSheet<AppUser>({
+        filename: "รายชื่อผู้ใช้",
+        sheetName: "ผู้ใช้",
+        rows: users,
+        columns: [
+          { header: "ชื่อผู้ใช้", width: 20, value: (u) => u.username },
+          {
+            header: "ชื่อ-นามสกุล",
+            width: 30,
+            value: (u) => `${u.name ?? ""} ${u.surname ?? ""}`.trim(),
+          },
+          { header: "บทบาท", width: 14, value: (u) => u.role },
+        ],
       });
-    });
+      toast.success("บันทึกไฟล์ Excel แล้ว");
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
+    }
+  };
 
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      const blob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      saveAs(blob, 'users.xlsx');
-    });
-  }
+  const columns: Column<AppUser>[] = [
+    {
+      key: "username",
+      header: "ชื่อผู้ใช้",
+      primary: true,
+      width: "18rem",
+      render: (u) =>
+        editingId === u.id ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              aria-label={`ชื่อผู้ใช้ใหม่ของ ${u.username}`}
+              autoFocus
+              className="h-8 w-40 rounded border border-ink bg-plate px-2 font-mono text-meta text-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+            />
+          </div>
+        ) : (
+          <div className="min-w-0">
+            <CodeTag>{u.username}</CodeTag>
+            <p className="mt-1.5 text-base text-ink md:hidden">
+              {`${u.name ?? ""} ${u.surname ?? ""}`.trim() || "—"}
+            </p>
+          </div>
+        ),
+    },
+    {
+      key: "fullname",
+      header: "ชื่อ-นามสกุล",
+      hideOnCard: true,
+      render: (u) => (
+        <span className="text-ink">
+          {`${u.name ?? ""} ${u.surname ?? ""}`.trim() || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "role",
+      header: "บทบาท",
+      width: "9rem",
+      render: (u) => (
+        <StatusChip tone="neutral">
+          {u.role === "admin" ? "แอดมิน" : "ผู้ใช้ทั่วไป"}
+        </StatusChip>
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "14rem",
+      actions: true,
+      render: (u) => (
+        <div className="flex flex-wrap justify-end gap-2 max-md:w-full">
+          {editingId === u.id ? (
+            <>
+              <Button
+                size="sm"
+                variant="primary"
+                icon={<IconCheck size={15} />}
+                loading={savingUsername}
+                onClick={saveUsername}
+                className="max-md:flex-1"
+              >
+                บันทึก
+              </Button>
+              <Button size="sm" disabled={savingUsername} onClick={() => setEditingId(null)}>
+                ยกเลิก
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                size="sm"
+                icon={<IconEdit size={15} />}
+                onClick={() => startEdit(u)}
+                className="max-md:flex-1"
+                aria-label={`แก้ไขชื่อผู้ใช้ ${u.username}`}
+              >
+                แก้ไขชื่อผู้ใช้
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                icon={<IconTrash size={15} />}
+                aria-label={`ลบผู้ใช้ ${u.username}`}
+                disabled={session?.user?.username === u.username}
+                title={
+                  session?.user?.username === u.username
+                    ? "ลบบัญชีของตัวเองไม่ได้"
+                    : undefined
+                }
+                onClick={() => setPendingDelete(u)}
+              >
+                ลบ
+              </Button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="mt-4 text-xl mb-4 font-bold">ผู้ใช้งานทั้งหมด</h1>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-        <input
-          type="text"
-          placeholder="ค้นหาหน้านี้จากชื่อผู้ใช้ หรือ ชื่อ-นามสกุล"
-          className="px-4 py-2 border rounded-md w-full sm:w-72"
+    <PageShell>
+      <PageHeader
+        trail={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "จัดการทะเบียน", href: "/admin" },
+          { label: "ผู้ใช้งาน" },
+        ]}
+        title="ผู้ใช้งานทั้งหมด"
+        meta={
+          loading
+            ? "กำลังโหลด..."
+            : `${totalCount.toLocaleString("th-TH")} บัญชี · หน้า ${currentPage} จาก ${totalPages}`
+        }
+        actions={
+          <>
+            <Button
+              onClick={handleDownload}
+              icon={<IconSheet size={16} />}
+              disabled={loading || users.length === 0}
+            >
+              ดาวน์โหลด Excel
+            </Button>
+            <ButtonLink
+              href="/admin/user/singupuser"
+              variant="primary"
+              icon={<IconPlus size={16} />}
+            >
+              เพิ่มผู้ใช้งาน
+            </ButtonLink>
+          </>
+        }
+      />
+
+      <Toolbar>
+        <SearchField
+          label="ค้นหาผู้ใช้ในหน้านี้"
+          placeholder="ค้นหาชื่อผู้ใช้ หรือชื่อ-นามสกุล (เฉพาะหน้านี้)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full sm:w-96"
         />
+      </Toolbar>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={handleDownload}
-            className="px-4 py-2 rounded-lg bg-[#006600] text-white hover:bg-green-600 transition-all"
-          >
-            โหลดไฟล์ Excel
-          </button>
+      {error ? (
+        <ErrorState
+          title="โหลดข้อมูลไม่สำเร็จ"
+          description={error}
+          action={
+            <Button variant="primary" onClick={() => fetchUsers(currentPage)}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          <DataTable
+            columns={columns}
+            rows={filteredUsers}
+            rowKey={(u) => u.id}
+            loading={loading}
+            caption="รายชื่อผู้ใช้งานระบบ"
+            empty={
+              users.length === 0 ? (
+                <EmptyState
+                  title="ยังไม่มีผู้ใช้ในระบบ"
+                  action={
+                    <ButtonLink href="/admin/user/singupuser" variant="primary">
+                      เพิ่มผู้ใช้งาน
+                    </ButtonLink>
+                  }
+                />
+              ) : (
+                <EmptyState
+                  title="ไม่พบผู้ใช้ในหน้านี้"
+                  description="การค้นหาทำงานเฉพาะผู้ใช้ในหน้าปัจจุบัน ลองเปลี่ยนหน้าดู"
+                  action={<Button onClick={() => setSearchQuery("")}>ล้างคำค้นหา</Button>}
+                />
+              )
+            }
+          />
 
-          <Link href="/admin/user/singupuser">
-            <button className="bg-green-400 text-white px-4 py-2 rounded-md hover:bg-green-500 transition">
-              เพิ่มผู้ใช้งาน
-            </button>
-          </Link>
-        </div>
-      </div>
+          {totalPages > 1 && (
+            <nav
+              aria-label="แบ่งหน้า"
+              className="mt-5 flex items-center justify-center gap-3"
+            >
+              <Button
+                icon={<IconChevronLeft size={16} />}
+                disabled={currentPage === 1 || loading}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              >
+                ก่อนหน้า
+              </Button>
+              <span className="font-mono text-meta text-ink-2">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                disabled={currentPage === totalPages || loading}
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              >
+                ถัดไป
+                <IconChevronRight size={16} />
+              </Button>
+            </nav>
+          )}
+        </>
+      )}
 
-
-      {/* ตารางแสดงผู้ใช้ */}
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[800px] border px-4 py-4">
-          <thead>
-            <tr className="bg-gray-100 text-sm">
-              <th className="p-2 border">ชื่อผู้ใช้ (username)</th>
-              <th className="p-2 border">ชื่อ-นามสกุล</th>
-              <th className="p-2 border">บทบาท</th>
-              <th className="p-2 border">การดำเนินการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <tr key={user.id} className="border text-sm">
-                  <td className="p-2 border">
-                    {editingUser && editingUser.id === user.id ? (
-                      <input
-                        type="text"
-                        className="px-2 py-1 border rounded-md"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                      />
-                    ) : (
-                      user.username
-                    )}
-                  </td>
-                  <td className="p-2 border">{user.name || "-"} {user.surname || "-"}</td>
-                  <td className="p-2 border text-center">{user.role}</td>
-                  <td className="p-2 border text-center">
-                    {editingUser && editingUser.id === user.id ? (
-                      <button
-                        onClick={handleSaveUsername}
-                        className="bg-blue-500 text-white px-2 py-1 rounded-md"
-                      >
-                        บันทึก
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="bg-yellow-400 text-white px-2 py-1 rounded-md"
-                      >
-                        แก้ไข
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDelete(user.id, user.username)}
-                      className="bg-red-500 text-white px-2 py-1 rounded-md ml-2"
-                    >
-                      ลบ
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr><td colSpan={4} className="p-2 text-center">ไม่มีข้อมูล</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ปุ่มเปลี่ยนหน้า */}
-      <div className="flex justify-center space-x-4 mt-4">
-        <button 
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md"
-        >
-          ก่อนหน้า
-        </button>
-        <span>{currentPage} / {totalPages}</span>
-        <button 
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md"
-        >
-          ถัดไป
-        </button>
-      </div>
-    </div>
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        busy={deleting}
+        title="ลบผู้ใช้"
+        description={
+          pendingDelete && (
+            <>
+              <p>
+                ลบบัญชี{" "}
+                <span className="font-mono font-medium text-ink">
+                  {pendingDelete.username}
+                </span>{" "}
+                {`${pendingDelete.name ?? ""} ${pendingDelete.surname ?? ""}`.trim()}
+              </p>
+              <p className="mt-2 text-alert">
+                ประวัติการยืมทั้งหมดของผู้ใช้คนนี้จะถูกลบไปด้วย และย้อนกลับไม่ได้
+              </p>
+            </>
+          )
+        }
+        confirmLabel="ลบผู้ใช้"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </PageShell>
   );
 }

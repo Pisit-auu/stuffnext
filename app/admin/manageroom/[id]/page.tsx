@@ -1,544 +1,632 @@
-'use client'
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Select } from 'antd';
-import { Input } from 'antd';
-import { useRouter } from 'next/navigation'
-import { Button, Popconfirm } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import '@ant-design/v5-patch-for-react-19';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-const { Option } = Select;
+"use client";
 
-interface Asset {
-  assetid: string;
-  availableValue: number;
-  unavailableValue: number;
-  createdAt: string;
-}
-export default function Manageroom() {
-  const router = useRouter();
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { Button, ButtonLink } from "../../../component/ui/Button";
+import { SearchField, SelectField, TextField } from "../../../component/ui/Field";
+import { PageShell, PageHeader, Toolbar } from "../../../component/ui/Layout";
+import {
+  CodeTag,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  TickBar,
+  type Column,
+} from "../../../component/ui/Data";
+import { ConfirmDialog, Modal } from "../../../component/ui/Modal";
+import { IconPlus, IconSheet, IconTrash } from "../../../component/ui/icons";
+import { useToast } from "../../../component/ui/Toast";
+import { exportSheet } from "@/lib/excel";
+import { errorMessage, formatDate } from "@/lib/format";
+import type { Asset, AssetLocation, Location } from "@/lib/types";
+
+export default function ManageRoom() {
   const { id } = useParams() as { id: string };
-  const [assetLocation, setAssetLocation] = useState<any[]>([]);
-  const [filteredLocation, setFilteredLocation] = useState<any[]>([]);
-  const [searchLocation, setSearchLocation] = useState('');
+  const roomId = decodeURIComponent(id);
+  const toast = useToast();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDetailAsset, setSelectedAsset] = useState<any | undefined>(undefined);
-  const [isaddAssetOpen, setIsaddAssetOpen] = useState(false);
-  const [newselectedAsset, setnewSelectedAsset] = useState<any | undefined>(undefined);
-  const [Asset, setAsset] = useState<any[] | null>(null);
-  const [inputvalueAssetselect, setinputvalueAssetselect] = useState(false);
+  const [rows, setRows] = useState<AssetLocation[]>([]);
+  const [location, setLocation] = useState<Location | null>(null);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [addInRoomavailableValue , setinRoomavailableValue] = useState('')
-  const [addInRoomunavailableValue , setinRoomunavailableValue] = useState('')
-  const [updateInRoomavailableValue , setupdateinRoomavailableValue] = useState('')
-  const [updateInRoomunavailableValue , setupdateinRoomunavailableValue] = useState('')
-    const [Dateedit , setDateedit] = useState('')
-  const [addlocationid , setaddlocationid] = useState('')
-  const [Iddelete , setIddelete] = useState('')
-  const [statusedit , seteditstatus] = useState(false)
-  const [selectedDate, setSelectedDate] = useState("");
+  // เพิ่มของเข้าห้อง
+  const [addOpen, setAddOpen] = useState(false);
+  const [availableAssets, setAvailableAssets] = useState<Asset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState("");
+  const [addAvailable, setAddAvailable] = useState("0");
+  const [addUnavailable, setAddUnavailable] = useState("0");
+  const [addDate, setAddDate] = useState("");
+  const [addError, setAddError] = useState("");
+  const [adding, setAdding] = useState(false);
 
-  const [unavilablevaluecanput , setunavilablevaluecanput] = useState('')
-  const [avilablevaluecanput , setavilablevaluecanput] = useState('')
-  const fetchAsset = async () => {
+  // แก้ไขของในห้อง
+  const [detail, setDetail] = useState<AssetLocation | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editAvailable, setEditAvailable] = useState("0");
+  const [editUnavailable, setEditUnavailable] = useState("0");
+  const [editDate, setEditDate] = useState("");
+  const [editError, setEditError] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const resasset = await axios.get(`/api/asset`);
-      setAsset(resasset.data);
-  
-      const filteredData = resasset.data.filter((assetA: Asset) => {
-        // ตรวจสอบว่า `assetA.assetid` ตรงกับ `assetB.assetId` ใน assetLocation
-        const isInB = assetLocation.some((assetB) => assetB.assetId === assetA.assetid);
-        // กรองเฉพาะ asset ที่ยังไม่อยู่ใน assetLocation และมีค่า availableValue หรือ unavailableValue มากกว่า 0
-        return !isInB && (assetA.availableValue > 0 || assetA.unavailableValue > 0);
-      });
-  
-      setAsset(filteredData);
-    } catch (error) {
-      console.error(error);
+      const [assetRes, locationRes] = await Promise.all([
+        axios.get<AssetLocation[]>(`/api/assetlocationroom?location=${id}`),
+        axios.get<Location>(`/api/location/${roomId}`),
+      ]);
+      setRows(assetRes.data);
+      setLocation(locationRes.data);
+    } catch (err) {
+      setError(errorMessage(err, "โหลดข้อมูลของในห้องไม่สำเร็จ"));
+    } finally {
+      setLoading(false);
     }
   };
-  const updateAssetinroom = async () => {
-    if (!newselectedAsset || !addInRoomavailableValue || !addInRoomunavailableValue) {
-      // ถ้าข้อมูลที่จำเป็นยังไม่ถูกกรอก
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter(
+      (row) =>
+        row.asset.name.toLowerCase().includes(term) ||
+        row.asset.assetid.toLowerCase().includes(term),
+    );
+  }, [rows, search]);
+
+  /** เปิดลิ้นชักเพิ่มของ — เลือกได้เฉพาะของที่ยังไม่อยู่ในห้อง และยังเหลือในคลัง */
+  const openAdd = async () => {
+    setAddOpen(true);
+    setSelectedAssetId("");
+    setAddAvailable("0");
+    setAddUnavailable("0");
+    setAddDate("");
+    setAddError("");
+    try {
+      const res = await axios.get<Asset[]>("/api/asset");
+      setAvailableAssets(
+        res.data.filter(
+          (asset) =>
+            !rows.some((row) => row.assetId === asset.assetid) &&
+            (asset.availableValue > 0 || asset.unavailableValue > 0),
+        ),
+      );
+    } catch (err) {
+      setAddError(errorMessage(err, "โหลดรายการครุภัณฑ์ไม่สำเร็จ"));
+    }
+  };
+
+  const selectedAsset = availableAssets.find((a) => a.assetid === selectedAssetId);
+
+  const submitAdd = async () => {
+    if (!selectedAsset) {
+      setAddError("เลือกครุภัณฑ์ที่จะเพิ่มเข้าห้องก่อน");
+      return;
+    }
+    const available = Number(addAvailable);
+    const unavailable = Number(addUnavailable);
+    if (!Number.isFinite(available) || !Number.isFinite(unavailable)) {
+      setAddError("จำนวนต้องเป็นตัวเลข");
+      return;
+    }
+    if (available < 0 || unavailable < 0) {
+      setAddError("จำนวนต้องไม่ติดลบ");
+      return;
+    }
+    if (available + unavailable < 1) {
+      setAddError("ใส่จำนวนอย่างน้อย 1 ชิ้น");
+      return;
+    }
+    if (available > selectedAsset.availableValue) {
+      setAddError(`คลังกลางเหลือของพร้อมใช้งาน ${selectedAsset.availableValue} ชิ้น`);
+      return;
+    }
+    if (unavailable > selectedAsset.unavailableValue) {
+      setAddError(`คลังกลางเหลือของไม่พร้อมใช้งาน ${selectedAsset.unavailableValue} ชิ้น`);
       return;
     }
 
+    setAdding(true);
+    setAddError("");
     try {
-        await axios.post('/api/assetlocation', {
-          assetId: newselectedAsset,
-          locationId: addlocationid,
-          inRoomavailableValue: addInRoomavailableValue,
-          inRoomaunavailableValue: addInRoomunavailableValue,
-          createdAt : selectedDate
-        });
-
-        // รีเฟรชข้อมูลใหม่หลังจากเพิ่มข้อมูลเสร็จ
-        fetchassetlocation();
-        setnewSelectedAsset('')
-        setinRoomunavailableValue('0')
-        setinRoomavailableValue('0')
-        setIsaddAssetOpen(false); 
-        setSelectedDate('')
-        router.push(`/admin/manageroom/${addlocationid}`);
-        alert("เพิ่มข้อมูลครุภัณฑ์สำเร็จ");
-        
-
-    } catch (error) {
-      console.error("Error updating asset in room:", error);
-      alert("เกิดข้อผิดพลาดในการเพิ่มข้อมูล กรุณาลองใหม่");
+      await axios.post("/api/assetlocation", {
+        assetId: selectedAsset.assetid,
+        locationId: location?.namelocation ?? roomId,
+        inRoomavailableValue: available,
+        inRoomaunavailableValue: unavailable,
+        createdAt: addDate,
+      });
+      toast.success(`เพิ่ม ${selectedAsset.name} เข้าห้อง ${roomId} แล้ว`);
+      setAddOpen(false);
+      await load();
+    } catch (err) {
+      setAddError(errorMessage(err, "เพิ่มครุภัณฑ์เข้าห้องไม่สำเร็จ"));
+    } finally {
+      setAdding(false);
     }
-};
-  
-    
+  };
 
+  const openDetail = (row: AssetLocation) => {
+    setDetail(row);
+    setEditing(false);
+    setEditAvailable(String(row.inRoomavailableValue));
+    setEditUnavailable(String(row.inRoomaunavailableValue));
+    setEditDate(row.createdAt ?? "");
+    setEditError("");
+  };
 
-  useEffect(() => {
-    fetchassetlocation();
-  }, []);
+  const maxAvailable = detail
+    ? detail.asset.availableValue + detail.inRoomavailableValue
+    : 0;
+  const maxUnavailable = detail
+    ? detail.asset.unavailableValue + detail.inRoomaunavailableValue
+    : 0;
 
-  useEffect(() => {
-    const filtered = assetLocation.filter((As: any) =>
-      As.asset.name.toLowerCase().includes(searchLocation.toLowerCase()) ||
-      As.location.namelocation.toLowerCase().includes(searchLocation.toLowerCase())
-    );
-    setFilteredLocation(filtered);
-  }, [searchLocation, assetLocation]);
+  /** แก้ไขจำนวนในห้อง = ย้ายส่วนต่างกลับเข้า/ออกจากคลังกลาง */
+  const submitEdit = async () => {
+    if (!detail) return;
+    const available = Number(editAvailable);
+    const unavailable = Number(editUnavailable);
 
-  const fetchassetlocation = async () => {
+    if (!Number.isFinite(available) || !Number.isFinite(unavailable)) {
+      setEditError("จำนวนต้องเป็นตัวเลข");
+      return;
+    }
+    if (available < 0 || unavailable < 0) {
+      setEditError("จำนวนต้องไม่ติดลบ");
+      return;
+    }
+    if (available > maxAvailable || unavailable > maxUnavailable) {
+      setEditError(
+        `รวมกับของในคลังกลางแล้ว ใส่ได้ไม่เกิน ${maxAvailable} / ${maxUnavailable} ชิ้น`,
+      );
+      return;
+    }
+
+    setSavingEdit(true);
+    setEditError("");
     try {
-      const res = await axios.get(`/api/assetlocationroom?location=${id}`);
+      const current = await axios.get<AssetLocation>(`/api/assetlocation/${detail.id}`);
+      const asset = await axios.get<Asset>(`/api/asset/${current.data.assetId}`);
 
-      const reslocation = await axios.get(`/api/location/${id}`);
-      setAssetLocation(res.data);
-     setaddlocationid(reslocation.data.namelocation)
-      setFilteredLocation(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const editmodal = async () => {
-    if(statusedit){
-        if(parseInt(updateInRoomavailableValue,10) < 0 || parseInt(updateInRoomunavailableValue,10)< 0){
-                alert("ค่าที่อัพเดตต้อง>=0")
-                return
-        }
-        try {
-          const getassetlocation = await axios.get(`/api/assetlocation/${Iddelete}`);
-         // console.log(getassetlocation.data.assetId)
-        //ค่าปัจจุบันในห้อง
-          const saveinRoomunavailableValue = getassetlocation.data.inRoomaunavailableValue
-          const saveinRoomavailableValue = getassetlocation.data.inRoomavailableValue
-          //ดึงค่าปัจจุบันในคลัง
-          const getasset = await axios.get(`/api/asset/${getassetlocation.data.assetId}`);
-          const valueasset = getasset.data.availableValue
-          const unvalueasset = getasset.data.unavailableValue
-         // console.log(valueasset+ saveinRoomavailableValue - updateInRoomavailableValue)
-         // console.log(unvalueasset+saveinRoomunavailableValue - updateInRoomunavailableValue)
-            console.log(Dateedit)
-            await axios.put(`/api/assetlocation/${Iddelete}`, {
-                inRoomavailableValue: updateInRoomavailableValue,
-                inRoomaunavailableValue: updateInRoomunavailableValue,
-                createdAt: Dateedit
-            })
-            
-            await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
-              availableValue: valueasset + saveinRoomavailableValue - Number(updateInRoomavailableValue),
-              unavailableValue: unvalueasset + saveinRoomunavailableValue - Number(updateInRoomunavailableValue),
-            });
-            setIsModalOpen(false);
-            seteditstatus(false)
-            fetchassetlocation();
-          } catch (error) {
-            console.error(error)
-          }
-    }else{
-        seteditstatus(true)
-        
+      await axios.put(`/api/assetlocation/${detail.id}`, {
+        inRoomavailableValue: available,
+        inRoomaunavailableValue: unavailable,
+        createdAt: editDate,
+      });
+
+      await axios.put(`/api/asset/${current.data.assetId}`, {
+        availableValue:
+          asset.data.availableValue + current.data.inRoomavailableValue - available,
+        unavailableValue:
+          asset.data.unavailableValue + current.data.inRoomaunavailableValue - unavailable,
+      });
+
+      toast.success("บันทึกจำนวนในห้องแล้ว");
+      setDetail(null);
+      await load();
+    } catch (err) {
+      setEditError(errorMessage(err, "บันทึกไม่สำเร็จ"));
+    } finally {
+      setSavingEdit(false);
     }
   };
 
-  const deleteAssetlocation = async () => {
-    
+  /** เอาของออกจากห้อง = คืนยอดทั้งหมดกลับเข้าคลังกลาง */
+  const submitRemove = async () => {
+    if (!detail) return;
+    setRemoving(true);
     try {
-      const getassetlocation = await axios.get(`/api/assetlocation/${Iddelete}`);
-      const getasset = await axios.get(`/api/asset/${getassetlocation.data.assetId}`);
-      const valueasset = getasset.data.availableValue
-      const unvalueasset = getasset.data.unavailableValue
-    //ค่าปัจจุบันในห้อง
-      const saveinRoomunavailableValue = getassetlocation.data.inRoomaunavailableValue
-      const saveinRoomavailableValue = getassetlocation.data.inRoomavailableValue
-       await axios.delete(`/api/assetlocation/${parseInt(Iddelete,10)}`);
-       await axios.put(`/api/asset/${getassetlocation.data.assetId}`, {
-        availableValue: valueasset+ saveinRoomavailableValue,
-        unavailableValue: unvalueasset+saveinRoomunavailableValue,
-    })
-       setIsModalOpen(false);
-       fetchassetlocation();
-    } catch (error) {
-      console.error(error);
+      const current = await axios.get<AssetLocation>(`/api/assetlocation/${detail.id}`);
+      const asset = await axios.get<Asset>(`/api/asset/${current.data.assetId}`);
+
+      await axios.delete(`/api/assetlocation/${detail.id}`);
+      await axios.put(`/api/asset/${current.data.assetId}`, {
+        availableValue: asset.data.availableValue + current.data.inRoomavailableValue,
+        unavailableValue:
+          asset.data.unavailableValue + current.data.inRoomaunavailableValue,
+      });
+
+      toast.success("เอาของออกจากห้องและคืนยอดกลับคลังกลางแล้ว");
+      setConfirmRemove(false);
+      setDetail(null);
+      await load();
+    } catch (err) {
+      toast.error(errorMessage(err, "เอาของออกจากห้องไม่สำเร็จ"));
+    } finally {
+      setRemoving(false);
     }
   };
 
-  const openaddasset = () => {
-    setIsaddAssetOpen(true);
-    setinputvalueAssetselect(true)
-    fetchAsset();
-  };
-
-  const openModal = (asset: any) => {
-    setIddelete(asset.id)
-    setupdateinRoomavailableValue(asset.inRoomavailableValue)
-    setupdateinRoomunavailableValue(asset.inRoomaunavailableValue)
-    setDateedit(asset.createdAt)
-    setSelectedAsset(asset);
-    setIsModalOpen(true);
-  };
-
-  const closeaddAsset = () => {
-    setIsaddAssetOpen(false);
-    setinputvalueAssetselect(false);
-    
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    seteditstatus(false)
-    setSelectedAsset(undefined);
-    
-  };
-
-  const onChange = async (value: string) => {
-    setnewSelectedAsset(value);
-    //console.log(value)
+  const handleDownload = async () => {
     try {
-      const res = await axios.get(`/api/asset/${value}`);
-      setunavilablevaluecanput(res.data.unavailableValue)
-      setavilablevaluecanput(res.data.availableValue)
-    //  console.log(res.data.unavailableValue)
-      //console.log(res.data.availableValue)
-    } catch (error) {
-      console.error(error);
+      await exportSheet<AssetLocation>({
+        filename: `ข้อมูลครุภัณฑ์ ห้อง${roomId}`,
+        sheetName: "ครุภัณฑ์ในห้อง",
+        rows: filtered,
+        columns: [
+          { header: "รหัสครุภัณฑ์", width: 18, value: (r) => r.asset?.assetid },
+          { header: "ชื่อครุภัณฑ์", width: 30, value: (r) => r.asset?.name },
+          { header: "ประเภทครุภัณฑ์", width: 24, value: (r) => r.asset?.category?.name },
+          { header: "จำนวนที่ใช้งานได้", width: 20, value: (r) => r.inRoomavailableValue },
+          {
+            header: "จำนวนที่ใช้งานไม่ได้",
+            width: 22,
+            value: (r) => r.inRoomaunavailableValue,
+          },
+          { header: "วันที่เพิ่ม", width: 18, value: (r) => r.createdAt },
+        ],
+      });
+      toast.success(`บันทึกไฟล์ Excel แล้ว ${filtered.length} รายการ`);
+    } catch (err) {
+      toast.error(errorMessage(err, "สร้างไฟล์ Excel ไม่สำเร็จ"));
     }
-    
-
-   // console.log(`selected ${value}`);
   };
 
-  const onSearch = (value: string) => {
- //   console.log('search:', value);
-  };
-
-      const handleDownload = async () => {
-        const workbook = new ExcelJS.Workbook();
-          const worksheet = workbook.addWorksheet('ข้อมูลครุภัณฑ์ในสถานที่');
-
-          worksheet.columns = [
-            { header: 'ชื่อครุภัณฑ์', key: 'assetName', width: 30 },
-            { header: 'ประเภทครุภัณฑ์', key: 'categoryName', width: 30 },
-            { header: 'จำนวนที่ใช้งานได้', key: 'availableValue', width: 20 },
-            { header: 'จำนวนที่ใช้งานไม่ได้', key: 'unavailableValue', width: 20 },
-            { header: 'วันที่เพิ่ม', key: 'createdAt', width: 20 },
-          ];
-
-          filteredLocation.forEach((item) => {
-            worksheet.addRow({
-              assetName: item.asset?.name || '-',
-              categoryName: item.asset?.category?.name || '-',
-              availableValue: item.inRoomavailableValue ?? '-',
-              unavailableValue: item.inRoomaunavailableValue ?? '-',
-              createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-',
-            });
-          });
-
-          const buffer = await workbook.xlsx.writeBuffer();
-          const blob = new Blob([buffer], {
-            type:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          });
-
-          saveAs(blob, `ข้อมูลครุภัณฑ์ ห้อง${addlocationid}.xlsx`);
-        };
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-             <div className='text-2xl'> สถานที่ {addlocationid} </div>
-      {/* 🔍 Input Search */}
-      <div className="flex justify-center mb-6">
-        <input
-          type="text"
-          placeholder=" ค้นหาชื่อของในห้อง"
-          value={searchLocation}
-          onChange={(e) => setSearchLocation(e.target.value)}
-          className="w-full sm:w-96 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+  const columns: Column<AssetLocation>[] = [
+    {
+      key: "asset",
+      header: "ครุภัณฑ์",
+      primary: true,
+      render: (r) => (
+        <div className="min-w-0">
+          <CodeTag>{r.asset.assetid}</CodeTag>
+          <p className="mt-1.5 font-medium leading-snug text-ink">{r.asset.name}</p>
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "ประเภท",
+      width: "11rem",
+      hideOnCard: true,
+      render: (r) => <span className="text-ink-2">{r.asset.category?.name || "—"}</span>,
+    },
+    {
+      key: "added",
+      header: "วันที่เพิ่ม",
+      width: "9rem",
+      render: (r) => <span className="text-ink-2">{formatDate(r.createdAt)}</span>,
+    },
+    {
+      key: "stock",
+      header: "ในห้องนี้",
+      width: "13rem",
+      render: (r) => (
+        <TickBar
+          available={r.inRoomavailableValue}
+          broken={r.inRoomaunavailableValue}
+          label={`ใช้งานได้ ${r.inRoomavailableValue} · ใช้งานไม่ได้ ${r.inRoomaunavailableValue}`}
         />
-        <button onClick={handleDownload}
-                        className="ml-4 block sm:inline-block w-full sm:w-auto px-4 py-2 rounded-lg bg-[#006600] text-center text-white hover:bg-green-600 transition-all"
-                      >
-                        โหลดไฟล์ Exel
-                      </button>
-      </div>
- 
-      <button onClick={() => openaddasset()} className="mb-4 w-full bg-[#113FB3] text-white py-2 rounded-lg hover:bg-blue-600 transition">
-        เพิ่มครุภัณฑ์ในห้อง
-      </button>
-     
-      {/* 🏠 Grid Layout for Cards */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow-lg rounded-lg">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left border-b">ชื่อครุภัณฑ์</th>
-                  <th className="px-4 py-2 text-left border-b">ประเภทครุภัณฑ์</th>
-                  <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานได้</th>
-                  <th className="px-4 py-2 text-left border-b">จำนวนที่ใช้งานไม่ได้</th>
-                   <th className="px-4 py-2 text-left border-b">วันที่เพิ่ม</th>
-                  <th className="px-4 py-2 text-left border-b">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLocation.map((As: any) => (
-                  <tr key={As.id} className="border-b">
-                    <td className="px-4 py-2">{As.asset.name}</td>
-                    <td className="px-4 py-2">{As.asset.category.name}</td>
-                    <td className="px-4 py-2">{As.inRoomavailableValue}</td>
-                    <td className="px-4 py-2">{As.inRoomaunavailableValue}</td>
-                    <td className="px-4 py-2">{As.createdAt}</td>
-                    <td className="px-4 py-2">
-                      <button onClick={() => openModal(As)} className="bg-[#113FB3] text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
-                        ดูรายละเอียด
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-      {/* Modal */}
-      {isaddAssetOpen && (
-            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-                <div className="bg-white p-8 rounded-lg w-96 shadow-lg">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">เพิ่มครุภัณฑ์</h2>
-                <h1 className="text-lg font-medium text-gray-700 mb-4">เลือกครุภัณฑ์</h1>
-                <Select
-                    showSearch
-                    placeholder="เลือกครุภัณฑ์"
-                    optionFilterProp="children"
-                    onSearch={onSearch} // ใช้ onSearch
-                    onChange={onChange}
-                    value={newselectedAsset}
-                    className="w-full mb-4"
-                >
-                    {Asset && Asset.length > 0 ? (
-                    Asset.map((asset) => (
-                        <Option key={asset.assetid} value={asset.assetid}>
-                        {asset.name}
-                        </Option>
-                    ))
-                    ) : (
-                    <Option value={""} disabled>
-                        ไม่พบข้อมูล
-                    </Option>
-                    )}
-                </Select>
-
-                {inputvalueAssetselect && (
-                    <div className="space-y-4">
-                    <Input
-                        value={addInRoomavailableValue}
-                        type="number"
-                        min="0"
-                        max={avilablevaluecanput}
-                        onChange={(e) => {
-                          let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
-                      
-                          // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
-                          if (value > parseInt(avilablevaluecanput,10)) {
-                            value = parseInt(avilablevaluecanput,10);
-                          } else if (value < 0 || isNaN(value)) {
-                            value = 0;
-                          }
-                      
-                          setinRoomavailableValue(String(value));
-                        }}
-                        onBlur={(e) => {
-                          // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
-                          if (!e.target.value) {
-                            setinRoomavailableValue("0");
-                          }
-                        }}
-                        placeholder="จำนวนที่พร้อมใช้งาน"
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Input
-                        value={addInRoomunavailableValue}
-                        type="number"
-                        min="0"
-                        max={unavilablevaluecanput}
-                        onChange={(e) => {
-                          let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
-                      
-                          // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
-                          if (value > parseInt(unavilablevaluecanput)) {
-                            value = parseInt(unavilablevaluecanput);
-                          } else if (value < 0 || isNaN(value)) {
-                            value = 0;
-                          }
-                      
-                          setinRoomunavailableValue(String(value));
-                        }}
-                        onBlur={(e) => {
-                          // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
-                          if (!e.target.value) {
-                            setinRoomunavailableValue("0");
-                          }
-                        }}
-                        placeholder="จำนวนที่ไม่พร้อมใช้งาน"
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                )}
-
-                <div className="flex justify-end mt-6 space-x-4">
-                    <button
-                    onClick={updateAssetinroom}
-                    className="bg-[#113FB3] text-white py-2 px-6 rounded-lg hover:bg-blue-600 focus:outline-none transition"
-                    >
-                    เพิ่ม
-                    </button>
-                    <button
-                    onClick={closeaddAsset}
-                    className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 focus:outline-none transition"
-                    >
-                    ปิด
-                    </button>
-                </div>
-                </div>
-            </div>
-            )}
-
-      {/* Details Modal */}
-      {isModalOpen && selectedDetailAsset && (
-  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded-lg w-96">
-      <h2 className="text-xl font-semibold text-center mb-4">{selectedDetailAsset.asset.name}</h2>
-      <p className="text-gray-600 text-center mb-4">📍 สถานที่: {selectedDetailAsset.location.namelocation}</p>
-
-      {
-        statusedit ? (
-          <>
-            <div className="mb-4">
-              <p className="text-gray-700 mb-2">📦 จำนวนที่ใช้งานได้:</p>
-              <Input
-                value={updateInRoomavailableValue}
-                min="0"
-                max={selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue}
-                type="number"
-                onChange={(e) => {
-                  let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
-              
-                  // จำกัดค่าไม่ให้น้อยกว่า 1 และไม่มากกว่า availableValue
-                  if (value > selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue) {
-                    value = selectedDetailAsset.asset.availableValue+selectedDetailAsset.inRoomavailableValue;
-                  } else if (value < 0 || isNaN(value)) {
-                    value = 0;
-                  }
-              
-                  setupdateinRoomavailableValue(String(value));
-                }}
-                onBlur={(e) => {
-                  // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 1
-                  if (!e.target.value) {
-                    setupdateinRoomavailableValue("0");
-                  }
-                }}
-                placeholder="จำนวนที่พร้อมใช้งาน"
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-4">
-              <p className="text-gray-700 mb-2">📦 จำนวนที่ใช้งานไม่ได้:</p>
-              <Input
-                value={updateInRoomunavailableValue}
-                min="0"
-                max={selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue}
-                type="number"
-                onChange={(e) => {
-                  let value = Number(e.target.value); // แปลงค่าที่ป้อนเป็นตัวเลข
-                  // จำกัดค่าไม่ให้น้อยกว่า 0 และไม่มากกว่า availableValue
-                  if (value > selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue) {
-                    value = selectedDetailAsset.asset.unavailableValue+selectedDetailAsset.inRoomaunavailableValue;
-                  } else if (value < 0 || isNaN(value)) {
-                    value = 0;
-                  }
-                  setupdateinRoomunavailableValue(String(value));
-                }}
-                onBlur={(e) => {
-                  // ถ้าผู้ใช้ลบค่าทั้งหมดหรือเว้นว่างไว้ ให้ตั้งค่าเป็น 0
-                  if (!e.target.value) {
-                    setupdateinRoomunavailableValue("0");
-                  }
-                }}
-                placeholder="จำนวนที่เสีย"
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-             <div className="mb-4">
-              <p className="text-gray-700 mb-2">วันที่เพิ่ม:</p>
-                        <Input
-              type="date"
-              value={Dateedit}
-              onChange={(e) => setDateedit(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-gray-700 mb-2">📦 จำนวนที่ใช้งานได้: {selectedDetailAsset.inRoomavailableValue}</p>
-            <p className="text-gray-700 mb-4">📦 จำนวนที่ใช้งานไม่ได้: {selectedDetailAsset.inRoomaunavailableValue}</p>
-             <p className="text-gray-700 mb-4">📦 วันที่เพิ่ม: {selectedDetailAsset.createdAt}</p>
-          </>
-        )
-      }
-
-      <div className="flex flex-col space-y-4 mt-6">
-        <Button onClick={editmodal} type="primary" className="w-full">
-          แก้ไข
-        </Button>
-
-        <Popconfirm
-          title="Delete the task"
-          description="ยืนยันที่จะลบหรือไม่?"
-          icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-          onConfirm={() => deleteAssetlocation()}
+      ),
+    },
+    {
+      key: "action",
+      header: "ดำเนินการ",
+      align: "right",
+      width: "10rem",
+      actions: true,
+      render: (r) => (
+        <Button
+          size="sm"
+          onClick={() => openDetail(r)}
+          className="max-md:w-full"
+          aria-label={`แก้ไขจำนวนของ ${r.asset.name}`}
         >
-          <Button danger className="w-full">
-            Delete
-          </Button>
-        </Popconfirm>
-
-        <Button onClick={closeModal} className="w-full">
-          ปิด
+          แก้ไขจำนวน
         </Button>
-      </div>
-    </div>
-  </div>
-)}
+      ),
+    },
+  ];
 
+  return (
+    <PageShell>
+      <PageHeader
+        trail={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "จัดการทะเบียน", href: "/admin" },
+          { label: roomId },
+        ]}
+        title={`จัดการของในห้อง ${roomId}`}
+        meta={
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>
+              ผู้รับผิดชอบ{" "}
+              <span className="text-ink">{location?.nameteacher || "ยังไม่ระบุ"}</span>
+            </span>
+            <span>{rows.length.toLocaleString("th-TH")} รายการในห้องนี้</span>
+          </span>
+        }
+        actions={
+          <>
+            <Button
+              onClick={handleDownload}
+              icon={<IconSheet size={16} />}
+              disabled={loading || filtered.length === 0}
+            >
+              ดาวน์โหลด Excel
+            </Button>
+            <Button variant="primary" icon={<IconPlus size={16} />} onClick={openAdd}>
+              เพิ่มครุภัณฑ์เข้าห้อง
+            </Button>
+          </>
+        }
+      />
 
+      <Toolbar>
+        <SearchField
+          label="ค้นหาของในห้องนี้"
+          placeholder="ค้นหาชื่อ หรือรหัสครุภัณฑ์..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:w-80"
+        />
+        <ButtonLink
+          href={`/location/${encodeURIComponent(roomId)}`}
+          className="sm:ml-auto"
+        >
+          ดูหน้าห้องนี้แบบผู้ใช้ทั่วไป
+        </ButtonLink>
+      </Toolbar>
 
-    </div>
+      {error ? (
+        <ErrorState
+          title="โหลดข้อมูลไม่สำเร็จ"
+          description={error}
+          action={
+            <Button variant="primary" onClick={load}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(r) => r.id}
+          loading={loading}
+          caption={`ครุภัณฑ์ที่จัดเก็บอยู่ในห้อง ${roomId}`}
+          empty={
+            rows.length === 0 ? (
+              <EmptyState
+                title="ห้องนี้ยังไม่มีครุภัณฑ์"
+                description="เพิ่มของจากคลังกลางเข้ามาในห้องนี้ได้เลย"
+                action={
+                  <Button variant="primary" icon={<IconPlus size={16} />} onClick={openAdd}>
+                    เพิ่มครุภัณฑ์เข้าห้อง
+                  </Button>
+                }
+              />
+            ) : (
+              <EmptyState
+                title="ไม่พบครุภัณฑ์ที่ตรงกับที่ค้นหา"
+                action={<Button onClick={() => setSearch("")}>ล้างคำค้นหา</Button>}
+              />
+            )
+          }
+        />
+      )}
+
+      {/* ลิ้นชักเพิ่มของเข้าห้อง */}
+      <Modal
+        open={addOpen}
+        onClose={() => !adding && setAddOpen(false)}
+        title="เพิ่มครุภัณฑ์เข้าห้อง"
+        code={`ห้อง ${roomId}`}
+        footer={
+          <>
+            <Button variant="quiet" onClick={() => setAddOpen(false)} disabled={adding}>
+              ยกเลิก
+            </Button>
+            <Button variant="primary" onClick={submitAdd} loading={adding}>
+              เพิ่มเข้าห้อง
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <SelectField
+            label="ครุภัณฑ์จากคลังกลาง"
+            required
+            value={selectedAssetId}
+            hint="แสดงเฉพาะของที่ยังไม่อยู่ในห้องนี้ และยังเหลือในคลังกลาง"
+            onChange={(e) => {
+              setSelectedAssetId(e.target.value);
+              setAddAvailable("0");
+              setAddUnavailable("0");
+              setAddError("");
+            }}
+          >
+            <option value="">เลือกครุภัณฑ์</option>
+            {availableAssets.map((asset) => (
+              <option key={asset.assetid} value={asset.assetid}>
+                {asset.name} · {asset.assetid}
+              </option>
+            ))}
+          </SelectField>
+
+          {selectedAsset && (
+            <>
+              <p className="rounded border border-edge bg-sunk px-3 py-2 text-meta text-ink-2">
+                คลังกลางเหลือ พร้อมใช้งาน{" "}
+                <span className="font-mono text-stock">{selectedAsset.availableValue}</span>{" "}
+                · ไม่พร้อมใช้งาน{" "}
+                <span className="font-mono">{selectedAsset.unavailableValue}</span>
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="จำนวนที่พร้อมใช้งาน"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={selectedAsset.availableValue}
+                  value={addAvailable}
+                  onChange={(e) => setAddAvailable(e.target.value)}
+                />
+                <TextField
+                  label="จำนวนที่ไม่พร้อมใช้งาน"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={selectedAsset.unavailableValue}
+                  value={addUnavailable}
+                  onChange={(e) => setAddUnavailable(e.target.value)}
+                />
+              </div>
+              <TextField
+                label="วันที่เพิ่มเข้าห้อง"
+                type="date"
+                value={addDate}
+                onChange={(e) => setAddDate(e.target.value)}
+              />
+            </>
+          )}
+
+          {addError && (
+            <p
+              role="alert"
+              className="rounded border border-alert/40 bg-alert-soft px-3 py-2 text-base text-alert"
+            >
+              {addError}
+            </p>
+          )}
+        </div>
+      </Modal>
+
+      {/* ลิ้นชักรายละเอียด / แก้ไขจำนวน */}
+      <Modal
+        open={detail !== null && !confirmRemove}
+        onClose={() => !savingEdit && setDetail(null)}
+        title={detail?.asset.name ?? ""}
+        code={detail?.asset.assetid}
+        footer={
+          editing ? (
+            <>
+              <Button variant="quiet" onClick={() => setEditing(false)} disabled={savingEdit}>
+                ยกเลิกการแก้ไข
+              </Button>
+              <Button variant="primary" onClick={submitEdit} loading={savingEdit}>
+                บันทึกจำนวน
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="danger"
+                icon={<IconTrash size={16} />}
+                onClick={() => setConfirmRemove(true)}
+              >
+                เอาออกจากห้อง
+              </Button>
+              <Button variant="primary" onClick={() => setEditing(true)}>
+                แก้ไขจำนวน
+              </Button>
+            </>
+          )
+        }
+      >
+        {detail && (
+          <div className="space-y-4">
+            <p className="text-base text-ink-2">
+              อยู่ในห้อง <span className="font-medium text-ink">{roomId}</span>
+            </p>
+
+            {editing ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="จำนวนที่ใช้งานได้"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={maxAvailable}
+                    hint={`ใส่ได้ไม่เกิน ${maxAvailable}`}
+                    value={editAvailable}
+                    onChange={(e) => setEditAvailable(e.target.value)}
+                  />
+                  <TextField
+                    label="จำนวนที่ใช้งานไม่ได้"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={maxUnavailable}
+                    hint={`ใส่ได้ไม่เกิน ${maxUnavailable}`}
+                    value={editUnavailable}
+                    onChange={(e) => setEditUnavailable(e.target.value)}
+                  />
+                </div>
+                <TextField
+                  label="วันที่เพิ่มเข้าห้อง"
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                />
+                <p className="text-meta text-ink-3">
+                  ส่วนที่ลดลงจะถูกคืนเข้าคลังกลางโดยอัตโนมัติ
+                  และถ้าใส่ 0 ทั้งสองช่อง ของชิ้นนี้จะถูกเอาออกจากห้อง
+                </p>
+                {editError && (
+                  <p
+                    role="alert"
+                    className="rounded border border-alert/40 bg-alert-soft px-3 py-2 text-base text-alert"
+                  >
+                    {editError}
+                  </p>
+                )}
+              </>
+            ) : (
+              <dl className="divide-y divide-edge rounded border border-edge">
+                <div className="flex items-baseline justify-between gap-3 px-3 py-2.5">
+                  <dt className="text-ink-2">ใช้งานได้</dt>
+                  <dd className="font-mono text-stock">{detail.inRoomavailableValue}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 px-3 py-2.5">
+                  <dt className="text-ink-2">ใช้งานไม่ได้</dt>
+                  <dd className="font-mono text-ink-2">{detail.inRoomaunavailableValue}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 px-3 py-2.5">
+                  <dt className="text-ink-2">วันที่เพิ่ม</dt>
+                  <dd className="text-ink">{formatDate(detail.createdAt)}</dd>
+                </div>
+              </dl>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        open={confirmRemove}
+        busy={removing}
+        title="เอาของออกจากห้อง"
+        description={
+          detail && (
+            <>
+              <p>
+                เอา <span className="font-medium text-ink">{detail.asset.name}</span>{" "}
+                ออกจากห้อง {roomId}
+              </p>
+              <p className="mt-2">
+                จำนวน {detail.inRoomavailableValue + detail.inRoomaunavailableValue} ชิ้น
+                จะถูกคืนกลับเข้าคลังกลาง
+              </p>
+            </>
+          )
+        }
+        confirmLabel="เอาออกจากห้อง"
+        onConfirm={submitRemove}
+        onCancel={() => setConfirmRemove(false)}
+      />
+    </PageShell>
   );
 }

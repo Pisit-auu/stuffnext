@@ -1,242 +1,275 @@
-'use client';
-import axios from 'axios';
-import { useSession, signOut, signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import bcrypt from 'bcryptjs';
-import Link from 'next/link';
+"use client";
+
+import axios from "axios";
+import bcrypt from "bcryptjs";
+import { useSession, signOut, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button, ButtonLink } from "../component/ui/Button";
+import { TextField } from "../component/ui/Field";
+import { PageShell, PageHeader } from "../component/ui/Layout";
+import { ErrorState, Skeleton, StatusChip } from "../component/ui/Data";
+import { IconEdit, IconLock, IconLogout } from "../component/ui/icons";
+import { useToast } from "../component/ui/Toast";
+import { errorMessage } from "@/lib/format";
+import type { AppUser } from "@/lib/types";
+
+type Draft = Pick<AppUser, "name" | "surname" | "email" | "tel">;
 
 export default function Profile() {
-  const { data: session, status, update } = useSession(); //ดึงข้อมูลเซสชันของผู้ใช้ มี อัปเดตข้อมูลเซสชัน เมื่อเปลี่ยนแปลงข้อมูลผู้ใช้
-  const [getuser, setUser] = useState<any>(null);      //เก็บข้อมูลuser
-  const [isEditing, setIsEditing] = useState(false);   //เก็บสถานะว่า กำลัง editไหม
-  const [password, setPassword] = useState('');   //เก็บรหัสผ่านเพื่อยืนยันตัวตน
-  const [formData, setFormData] = useState<any>({     //เก็บข้อมูลuser
-    username: '',
-    name: '',
-    surname: '',
-    email: '',
-    tel: '',
-    password: ''
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
+  const toast = useToast();
+
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState("");
+  const [draft, setDraft] = useState<Draft>({
+    name: "",
+    surname: "",
+    email: "",
+    tel: "",
   });
 
-  const router = useRouter();
-
-  // ฟังก์ชันดึงข้อมูลผู้ใช้ 
   const fetchUser = async () => {
     if (!session?.user?.username) return;
     try {
-      const resuser = await axios.get(`/api/auth/signup/${session.user.username}`);
-      if (resuser.data) {
-        setUser(resuser.data);
-        setFormData(resuser.data);
+      const res = await axios.get<AppUser>(`/api/auth/signup/${session.user.username}`);
+      if (res.data) {
+        setUser(res.data);
+        setDraft({
+          name: res.data.name ?? "",
+          surname: res.data.surname ?? "",
+          email: res.data.email ?? "",
+          tel: res.data.tel ?? "",
+        });
       }
-    } catch (error) {
-      console.error('Error fetching user:', error);
+    } catch (err) {
+      setLoadError(errorMessage(err, "โหลดข้อมูลผู้ใช้ไม่สำเร็จ"));
     }
   };
 
-  // ฟังก์ชันสำหรับการอัปเดตข้อมูล
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.username) fetchUser();
+    if (status === "unauthenticated") router.push("/login");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session?.user?.username]);
+
   const handleUpdate = async () => {
-    if (!session?.user?.username) return;
+    if (!session?.user?.username || !user) return;
     if (!password) {
-      alert("โปรดกรอกรหัสเพื่อยืนยันการแก้ไขข้อมูล");
+      setFormError("กรอกรหัสผ่านปัจจุบันเพื่อยืนยันว่าเป็นเจ้าของบัญชี");
       return;
     }
+
+    setSaving(true);
+    setFormError("");
     try {
-      // ตรวจสอบรหัสผ่านที่กรอก
-      const isPasswordCorrect = await bcrypt.compare(password, getuser.password);
+      const isPasswordCorrect = await bcrypt.compare(password, user.password ?? "");
       if (!isPasswordCorrect) {
-        alert('รหัสผ่านไม่ถูกต้อง');
+        setFormError("รหัสผ่านไม่ถูกต้อง");
         return;
       }
 
-      // อัปเดตข้อมูลผู้ใช้บน server
-      const res = await axios.put(`/api/auth/signup/${session.user.username}`, formData);
+      const payload = { ...user, ...draft };
+      const res = await axios.put(`/api/auth/signup/${session.user.username}`, payload);
+
       if (res.status === 200) {
-        setUser(formData);
+        setUser(payload);
         setIsEditing(false);
+        await update({ user: { ...session.user, ...draft } });
 
-        // อัปเดต session บน client
-        await update({
-          user: {
-            ...session.user,
-            ...formData,
-          },
-        });
-
-        // รีเฟรช session ด้วยรหัสผ่านใหม่
+        // เข้าสู่ระบบซ้ำเพื่อให้ session ถือข้อมูลชุดใหม่
         const response = await signIn("credentials", {
           redirect: false,
           username: session.user.username,
           password,
         });
 
-        // ตรวจสอบผลการเข้าสู่ระบบ
         if (response?.error) {
-          alert('เกิดข้อผิดพลาด');
+          toast.error("บันทึกข้อมูลแล้ว แต่รีเฟรชเซสชันไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่");
         } else {
-          alert('เปลี่ยนข้อมูลเรียบร้อย');
-          setPassword('');
+          toast.success("บันทึกข้อมูลส่วนตัวแล้ว");
         }
+        setPassword("");
       }
-    } catch (error) {
-      console.error('มีปัญหาระหว่างอัพโหลด:', error);
-      alert('มีปัญหาระหว่างอัพโหลด.');
+    } catch (err) {
+      setFormError(errorMessage(err, "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"));
+    } finally {
+      setSaving(false);
     }
   };
 
-  // เรียก fetchUser เมื่อ session มีการเปลี่ยนแปลง หรือเมื่อ status เป็น 'authenticated'
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.username) {
-      fetchUser();  // ดึงข้อมูลผู้ใช้เมื่อ session พร้อมใช้งาน
-    }
-  }, [status, session?.user?.username]);
-
-  // ตรวจสอบสถานะการโหลด session
-  if (status === 'loading') {
-    return <p className="text-center text-gray-500">กำลังโหลดข้อมูล...</p>;
+  if (status === "loading") {
+    return (
+      <PageShell width="form">
+        <Skeleton className="mb-6 h-24 w-full" />
+        <Skeleton className="h-72 w-full" />
+      </PageShell>
+    );
   }
 
-  if (status === 'unauthenticated') {
-    router.push('/login');
+  if (loadError) {
+    return (
+      <PageShell width="form">
+        <ErrorState
+          title="โหลดข้อมูลผู้ใช้ไม่สำเร็จ"
+          description={loadError}
+          action={
+            <Button variant="primary" onClick={fetchUser}>
+              ลองอีกครั้ง
+            </Button>
+          }
+        />
+      </PageShell>
+    );
   }
+
+  const fullName = [user?.name, user?.surname].filter(Boolean).join(" ") || "ยังไม่ได้กรอกชื่อ";
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100 py-8">
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full space-y-6">
-      {status === 'authenticated' && session?.user ? (
-        <>
-          <div className="text-3xl font-semibold text-center text-gray-800">
-            ยินดีต้อนรับ  <span className="text-blue-600">{session.user.username}</span>
+    <PageShell width="form">
+      <PageHeader
+        trail={[{ label: "หน้าแรก", href: "/" }, { label: "โปรไฟล์" }]}
+        code={session?.user?.username}
+        title={fullName}
+        meta={
+          <span className="flex flex-wrap items-center gap-2">
+            <StatusChip tone="neutral">
+              {user?.role === "admin" ? "แอดมิน" : "ผู้ใช้ทั่วไป"}
+            </StatusChip>
+            <span>ชื่อจริงจะไปปรากฏบนรายการยืมของคุณ</span>
+          </span>
+        }
+        actions={
+          !isEditing && (
+            <Button icon={<IconEdit size={16} />} onClick={() => setIsEditing(true)}>
+              แก้ไขข้อมูล
+            </Button>
+          )
+        }
+      />
+
+      <div className="plate px-4 py-5 sm:px-6 sm:py-6">
+        {!user ? (
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-5 w-64" />
+            <Skeleton className="h-5 w-40" />
           </div>
-          <div className="space-y-5">
-            {getuser ? (
-              <>
-                <div className="space-y-3">
-                  {/* แก้ไขส่วนที่ไม่ให้แก้ไขชื่อผู้ใช้ */}
-                  <div className="flex items-center justify-between">
-                    <label className="text-lg text-gray-700">ชื่อผู้ใช้:</label>
-                    {isEditing ? (
-                      <span>หากต้องการแก้ไข กรุณาติดต่อแอดมิน</span>
-                    ) : (
-                      <span>{getuser.username}</span>
-                    )}
-                  </div>
+        ) : isEditing ? (
+          <div className="space-y-4">
+            <div className="rounded border border-edge bg-sunk px-3 py-2.5">
+              <p className="text-meta text-ink-3">ชื่อผู้ใช้</p>
+              <p className="font-mono text-base text-ink">{user.username}</p>
+              <p className="mt-1 text-meta text-ink-3">
+                เปลี่ยนชื่อผู้ใช้ได้โดยแจ้งแอดมินพัสดุ
+              </p>
+            </div>
 
-                  <div className="flex items-center justify-between">
-                    <label className="text-lg text-gray-700">อีเมล:</label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        value={formData.email || ""}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <span>{getuser.email}</span>
-                    )}
-                  </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                label="ชื่อจริง"
+                value={draft.name ?? ""}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                autoComplete="given-name"
+              />
+              <TextField
+                label="นามสกุล"
+                value={draft.surname ?? ""}
+                onChange={(e) => setDraft({ ...draft, surname: e.target.value })}
+                autoComplete="family-name"
+              />
+              <TextField
+                label="อีเมล"
+                type="email"
+                value={draft.email ?? ""}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                autoComplete="email"
+              />
+              <TextField
+                label="เบอร์โทรศัพท์"
+                type="tel"
+                inputMode="tel"
+                value={draft.tel ?? ""}
+                onChange={(e) => setDraft({ ...draft, tel: e.target.value })}
+                autoComplete="tel"
+              />
+            </div>
 
-                  <div className="flex items-center justify-between">
-                    <label className="text-lg text-gray-700">ชื่อจริง:</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.name || ""}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <span>{getuser.name}</span>
-                    )}
-                  </div>
+            <div className="border-t border-edge pt-4">
+              <TextField
+                label="รหัสผ่านปัจจุบัน"
+                type="password"
+                autoComplete="current-password"
+                hint="ยืนยันว่าเป็นเจ้าของบัญชีก่อนบันทึก"
+                error={formError || undefined}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
 
-                  <div className="flex items-center justify-between">
-                    <label className="text-lg text-gray-700">นามสกุล:</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.surname || ""}
-                        onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
-                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <span>{getuser.surname}</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <label className="text-lg text-gray-700">เบอร์โทรศัพท์:</label>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        value={formData.tel || ""}
-                        onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
-                        className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <span>{getuser.tel}</span>
-                    )}
-                  </div>
-                </div>
-
-                {isEditing && (
-                  <div className="mt-4">
-                    <label className="text-lg text-gray-700">กรอกรหัสผ่านเพื่อยืนยันการแก้ไขข้อมูล:</label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="p-2 border rounded-md shadow-sm w-full max-w-xs focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                )}
-              </>
-            ) : (
-              <div>กำลังโหลดข้อมูล...</div>
-            )}
-          </div>
-
-          <div className="mt-6 flex gap-4">
-            {isEditing ? (
-              <button
-                onClick={handleUpdate}
-                className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
-              >
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+              <Button variant="primary" loading={saving} onClick={handleUpdate}>
                 บันทึกการเปลี่ยนแปลง
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-700 transition duration-300"
+              </Button>
+              <Button
+                disabled={saving}
+                onClick={() => {
+                  setIsEditing(false);
+                  setPassword("");
+                  setFormError("");
+                  setDraft({
+                    name: user.name ?? "",
+                    surname: user.surname ?? "",
+                    email: user.email ?? "",
+                    tel: user.tel ?? "",
+                  });
+                }}
               >
-                แก้ไขข้อมูลส่วนตัว
-              </button>
-            )}
+                ยกเลิก
+              </Button>
+            </div>
           </div>
+        ) : (
+          <dl className="divide-y divide-edge">
+            <Row label="ชื่อผู้ใช้" value={<span className="font-mono">{user.username}</span>} />
+            <Row label="ชื่อจริง" value={user.name || "—"} />
+            <Row label="นามสกุล" value={user.surname || "—"} />
+            <Row label="อีเมล" value={user.email || "—"} />
+            <Row
+              label="เบอร์โทรศัพท์"
+              value={user.tel ? <span className="font-mono">{user.tel}</span> : "—"}
+            />
+          </dl>
+        )}
+      </div>
 
-          <Link href={`/profile/changepassword`}>
-            <button
-              className="mt-4 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300"
-            >
-              เปลี่ยนรหัสผ่าน
-            </button>
-          </Link>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <ButtonLink href="/profile/changepassword" icon={<IconLock size={16} />}>
+          เปลี่ยนรหัสผ่าน
+        </ButtonLink>
+        <ButtonLink href="/profile/history">สถานะการยืมของฉัน</ButtonLink>
+        <Button
+          icon={<IconLogout size={16} />}
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="sm:ml-auto"
+        >
+          ออกจากระบบ
+        </Button>
+      </div>
+    </PageShell>
+  );
+}
 
-          <div className="mt-4">
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
-            >
-              ออกจากระบบ
-            </button>
-          </div>
-        </>
-      ) : (
-        <p>กำลังโหลด...</p>
-      )}
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 py-2.5">
+      <dt className="text-meta text-ink-3">{label}</dt>
+      <dd className="text-right text-base text-ink">{value}</dd>
     </div>
-  </div>
-);
+  );
 }

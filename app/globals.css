@@ -2,20 +2,208 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─────────────────────────────────────────────────────────────
+   ทะเบียนโลหะ — Asset Tag
+   โลกของป้ายทะเบียนครุภัณฑ์ที่ติดอยู่บนของจริง และหน้าลิ้นชักตู้เหล็กพัสดุ
+   สีอยู่ที่ขอบ ไม่ถมเป็นแผง · หนึ่งสีต่อหนึ่งความหมาย
+   ───────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* พื้นและแผ่นป้าย */
+    --ground: #ededea;
+    --ground-sunk: #e3e3df;
+    --plate: #ffffff;
+    --plate-rail: #1d2021;
+    --edge: #d3d3cd;
+    --edge-strong: #b9b9b1;
+
+    /* หมึก */
+    --ink: #17191a;
+    --ink-2: #4c5052;
+    --ink-3: #6e7375;
+    --ink-on-rail: #f2f2ef;
+    --ink-on-rail-2: #a9adaa;
+
+    /* กฎหมายของสี — หนึ่งสีต่อหนึ่งความหมาย ห้ามยืมไปตกแต่ง */
+    --stock: #1a6b37; /* พร้อมใช้งาน */
+    --stock-soft: #e4f0e7;
+    --tag: #b23a0b; /* ถูกยืมออก / รอดำเนินการ */
+    --tag-soft: #fbebe2;
+    --alert: #a81e14; /* ลบ / ผิดพลาด */
+    --alert-soft: #f8e7e5;
+
+    /* เรขาคณิต */
+    --radius: 2px;
+    --rail-h: 3.5rem;
+
+    /* ความลึก — มีระยะเยื้องและความฟุ้งจริง */
+    --shadow-plate: 0 1px 0 var(--edge), 0 1px 2px rgb(23 25 26 / 0.05);
+    --shadow-lift: 0 8px 20px -8px rgb(23 25 26 / 0.3), 0 2px 5px rgb(23 25 26 / 0.08);
+    --shadow-drawer: 0 24px 60px -20px rgb(23 25 26 / 0.45), 0 4px 12px rgb(23 25 26 / 0.12);
+
+    /* จังหวะ — ลิ้นชักเลื่อนตามแกนเดียว */
+    --ease: cubic-bezier(0.2, 0.8, 0.25, 1);
+    --dur: 160ms;
+    --dur-slow: 260ms;
+
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--ground);
+    color: var(--ink);
+    font-feature-settings: "kern";
+    text-rendering: optimizeLegibility;
+  }
+
+  /* พื้นผิวของเบราว์เซอร์ก็เป็นของระบบนี้ */
+  ::selection {
+    background: var(--ink);
+    color: var(--plate);
+  }
+
+  :root {
+    accent-color: var(--tag);
+    caret-color: var(--tag);
+    scrollbar-color: var(--edge-strong) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--edge-strong);
+    border: 3px solid var(--ground);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-3);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: from-font;
+  }
+
+  /* ตัวเลขในตารางต้องเรียงตรงคอลัมน์เสมอ */
+  table,
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Noto Sans Thai', sans-serif;
+@layer components {
+  /* แผ่นป้าย — ภาชนะเดียวของทั้งระบบ */
+  .plate {
+    background: var(--plate);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-plate);
+  }
+
+  /* หน้าลิ้นชัก — หัวเรื่องของแต่ละหน้า */
+  .drawer-face {
+    background: linear-gradient(180deg, #fdfdfc 0%, #f4f4f1 100%);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-plate);
+    position: relative;
+  }
+  /* เส้นสกัดบนหน้าลิ้นชัก */
+  .drawer-face::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.5rem;
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--edge) 0 4px,
+      transparent 4px 8px
+    );
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* แถบรหัสริมซ้าย — ลายเซ็นของระบบ ดึงออกได้เหมือนบัตรในราง */
+  .tag-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.4rem;
+    border: 1px solid var(--edge-strong);
+    border-radius: 1px;
+    background: var(--ground-sunk);
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    white-space: nowrap;
+    transition: transform var(--dur) var(--ease), color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+
+  .tag-row:hover .tag-strip,
+  .tag-row:focus-within .tag-strip {
+    transform: translateX(3px);
+    color: var(--ink);
+    background: var(--plate);
+    border-color: var(--ink-3);
+  }
+
+  /* ขีดนับจำนวน — อ่านยอดได้โดยไม่ต้องอ่านตัวเลข */
+  .tick {
+    display: inline-block;
+    width: 2px;
+    height: 0.875rem;
+    background: var(--stock);
+  }
+  .tick--out {
+    background: var(--tag);
+  }
+  .tick--none {
+    background: var(--edge-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

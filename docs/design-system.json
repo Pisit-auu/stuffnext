@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-08T00:00:00Z",
+  "title": "Design System: ทะเบียนโลหะ · Asset Tag",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "พื้นตู้เหล็ก / Cabinet Ground",
+        "canonical": "#ededea",
+        "tonalRamp": ["#242423", "#3b3b39", "#575754", "#757571", "#94948f", "#b3b3ae", "#d2d2ce", "#f3f3f1"]
+      },
+      "ground-sunk": {
+        "role": "neutral",
+        "displayName": "ร่องลิ้นชัก / Sunk Groove",
+        "canonical": "#e3e3df",
+        "tonalRamp": ["#222221", "#393937", "#545451", "#71716d", "#90908b", "#afafa9", "#cecec9", "#f0f0ed"]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "แผ่นป้าย / Plate White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#262626", "#3d3d3d", "#585858", "#757575", "#949494", "#b4b4b4", "#d4d4d4", "#f5f5f5"]
+      },
+      "plate-rail": {
+        "role": "neutral",
+        "displayName": "รางเหล็ก / Rail Black",
+        "canonical": "#1d2021",
+        "tonalRamp": ["#111314", "#1d2021", "#33383a", "#4d5457", "#6b7376", "#8d9497", "#b2b8ba", "#dde0e1"]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "เส้นผม / Hairline",
+        "canonical": "#d3d3cd",
+        "tonalRamp": ["#212120", "#373735", "#52524f", "#6e6e6a", "#8d8d87", "#acaca5", "#cbcbc5", "#eeeeea"]
+      },
+      "edge-strong": {
+        "role": "neutral",
+        "displayName": "ขอบหนัก / Strong Edge",
+        "canonical": "#b9b9b1",
+        "tonalRamp": ["#1f1f1e", "#343432", "#4e4e4b", "#6a6a66", "#888883", "#a7a7a1", "#c6c6c0", "#eaeae6"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "หมึกหลัก / Ink",
+        "canonical": "#17191a",
+        "tonalRamp": ["#0d0e0f", "#17191a", "#2c3032", "#454b4e", "#616a6d", "#82898c", "#a9b0b2", "#d7dbdc"]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "หมึกรอง / Ink Two",
+        "canonical": "#4c5052",
+        "tonalRamp": ["#0e0f10", "#1a1c1d", "#2c2f31", "#414547", "#585d5f", "#71777a", "#9aa0a2", "#cbcfd0"]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "หมึกประกอบ / Ink Three",
+        "canonical": "#6e7375",
+        "tonalRamp": ["#121314", "#202223", "#333638", "#494d4f", "#606568", "#7d8285", "#a4a9ab", "#d2d5d6"]
+      },
+      "ink-on-rail": {
+        "role": "neutral",
+        "displayName": "หมึกบนราง / Ink On Rail",
+        "canonical": "#f2f2ef",
+        "tonalRamp": ["#252523", "#3c3c3a", "#575754", "#747471", "#93938e", "#b2b2ad", "#d1d1cc", "#f6f6f3"]
+      },
+      "ink-on-rail-2": {
+        "role": "neutral",
+        "displayName": "หมึกรองบนราง / Ink On Rail Two",
+        "canonical": "#a9adaa",
+        "tonalRamp": ["#1c1e1d", "#303231", "#484b4a", "#626664", "#7f8381", "#9da09e", "#bcbfbd", "#e3e5e4"]
+      },
+      "stock": {
+        "role": "primary",
+        "displayName": "เขียวคลัง / Stock Green",
+        "canonical": "#1a6b37",
+        "tonalRamp": ["#08240f", "#0e3a1c", "#145229", "#1a6b37", "#218546", "#2fa25a", "#63c489", "#b7e6c8"]
+      },
+      "stock-soft": {
+        "role": "primary",
+        "displayName": "เขียวคลังอ่อน / Stock Soft",
+        "canonical": "#e4f0e7",
+        "tonalRamp": ["#12261a", "#1d3e2a", "#2a583c", "#3b7451", "#549069", "#7cae8c", "#aecdb9", "#e4f0e7"]
+      },
+      "tag": {
+        "role": "secondary",
+        "displayName": "ส้มป้ายยืม / Tag Orange",
+        "canonical": "#b23a0b",
+        "tonalRamp": ["#2d0d02", "#4a1704", "#6a2306", "#8f2e08", "#b23a0b", "#d95213", "#ea8354", "#f8c9b3"]
+      },
+      "tag-soft": {
+        "role": "secondary",
+        "displayName": "ส้มป้ายยืมอ่อน / Tag Soft",
+        "canonical": "#fbebe2",
+        "tonalRamp": ["#2b170e", "#472518", "#653524", "#864733", "#a86246", "#c78a70", "#e0b5a2", "#fbebe2"]
+      },
+      "alert": {
+        "role": "tertiary",
+        "displayName": "แดงลบ / Delete Red",
+        "canonical": "#a81e14",
+        "tonalRamp": ["#2a0705", "#450b08", "#63120c", "#851810", "#a81e14", "#cf2f22", "#e2705f", "#f6c0b8"]
+      },
+      "alert-soft": {
+        "role": "tertiary",
+        "displayName": "แดงลบอ่อน / Alert Soft",
+        "canonical": "#f8e7e5",
+        "tonalRamp": ["#2a1413", "#45211f", "#61302d", "#82443f", "#a45f58", "#c48b85", "#deb5b0", "#f8e7e5"]
+      },
+      "alert-edge": {
+        "role": "tertiary",
+        "displayName": "ขอบปุ่มลบ / Alert Edge",
+        "canonical": "#e2b7b3",
+        "tonalRamp": ["#28100e", "#421c18", "#5e2924", "#7d3a33", "#9e5348", "#bd7f74", "#d5a29c", "#e2b7b3"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "หัวเรื่องหน้าแรกและหน้าเข้าสู่ระบบเท่านั้น ไต่จาก 2.25rem (มือถือ) → 3rem ที่ sm → 3.5rem ที่ lg ไม่ใช้ในหน้าปฏิบัติงาน"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "ชื่อหน้าใน PageHeader หนึ่งอันต่อหนึ่งหน้า ไต่เป็น 1.75rem ที่ sm"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "หัวเรื่องส่วนบนหน้าแรก"
+      },
+      "subhead": {
+        "displayName": "Subhead",
+        "purpose": "SectionTitle หัว Modal หัวการ์ด — ขนาดเท่าเนื้อความ แยกด้วยน้ำหนัก 600 อย่างเดียว หัวเรื่องที่พบบ่อยที่สุดในระบบ"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "เนื้อความและข้อมูลในตารางทั้งหมด ย่อหน้าคำอธิบายจำกัดที่ราว 52ch"
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "ป้ายกำกับช่องกรอก คำใบ้ ข้อความรอง คู่กับ ink-2 หรือ ink-3"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "หัวคอลัมน์ตาราง ตัวพิมพ์ใหญ่ — เป็น sans ไม่ใช่ mono"
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "เนื้อในของ .tag-strip รหัสครุภัณฑ์ ชื่อห้อง เส้นทาง URL"
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "เส้นทาง (breadcrumb) ป้ายกำกับบนรางเหล็ก หัวข้อในส่วนท้าย ระยะอักษร 0.08–0.18em ตัวพิมพ์ใหญ่"
+      }
+    },
+    "shadows": [
+      {
+        "name": "plate",
+        "value": "0 1px 0 var(--edge), 0 1px 2px rgb(23 25 26 / 0.05)",
+        "purpose": "แผ่นป้ายทุกใบขณะพัก และปุ่มที่มีพื้น — เส้นขอบล่างคมหนึ่งเส้นบวกความฟุ้งบางมาก เหมือนโลหะที่วางแนบพื้น"
+      },
+      {
+        "name": "lift",
+        "value": "0 8px 20px -8px rgb(23 25 26 / 0.3), 0 2px 5px rgb(23 25 26 / 0.08)",
+        "purpose": "ตอบสนอง hover ของทั้งแถวที่คลิกได้ และ Toast"
+      },
+      {
+        "name": "drawer",
+        "value": "0 24px 60px -20px rgb(23 25 26 / 0.45), 0 4px 12px rgb(23 25 26 / 0.12)",
+        "purpose": "เฉพาะสิ่งที่ถูกดึงออกมาทับหน้าจอ — Modal เมนูบัญชี ลิ้นชักเมนูมือถือ ใช้คู่กับฉากหลัง bg-ink/45 และ backdrop-blur 1px"
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0.8, 0.25, 1)",
+        "purpose": "เส้นโค้งเดียวของทั้งระบบ ตระกูล ease-out ออกตัวเร็ว เข้าที่นุ่ม"
+      },
+      {
+        "name": "dur",
+        "value": "160ms",
+        "purpose": "การเปลี่ยนสถานะทั้งหมด — สี ขอบ เงา การเลื่อนของ .tag-strip การหมุนของลูกศร และ animation slide-in ของลิ้นชักเมนู"
+      },
+      {
+        "name": "dur-slow",
+        "value": "260ms",
+        "purpose": "สิ่งที่เข้ามาใหม่ในหน้าจอ — animation slide-up ของ Modal และ Toast"
+      },
+      {
+        "name": "slide-up",
+        "value": "opacity 0→1, translateY(6px)→0",
+        "purpose": "Modal และ Toast เข้าจอ แกนเดียว ไม่เกิน 6px"
+      },
+      {
+        "name": "slide-in",
+        "value": "opacity 0→1, translateX(-6px)→0",
+        "purpose": "ลิ้นชักเมนูมือถือและเมนูบัญชีเข้าจอ"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) { animation-duration: 0.01ms; transition-duration: 0.01ms }",
+        "purpose": "ตัดการเคลื่อนไหวทั้งเอกสารเมื่อผู้ใช้ตั้งค่าไว้ — บังคับทั่วทั้งเอกสาร ไม่ใช่ต่อคอมโพเนนต์"
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "rail-max", "value": "84rem" },
+      { "name": "rail-height", "value": "3.5rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "การกระทำหลักหนึ่งเดียวของหน้า — แผ่นหมึกดำตัวอักษรขาว",
+      "html": "<button class=\"ds-btn ds-btn-primary\">บันทึก</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; height: 2.5rem; padding: 0 0.875rem; border: 1px solid; border-radius: var(--radius, 2px); font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; line-height: 1.6; white-space: nowrap; user-select: none; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1), color 160ms cubic-bezier(0.2,0.8,0.25,1), box-shadow 160ms cubic-bezier(0.2,0.8,0.25,1), transform 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-btn:active { transform: translateY(1px); } .ds-btn:disabled { opacity: 0.45; cursor: not-allowed; } .ds-btn:focus-visible { outline: 2px solid #17191a; outline-offset: 2px; } .ds-btn-primary { background: #17191a; color: #ffffff; border-color: #17191a; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); } .ds-btn-primary:hover { background: #2c3032; border-color: #2c3032; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "ปุ่มค่าเริ่มต้นของระบบ — แผ่นป้ายขาวขอบหนัก ใช้กับทุกการกระทำที่ไม่ใช่ตัวเอกของหน้า",
+      "html": "<button class=\"ds-btn ds-btn-secondary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M5 3.5h9L19 8v12.5H5z\"/><path d=\"M13.5 3.75V8.5H18.5\"/><path d=\"M8.5 12.5h7M8.5 16h7\"/></svg>ดาวน์โหลด Excel</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; height: 2.5rem; padding: 0 0.875rem; border: 1px solid; border-radius: var(--radius, 2px); font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; line-height: 1.6; white-space: nowrap; user-select: none; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1), color 160ms cubic-bezier(0.2,0.8,0.25,1), transform 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid #17191a; outline-offset: 2px; } .ds-btn-secondary { background: #ffffff; color: #17191a; border-color: #b9b9b1; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); } .ds-btn-secondary:hover { background: #fafaf8; border-color: #17191a; }"
+    },
+    {
+      "name": "Borrow Button",
+      "kind": "button",
+      "refersTo": "button-borrow",
+      "description": "ขาว ตัวอักษรและขอบส้ม ไม่ถมพื้น — ส้มคือการยืมออก ปรากฏหนึ่งจุดต่อแถวในตารางห้อง",
+      "html": "<button class=\"ds-btn ds-btn-borrow ds-btn-sm\">ยืม</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; height: 2.5rem; padding: 0 0.875rem; border: 1px solid; border-radius: var(--radius, 2px); font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1), transform 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid #17191a; outline-offset: 2px; } .ds-btn-sm { height: 2rem; padding: 0 0.625rem; font-size: 0.8125rem; } .ds-btn-borrow { background: #ffffff; color: #b23a0b; border-color: #b23a0b; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); } .ds-btn-borrow:hover { background: #fbebe2; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "การลบต้องอ่านก่อนกด จึงเป็นแผ่นป้ายขาวตัวอักษรแดง ไม่ใช่ปุ่มแดงเต็มพื้น",
+      "html": "<button class=\"ds-btn ds-btn-danger ds-btn-sm\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"M4 6.5h16M9.5 6.5V4h5v2.5\"/><path d=\"M6.5 6.5 7.5 20.5h9l1-14\"/></svg>ลบ</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; height: 2.5rem; padding: 0 0.875rem; border: 1px solid; border-radius: var(--radius, 2px); font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1), transform 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid #17191a; outline-offset: 2px; } .ds-btn-sm { height: 2rem; padding: 0 0.625rem; font-size: 0.8125rem; } .ds-btn-danger { background: #ffffff; color: #a81e14; border-color: #e2b7b3; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); } .ds-btn-danger:hover { background: #f8e7e5; border-color: #a81e14; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "ช่องกรอกมาตรฐาน ป้ายกำกับอยู่เหนือช่องเสมอ โฟกัสเปลี่ยนขอบเป็นหมึกพร้อมวงแหวนจาง",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-input-amount\">จำนวนที่ยืม<span class=\"ds-field-req\">*</span></label><p class=\"ds-field-hint\">ยืมได้สูงสุด 8 ชิ้น</p><input id=\"ds-input-amount\" class=\"ds-input\" type=\"number\" value=\"1\"></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 0.375rem; font-family: var(--font-plex-thai), system-ui, sans-serif; max-width: 20rem; } .ds-field-label { font-size: 0.8125rem; font-weight: 500; color: #4c5052; } .ds-field-req { margin-left: 0.25rem; color: #b23a0b; } .ds-field-hint { margin: 0; font-size: 0.8125rem; color: #6e7375; } .ds-input { width: 100%; height: 2.5rem; padding: 0 0.75rem; border: 1px solid #b9b9b1; border-radius: var(--radius, 2px); background: #ffffff; color: #17191a; font-family: inherit; font-size: 0.9375rem; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); transition: border-color 160ms cubic-bezier(0.2,0.8,0.25,1), box-shadow 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-input::placeholder { color: #6e7375; } .ds-input:hover { border-color: #6e7375; } .ds-input:focus { outline: none; border-color: #17191a; box-shadow: 0 0 0 2px rgb(23 25 26 / 0.15); } .ds-input:disabled { background: #e3e3df; color: #6e7375; cursor: not-allowed; }"
+    },
+    {
+      "name": "Tag Strip",
+      "kind": "chip",
+      "refersTo": "tag-strip",
+      "description": "ลายเซ็นของระบบ — แถบรหัส mono ที่นำหน้าทุกหน่วยข้อมูล ชี้ที่แถวแล้วเลื่อนออก 3px เหมือนบัตรถูกดึงจากราง",
+      "html": "<div class=\"ds-tag-row\"><span class=\"ds-tag-strip\">ก-0001</span><p class=\"ds-tag-name\">โต๊ะเรียนไม้ยางพารา</p></div>",
+      "css": ".ds-tag-row { padding: 0.625rem 0.75rem; background: #ffffff; border: 1px solid #d3d3cd; border-radius: 2px; max-width: 22rem; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-tag-row:hover { background: #fafaf8; } .ds-tag-strip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.125rem 0.4rem; border: 1px solid #b9b9b1; border-radius: 1px; background: #e3e3df; color: #4c5052; font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.75rem; letter-spacing: 0.04em; line-height: 1.5; white-space: nowrap; transition: transform 160ms cubic-bezier(0.2,0.8,0.25,1), color 160ms cubic-bezier(0.2,0.8,0.25,1), background-color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-tag-row:hover .ds-tag-strip, .ds-tag-row:focus-within .ds-tag-strip { transform: translateX(3px); color: #17191a; background: #ffffff; border-color: #6e7375; } .ds-tag-name { margin: 0.375rem 0 0; font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; color: #17191a; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip-stock",
+      "description": "หน่วยที่ใหญ่ที่สุดที่สีถมพื้นได้ สี่โทนตรงกับกฎหมายของสี — เขียว/ส้ม/เทา/แดง",
+      "html": "<span class=\"ds-chip ds-chip-stock\">พร้อมใช้</span> <span class=\"ds-chip ds-chip-tag\">ถูกยืมออก</span> <span class=\"ds-chip ds-chip-neutral\">2 ชิ้น</span> <span class=\"ds-chip ds-chip-alert\">ผิดพลาด</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.375rem; border: 1px solid; border-radius: var(--radius, 2px); font-family: var(--font-plex-thai), system-ui, sans-serif; font-size: 0.75rem; line-height: 1.25rem; } .ds-chip-stock { border-color: rgb(26 107 55 / 0.35); background: #e4f0e7; color: #1a6b37; } .ds-chip-tag { border-color: rgb(178 58 11 / 0.35); background: #fbebe2; color: #b23a0b; } .ds-chip-neutral { border-color: #b9b9b1; background: #e3e3df; color: #4c5052; } .ds-chip-alert { border-color: rgb(168 30 20 / 0.35); background: #f8e7e5; color: #a81e14; }"
+    },
+    {
+      "name": "Tick Bar",
+      "kind": "custom",
+      "refersTo": "tag-strip",
+      "description": "ขีดนับยอดคงเหลือ — อ่านสัดส่วนได้ก่อนอ่านตัวเลข เขียว=พร้อมใช้ ส้ม=ถูกยืมออก เทา=ใช้งานไม่ได้",
+      "html": "<span class=\"ds-tickbar\" title=\"พร้อมใช้ 6 จากทั้งหมด 9 · ถูกยืมออก 2 · ใช้งานไม่ได้ 1\"><span class=\"ds-ticks\" aria-hidden=\"true\"><i class=\"ds-tick\"></i><i class=\"ds-tick\"></i><i class=\"ds-tick\"></i><i class=\"ds-tick\"></i><i class=\"ds-tick\"></i><i class=\"ds-tick\"></i><i class=\"ds-tick ds-tick-out\"></i><i class=\"ds-tick ds-tick-out\"></i><i class=\"ds-tick ds-tick-none\"></i></span><span class=\"ds-tickcount\">6<span class=\"ds-tickcount-total\">/9</span></span></span>",
+      "css": ".ds-tickbar { display: inline-flex; align-items: center; gap: 0.5rem; } .ds-ticks { display: flex; align-items: flex-end; gap: 2px; } .ds-tick { display: inline-block; width: 2px; height: 0.875rem; background: #1a6b37; } .ds-tick-out { background: #b23a0b; } .ds-tick-none { background: #b9b9b1; } .ds-tickcount { font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: #4c5052; } .ds-tickcount-total { color: #6e7375; }"
+    },
+    {
+      "name": "Drawer Face",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "หัวเรื่องของทุกหน้าและของ Modal — ไล่เฉดแนวตั้งพร้อมเส้นสกัดประที่อ่านเป็นร่องมือจับลิ้นชัก ที่อยู่ mono มาก่อนชื่อเสมอ",
+      "html": "<header class=\"ds-drawer-face\"><nav class=\"ds-trail\">หน้าแรก › สถานที่ › อาคาร 1 ห้อง 112</nav><p class=\"ds-code\">ก-0001</p><h1 class=\"ds-page-title\">ครุภัณฑ์ในห้อง อาคาร 1 ห้อง 112</h1><p class=\"ds-page-meta\">ผู้รับผิดชอบ ครูสมพงษ์ แก้วมณี · 3 รายการ</p></header>",
+      "css": ".ds-drawer-face { position: relative; padding: 1rem 1.5rem 1.75rem; background: linear-gradient(180deg, #fdfdfc 0%, #f4f4f1 100%); border: 1px solid #d3d3cd; border-radius: var(--radius, 2px); box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); font-family: var(--font-plex-thai), system-ui, sans-serif; } .ds-drawer-face::after { content: \"\"; position: absolute; inset-inline: 0; bottom: 0.5rem; height: 1px; background: repeating-linear-gradient(90deg, #d3d3cd 0 4px, transparent 4px 8px); opacity: 0.7; pointer-events: none; } .ds-trail { margin-bottom: 0.75rem; font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6e7375; } .ds-code { margin: 0 0 0.375rem; font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.8125rem; letter-spacing: 0.06em; color: #4c5052; } .ds-page-title { margin: 0; font-size: 1.75rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.015em; color: #17191a; text-wrap: balance; } .ds-page-meta { margin: 0.5rem 0 0; font-size: 0.8125rem; color: #4c5052; }"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "rail",
+      "description": "รางเหล็กค้างบนสุด ป้ายระบบสลักซ้ายสุด ตำแหน่งปัจจุบันขีดเส้นใต้ 2px ไม่ใช่พื้นสี",
+      "html": "<header class=\"ds-rail\"><a class=\"ds-rail-brand\" href=\"#\"><span class=\"ds-rail-mark\">SNK</span><span><span class=\"ds-rail-name\">ทะเบียนครุภัณฑ์</span><span class=\"ds-rail-sub\">Srinakarin Inventory</span></span></a><nav class=\"ds-rail-nav\"><a class=\"ds-rail-link is-active\" href=\"#\">ครุภัณฑ์ทั้งหมด</a><a class=\"ds-rail-link\" href=\"#\">สถานที่ทั้งหมด</a><a class=\"ds-rail-link\" href=\"#\">สถานะรายการ</a></nav></header>",
+      "css": ".ds-rail { display: flex; align-items: center; gap: 0.75rem; height: 3.5rem; padding: 0 1.5rem; background: #1d2021; border-bottom: 1px solid rgb(0 0 0 / 0.4); font-family: var(--font-plex-thai), system-ui, sans-serif; } .ds-rail-brand { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; } .ds-rail-mark { display: flex; align-items: center; height: 2rem; padding: 0 0.5rem; border: 1px solid rgb(255 255 255 / 0.25); font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.14em; color: #f2f2ef; transition: border-color 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-rail-brand:hover .ds-rail-mark { border-color: rgb(255 255 255 / 0.6); } .ds-rail-name { display: block; font-size: 0.9375rem; font-weight: 600; line-height: 1.2; color: #f2f2ef; } .ds-rail-sub { display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.1em; color: #a9adaa; } .ds-rail-nav { display: flex; align-items: stretch; margin-left: auto; height: 3.5rem; } .ds-rail-link { display: flex; align-items: center; padding: 0 0.875rem; border-bottom: 2px solid transparent; font-size: 0.9375rem; color: #a9adaa; text-decoration: none; transition: color 160ms cubic-bezier(0.2,0.8,0.25,1), border-color 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-rail-link:hover { color: #f2f2ef; border-bottom-color: rgb(255 255 255 / 0.25); } .ds-rail-link.is-active { color: #f2f2ef; border-bottom-color: #f2f2ef; }"
+    },
+    {
+      "name": "Data Row / Label Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "แถวตารางที่ยุบเป็นแผ่นป้ายต่ำกว่า md — แถบรหัสยังนำหน้า คอลัมน์ที่เหลือกลายเป็นคู่ป้ายกำกับ-ค่า และปุ่มไปอยู่ท้ายใต้เส้นแบ่ง",
+      "html": "<li class=\"ds-plate-row\"><div class=\"ds-plate-head\"><span class=\"ds-tag-strip\">ก-0002</span><p class=\"ds-plate-name\">เก้าอี้นักเรียน</p><p class=\"ds-plate-cat\">ครุภัณฑ์การศึกษา</p></div><dl class=\"ds-plate-dl\"><div><dt>วันที่เพิ่ม</dt><dd>14 พ.ค. 2568</dd></div><div><dt>พร้อมให้ยืม</dt><dd>20/20</dd></div></dl><div class=\"ds-plate-actions\"><button class=\"ds-btn-borrow-full\">ยืม</button></div></li>",
+      "css": ".ds-plate-row { list-style: none; padding: 0.75rem 0.875rem; background: #ffffff; border: 1px solid #d3d3cd; border-radius: 2px; box-shadow: 0 1px 0 #d3d3cd, 0 1px 2px rgb(23 25 26 / 0.05); font-family: var(--font-plex-thai), system-ui, sans-serif; max-width: 24rem; } .ds-plate-head { margin-bottom: 0.625rem; } .ds-tag-strip { display: inline-flex; padding: 0.125rem 0.4rem; border: 1px solid #b9b9b1; border-radius: 1px; background: #e3e3df; color: #4c5052; font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 0.75rem; letter-spacing: 0.04em; transition: transform 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-plate-row:hover .ds-tag-strip { transform: translateX(3px); background: #ffffff; border-color: #6e7375; color: #17191a; } .ds-plate-name { margin: 0.375rem 0 0; font-size: 0.9375rem; font-weight: 500; color: #17191a; } .ds-plate-cat { margin: 0; font-size: 0.8125rem; color: #6e7375; } .ds-plate-dl { margin: 0; padding-top: 0.625rem; border-top: 1px solid #d3d3cd; font-size: 0.9375rem; font-variant-numeric: tabular-nums; } .ds-plate-dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.375rem; } .ds-plate-dl dt { font-size: 0.8125rem; color: #6e7375; } .ds-plate-dl dd { margin: 0; color: #17191a; } .ds-plate-actions { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #d3d3cd; } .ds-btn-borrow-full { width: 100%; height: 2rem; border: 1px solid #b23a0b; border-radius: 2px; background: #b23a0b; color: #ffffff; font-family: inherit; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2,0.8,0.25,1); } .ds-btn-borrow-full:hover { background: #8f2e08; border-color: #8f2e08; }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "status-chip-stock",
+      "description": "แทน alert() ทั้งระบบ ล่างขวาบนจอกว้าง ล่างกลางบนมือถือ โทนตามกฎหมายของสี",
+      "html": "<div class=\"ds-toast ds-toast-success\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\"><path d=\"m4.5 12.5 5 5 10-11\"/></svg><p class=\"ds-toast-msg\">ยืม เก้าอี้นักเรียน 2 ชิ้น ไปที่ห้อง อาคาร 2 ห้อง 205 แล้ว</p></div>",
+      "css": ".ds-toast { display: flex; align-items: flex-start; gap: 0.5rem; max-width: 24rem; padding: 0.625rem 0.75rem; border: 1px solid; border-radius: var(--radius, 2px); box-shadow: 0 8px 20px -8px rgb(23 25 26 / 0.3), 0 2px 5px rgb(23 25 26 / 0.08); font-family: var(--font-plex-thai), system-ui, sans-serif; animation: ds-slide-up 260ms cubic-bezier(0.2,0.8,0.25,1) both; } .ds-toast-success { border-color: rgb(26 107 55 / 0.4); background: #e4f0e7; color: #1a6b37; } .ds-toast svg { flex-shrink: 0; margin-top: 1px; } .ds-toast-msg { margin: 0; font-size: 0.9375rem; line-height: 1.4; } @keyframes ds-slide-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { .ds-toast { animation-duration: 0.01ms; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "ทะเบียนโลหะ — ป้ายครุภัณฑ์บนหน้าลิ้นชักตู้เหล็ก",
+    "overview": "ครุภัณฑ์ทุกชิ้นในโรงเรียนมีป้ายทะเบียนติดอยู่บนตัวของจริงอยู่แล้ว โลกนี้ถือว่าหน้าจอคือป้ายเดียวกันนั้นที่ขยายให้ทั้งระบบอ่านได้ พื้นหลังคือสีเทาตู้เหล็ก (--ground #EDEDEA) แผ่นป้ายขาวขอบเส้นผมวางอยู่บนพื้นนั้น มุมตัดที่ 2px ไม่ใช่มุมมน และทุกหน่วยข้อมูล — ครุภัณฑ์หนึ่งชิ้น ห้องหนึ่งห้อง — เริ่มต้นด้วยแถบรหัสตัวพิมพ์ mono ที่อ่านได้เหมือนบัตรในรางเหล็ก\n\nระบบนี้เป็นเครื่องมือทำงาน ไม่ใช่แดชบอร์ดสำหรับดู ความหนาแน่นจึงสูง ตัวอักษรฐาน 0.9375rem แถวตารางสูงพอให้กดด้วยนิ้วแต่ไม่หลวม ไม่มีการ์ดมุมมนพร้อมตัวเลข KPI ใหญ่ ๆ ไม่มีไล่เฉดสีเพื่อความสวย ไม่มีไอคอนสี ทุกอย่างที่มีสีในหน้าจอนี้กำลังพูดถึงสถานะของของจริงในห้องจริง\n\nจังหวะการเคลื่อนไหวคือลิ้นชักที่ถูกดึงออกมา — เลื่อนตามแกนเดียวไม่เกิน 6px ไม่มีการเด้ง ไม่มีการหมุน ไม่มีสเกล ทั้งระบบมีค่าเวลาสองค่าและเส้นโค้งเดียว",
+    "keyCharacteristics": [
+      "พื้นเทาตู้เหล็ก แผ่นป้ายขาว ขอบเส้นผม 1px มุม 2px",
+      "IBM Plex Sans Thai คู่กับ IBM Plex Mono — mono ถูกจองไว้ให้รหัส ที่อยู่ และตัวเลขเท่านั้น",
+      "สีสามสี สามความหมาย ไม่มีสีตกแต่ง",
+      "ทุกหน่วยขึ้นต้นด้วยแถบรหัส .tag-strip",
+      "ตารางบนจอกว้าง ยุบเป็นแผ่นป้ายบนจอแคบ โดยแถบรหัสยังนำหน้าเหมือนเดิม",
+      "เงามีสามระดับ ใช้ตามหน้าที่ ไม่ใช่ตามความสวย"
+    ],
+    "rules": [
+      {
+        "name": "กฎหนึ่งสีหนึ่งความหมาย (The One Colour One Meaning Rule)",
+        "body": "เขียว = พร้อมใช้งาน ส้ม = ถูกยืมออก/รอดำเนินการ แดง = ลบ/ผิดพลาด ห้ามยืมสีใดไปใช้เพื่อความสวยงาม เพื่อแยกหมวดหมู่ หรือเพื่อเน้นสิ่งที่ไม่ใช่สถานะเหล่านี้ ถ้าต้องเน้นอะไรสักอย่างโดยไม่ได้พูดถึงสถานะ ให้ใช้น้ำหนักตัวอักษรหรือเส้นขอบ ไม่ใช่สี",
+        "section": "colors"
+      },
+      {
+        "name": "กฎสีอยู่ที่ขอบ (The Colour At The Edge Rule)",
+        "body": "สีปรากฏเป็นเส้นขอบ ตัวอักษร ขีดนับ และพื้นอ่อนขนาดเล็ก ขนาดใหญ่ที่สุดที่สีถมเต็มพื้นได้คือชิป แถบแจ้งเตือน และปุ่มยืมหนึ่งปุ่ม ห้ามถมสีเป็นแผงพื้นหลังของส่วนหน้าจอ แถบหัวเรื่อง หรือการ์ดทั้งใบ",
+        "section": "colors"
+      },
+      {
+        "name": "กฎชำรุดไม่มีสี (The Broken-Is-Grey Rule)",
+        "body": "ของที่ใช้งานไม่ได้ไม่ใช่สถานะที่ต้องรีบดู จึงใช้เทา (--edge-strong สำหรับ .tick--none, ชิป tone=\"neutral\") ไม่ใช่แดง แดงสงวนไว้ให้การกระทำที่ย้อนกลับไม่ได้เท่านั้น",
+        "section": "colors"
+      },
+      {
+        "name": "กฎ mono สงวนไว้ให้ตัวตน (The Mono Is Identity Rule)",
+        "body": "ตัวพิมพ์ mono ใช้ได้เฉพาะกับสิ่งที่เป็นรหัส ที่อยู่ หรือปริมาณ: assetid, namelocation, เส้นทาง URL, ยอดคงเหลือ, เบอร์โทร ห้ามใช้ mono กับประโยคหรือคำอธิบาย เพราะ mono คือสัญญาณว่า \"อันนี้คือค่าที่คัดลอกไปใช้ต่อได้\"",
+        "section": "typography"
+      },
+      {
+        "name": "กฎตัวเลขเรียงคอลัมน์ (The Tabular Numerals Rule)",
+        "body": "table และ .tnum บังคับ font-variant-numeric: tabular-nums ตัวเลขในคอลัมน์เดียวกันต้องเรียงตรงกันเสมอ ห้ามใส่ตัวเลขจำนวนมากลงในองค์ประกอบที่ไม่ได้รับ tabular-nums",
+        "section": "typography"
+      },
+      {
+        "name": "กฎหัวเรื่องหนึ่งเดียว (The One Headline Rule)",
+        "body": "หนึ่งหน้ามี <h1> เดียวและอยู่ใน PageHeader เสมอ ขนาดที่ใหญ่กว่านั้น (Display) เป็นของหน้าที่ต้องโน้มน้าวเท่านั้น",
+        "section": "typography"
+      },
+      {
+        "name": "กฎที่อยู่มาก่อน (The Address First Rule)",
+        "body": "ทุกหน้าปฏิบัติงานต้องบอกก่อนว่าผู้ใช้อยู่ตรงไหนของระบบ ด้วยเส้นทาง mono ตัวพิมพ์ใหญ่บนสุดของ .drawer-face และรหัสของสิ่งที่กำลังดูอยู่บรรทัดถัดมา ก่อนถึงชื่อหน้า",
+        "section": "layout"
+      },
+      {
+        "name": "กฎกรอบเดียว (The Single Frame Rule)",
+        "body": "ห้ามสร้างความกว้างสูงสุดใหม่ ทุกหน้าเลือกจากสามค่าของ PageShell เท่านั้น (ปัจจุบัน 21 จาก 23 หน้าใช้ PageShell ข้อยกเว้นคือหน้าแรกและหน้าเข้าสู่ระบบ ซึ่งเป็นหน้าเต็มจอโดยตั้งใจ)",
+        "section": "layout"
+      },
+      {
+        "name": "กฎเงาตามหน้าที่ (The Shadow-Has-A-Job Rule)",
+        "body": "เงาบอกว่าสิ่งนั้นอยู่ชั้นไหน ไม่ได้บอกว่าสิ่งนั้นสำคัญ แผ่นป้ายพักที่ plate เสมอ lift เกิดจากการชี้เท่านั้น drawer ใช้ได้เฉพาะสิ่งที่มีฉากหลังทับหน้าจอจริง ห้ามเขียนค่า box-shadow ใหม่นอกสามค่านี้",
+        "section": "elevation"
+      },
+      {
+        "name": "กฎมุม 2px (The Two-Pixel Corner Rule)",
+        "body": "แผ่นป้าย ปุ่ม ช่องกรอก ชิป และ modal ใช้ 2px ของที่เล็กกว่าชิป (แถบรหัส วงแหวนโฟกัส skeleton) ใช้ 1px ห้ามมุมมนแบบเม็ดยา ห้ามวงกลม ห้ามอวาตาร์กลม",
+        "section": "shapes"
+      },
+      {
+        "name": "กฎเส้นก่อนช่องว่าง (The Line Before Space Rule)",
+        "body": "เมื่อต้องแยกสองสิ่งออกจากกัน ใช้เส้น 1px --edge ก่อน แล้วค่อยเพิ่มระยะห่าง ระบบนี้แน่นโดยตั้งใจ ระยะห่างมีราคาแพงกว่าเส้น",
+        "section": "shapes"
+      },
+      {
+        "name": "กฎแกนเดียว (The Single Axis Rule)",
+        "body": "ลิ้นชักเลื่อนตามรางเดียว ทุกการเคลื่อนไหวเลือกได้แกนเดียวเท่านั้น ระยะไม่เกิน 6px และต้องอยู่ใน 160ms หรือ 260ms ถ้าอยากให้บางอย่างเด่นขึ้น ให้เปลี่ยนสี น้ำหนัก หรือเส้นขอบ ไม่ใช่เพิ่มการเคลื่อนไหว",
+        "section": "motion"
+      }
+    ],
+    "dos": [
+      "Do เริ่มทุกหน่วยข้อมูลด้วย .tag-strip (ผ่าน <CodeTag>) และวางไว้ในคอลัมน์ที่ตั้ง primary เพื่อให้แถบรหัสยังนำหน้าเมื่อแถวยุบเป็นแผ่นป้ายบนจอแคบ",
+      "Do ใช้ DataTable สำหรับทุกรายการที่มีมากกว่าหนึ่งคอลัมน์ มันเป็นเจ้าของกฎการยุบที่ md และไม่มีที่อื่นในระบบที่ควรเขียนกฎนี้ซ้ำ",
+      "Do วางทุกหน้าไว้ใน PageShell + PageHeader และให้ PageHeader มี trail เสมอในหน้าปฏิบัติงาน",
+      "Do ใช้มุม 2px กับทุกภาชนะ และ 1px กับของที่เล็กกว่าชิป",
+      "Do ใช้ useToast() แทน alert() ทุกกรณี และผูกโทนของ toast เข้ากับกฎหมายของสี",
+      "Do ใช้ TickBar เมื่อจะแสดงยอดคงเหลือ ให้ผู้ใช้อ่านสัดส่วนได้ก่อนอ่านตัวเลข",
+      "Do ให้ทุกช่องกรอกมี <label> จริง ถ้าออกแบบให้ไม่เห็น ให้ซ่อนด้วย sr-only ไม่ใช่ตัดออก",
+      "Do เขียนไอคอนใหม่ในสไตล์ของ icons.tsx — เส้นเดี่ยว 1.5 ปลายตัดตรง มุมตัดตรง viewBox 24"
+    ],
+    "donts": [
+      "Don't ถมสีเขียว/ส้ม/แดงเป็นพื้นหลังของส่วนหน้าจอ แถบหัวเรื่อง หรือการ์ดทั้งใบ ขนาดใหญ่ที่สุดที่สีถมพื้นได้คือชิป แถบแจ้งเตือน และปุ่มยืม",
+      "Don't ใช้สีส้มกับสิ่งที่ไม่ใช่การยืมออกหรือรายการที่รอดำเนินการ (เครื่องหมาย * ของช่องบังคับในปัจจุบันยังเป็นสีส้ม — เป็นข้อยกเว้นที่ตกค้างในโค้ด ไม่ใช่แบบอย่างที่ควรทำตาม)",
+      "Don't ใช้สีแดงกับของที่ชำรุด ของที่ใช้งานไม่ได้เป็นเทา แดงสงวนไว้ให้การลบและความผิดพลาดเท่านั้น",
+      "Don't เขียน box-shadow ค่าใหม่ เลือกจาก plate / lift / drawer",
+      "Don't ใช้มุมมนแบบเม็ดยา วงกลม หรืออวาตาร์กลม — ระบบนี้ไม่มี rounded-full แม้แต่จุดเดียว",
+      "Don't ใช้ตัวพิมพ์ mono กับประโยคหรือคำอธิบาย mono สงวนไว้ให้รหัส ที่อยู่ และปริมาณ",
+      "Don't สร้างความกว้างสูงสุดใหม่ หรือระยะขอบหน้าใหม่ นอกเหนือจากสามค่าของ PageShell",
+      "Don't เพิ่มการเคลื่อนไหวสองแกน สเกล หรือการเด้ง และอย่าใช้เวลานอกเหนือจาก 160ms / 260ms",
+      "Don't นำ antd หรือไลบรารี UI อื่นกลับเข้ามา ระบบนี้เป็นเจ้าของปุ่ม ช่องกรอก ตาราง modal และไอคอนของตัวเองครบแล้ว",
+      "Don't ใช้ spinner กลางจอเป็นสถานะกำลังโหลด ใช้ TableSkeleton หรือ Skeleton ที่มีรูปร่างเท่าของจริง"
+    ]
+  }
+}

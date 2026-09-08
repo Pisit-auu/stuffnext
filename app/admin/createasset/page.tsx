@@ -1,203 +1,140 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import axios from "axios";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { Button, ButtonLink } from "../../component/ui/Button";
+import { SelectField, TextField } from "../../component/ui/Field";
+import { ImageUpload } from "../../component/ui/ImageUpload";
+import { PageShell, PageHeader } from "../../component/ui/Layout";
+import { useToast } from "../../component/ui/Toast";
+import { errorMessage } from "@/lib/format";
+import type { Category } from "@/lib/types";
 
 export default function CreateAsset() {
-  const [assetid, setAssetid] = useState('');
-  const [name, setAssetname] = useState('');
-  const [img, setImg] = useState('');
-  const [categoryId, setCategory] = useState('');
-  const [listcategory, setlistCategory] = useState([]);
-  const [availableValue, setAvailableValue] = useState<number>(0);
-  const [unavailableValue, setunAvailableValue] = useState<number>(0);
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState<boolean>(false); // สถานะการอัปโหลด
-  // ฟังก์ชันอัพโหลดรูปภาพ
-  const handleUpload = async () => {
-    if (!file) return;
-  
-    setIsUploading(true); // ตั้งสถานะว่ากำลังอัปโหลด
-  
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      
-      const res = await axios.post("/api/uploadimg", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-  
-      setImg(res.data.url); 
-    } catch (error: any) {
-      if (error.response) {
-        console.error("Error uploading file:", error.response.data);
-      } else if (error.message) {
-        console.error("Error message:", error.message);
-      } else {
-        console.error("Unknown error:", error);
-      }
-    } finally {
-      setIsUploading(false); // ปิดสถานะการอัปโหลด
-    }
-  };
-  
-  
+  const toast = useToast();
+
+  const [assetid, setAssetid] = useState("");
+  const [name, setName] = useState("");
+  const [img, setImg] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [availableValue, setAvailableValue] = useState("0");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchCategories();
+    (async () => {
+      try {
+        const res = await axios.get<Category[]>("/api/category");
+        setCategories(res.data);
+      } catch (err) {
+        toast.error(errorMessage(err, "โหลดประเภทครุภัณฑ์ไม่สำเร็จ"));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  //ดึงข้อมูลประเภทครุภัณฑ์
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get('/api/category');
-      setlistCategory(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  //สร้างครุภัณฑ์
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!categoryId) {
-      alert('เลือกประเภทครุภัณฑ์');
-      return;
-    }
 
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const nextErrors: Record<string, string> = {};
+    if (!name.trim()) nextErrors.name = "กรอกชื่อครุภัณฑ์";
+    if (!assetid.trim()) nextErrors.assetid = "กรอกรหัสครุภัณฑ์";
+    if (!categoryId) nextErrors.category = "เลือกประเภทครุภัณฑ์";
+    const amount = Number(availableValue);
+    if (!Number.isFinite(amount) || amount < 0) {
+      nextErrors.available = "จำนวนต้องเป็นตัวเลขที่ไม่ติดลบ";
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setSaving(true);
     try {
-      await axios.post('/api/asset', {
-        name,
+      await axios.post("/api/asset", {
+        name: name.trim(),
         img,
-        assetid,
+        assetid: assetid.trim(),
         categoryId,
-        availableValue,
-        unavailableValue,
+        availableValue: amount,
+        unavailableValue: 0,
       });
-      
-      router.push('/admin');
-    } catch (error) {
-      alert("รหัสครุภัณฑ์ ซ้ำ")
-      console.log(error)
+      toast.success(`เพิ่ม ${name.trim()} เข้าทะเบียนแล้ว`);
+      router.push("/admin");
+    } catch (err) {
+      setErrors({ assetid: "รหัสครุภัณฑ์นี้ถูกใช้ไปแล้ว ใช้รหัสอื่นแทน" });
+      toast.error(errorMessage(err, "เพิ่มครุภัณฑ์ไม่สำเร็จ"));
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">เพิ่มครุภัณฑ์</h1>
-      <div className="space-y-6">
-        {/* ชื่อครุภัณฑ์ */}
-        <div>
-          <label htmlFor="Asset" className="block text-sm font-medium text-gray-700">
-            ชื่อครุภัณฑ์
-          </label>
-          <input
-            type="text"
-            id="Asset"
+    <PageShell width="form">
+      <PageHeader
+        trail={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "จัดการทะเบียน", href: "/admin" },
+          { label: "เพิ่มครุภัณฑ์" },
+        ]}
+        title="เพิ่มครุภัณฑ์"
+        meta="ของที่เพิ่มใหม่จะอยู่ในคลังกลางก่อน แล้วค่อยจัดเข้าห้องทีหลัง"
+      />
+
+      <form onSubmit={handleSubmit} className="plate px-4 py-5 sm:px-6 sm:py-6" noValidate>
+        <div className="space-y-4">
+          <TextField
+            label="ชื่อครุภัณฑ์"
             required
             value={name}
-            onChange={(e) => setAssetname(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            error={errors.name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="เช่น โต๊ะทำงานไม้"
           />
-        </div>
-
-        {/* รหัสครุภัณฑ์ */}
-        <div>
-          <label htmlFor="Assetid" className="block text-sm font-medium text-gray-700">
-            รหัสครุภัณฑ์
-          </label>
-          <input
-            type="text"
-            id="Assetid"
+          <TextField
+            label="รหัสครุภัณฑ์"
             required
             value={assetid}
+            error={errors.assetid}
+            hint="รหัสนี้ต้องไม่ซ้ำกับของชิ้นอื่น และใช้อ้างอิงทั้งระบบ"
             onChange={(e) => setAssetid(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="font-mono"
           />
-        </div>
-
-        {/* รูปภาพ */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">รูปภาพ</label>
-          <div className="p-5">
-            <div className="flex flex-col gap-3">
-            <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setFile(e.target.files[0]);
-              }
-            }}
-            disabled={isUploading} // ปิดการใช้งานการเลือกไฟล์ระหว่างการอัปโหลด
-          />
-          <button
-            type="button"
-            onClick={handleUpload}
-            className="bg-blue-500 text-white p-2 rounded"
-            disabled={isUploading} // ปิดการใช้งานปุ่ม "อัปโหลด" ระหว่างการอัปโหลด
-          >
-            {isUploading ? "กำลังอัปโหลด..." : "อัปโหลด"}
-          </button>
-            </div>
-
-            {img && (
-              <div className="mt-5">
-                <h2 className="text-lg font-bold">รูปที่อัปโหลด:</h2>
-                <img src={img} alt="Uploaded" className="w-64 h-64 object-cover" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ประเภทครุภัณฑ์ */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">ประเภทครุภัณฑ์</label>
-          <select
+          <SelectField
+            label="ประเภทครุภัณฑ์"
+            required
             value={categoryId}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
+            error={errors.category}
+            onChange={(e) => setCategoryId(e.target.value)}
           >
             <option value="">เลือกประเภทครุภัณฑ์</option>
-            {listcategory.map((category: any) => (
-              <option key={category.idname} value={category.idname}>
-                {category.name}
+            {categories.map((c) => (
+              <option key={c.idname} value={c.idname}>
+                {c.name}
               </option>
             ))}
-          </select>
+          </SelectField>
+          <TextField
+            label="จำนวนที่พร้อมใช้งาน"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            required
+            value={availableValue}
+            error={errors.available}
+            onChange={(e) => setAvailableValue(e.target.value)}
+          />
+          <ImageUpload value={img} onChange={setImg} />
         </div>
 
-        {/* จำนวนที่พร้อมใช้งาน */}
-        <div>
-          <label htmlFor="Available" className="block text-sm font-medium text-gray-700">
-            จำนวนที่พร้อมใช้งาน
-          </label>
-          <input
-              type="number"
-              id="Available"
-              required
-              value={availableValue || ''}  // ใช้ค่าหรือค่าว่างถ้าค่าคือ NaN
-              onChange={(e) => setAvailableValue(parseInt(e.target.value, 10) || 0)}  // แปลงค่าที่ได้รับเป็นตัวเลข
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            />
+        <div className="mt-6 flex flex-col gap-2 border-t border-edge pt-5 sm:flex-row">
+          <Button type="submit" variant="primary" loading={saving}>
+            เพิ่มเข้าทะเบียน
+          </Button>
+          <ButtonLink href="/admin">ยกเลิก</ButtonLink>
         </div>
-
-        {/* จำนวนที่เสีย */}
-
-
-        {/* ปุ่มเพิ่ม */}
-        <div>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
-          >
-            เพิ่ม
-          </button>
-        </div>
-      </div>
-    </div>
+      </form>
+    </PageShell>
   );
 }

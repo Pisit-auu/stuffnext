@@ -1,107 +1,115 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+import axios from "axios";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { Button, ButtonLink } from "../../component/ui/Button";
+import { SelectField, TextField } from "../../component/ui/Field";
+import { PageShell, PageHeader } from "../../component/ui/Layout";
+import { useToast } from "../../component/ui/Toast";
+import { errorMessage } from "@/lib/format";
+import type { CategoryRoom } from "@/lib/types";
 
-export default function Create() {
-  const [namelocation, setNamelocation] = useState('')
-  const [nameteacher, setNameteacher] = useState('')
-  const [listcategory, setlistCategory] = useState([]);
-  const [categoryIdroom, setCategory] = useState('');
+export default function CreateLocation() {
+  const router = useRouter();
+  const toast = useToast();
 
-  const router = useRouter()
+  const [namelocation, setNamelocation] = useState("");
+  const [nameteacher, setNameteacher] = useState("");
+  const [categoryIdroom, setCategoryIdroom] = useState("");
+  const [categories, setCategories] = useState<CategoryRoom[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    (async () => {
+      try {
+        const res = await axios.get<CategoryRoom[]>("/api/categoryroom");
+        setCategories(res.data);
+      } catch (err) {
+        toast.error(errorMessage(err, "โหลดประเภทของสถานที่ไม่สำเร็จ"));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  //ดึงข้อมูลประเภทของห้อง
-  const fetchCategories = async () => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!namelocation.trim()) nextErrors.name = "กรอกชื่อสถานที่";
+    if (!nameteacher.trim()) nextErrors.teacher = "กรอกชื่อผู้รับผิดชอบ";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setSaving(true);
     try {
-      const res = await axios.get('/api/categoryroom');
-      setlistCategory(res.data);
-    } catch (error) {
-      console.error(error);
+      await axios.post("/api/location", {
+        namelocation: namelocation.trim(),
+        nameteacher: nameteacher.trim(),
+        categoryIdroom: categoryIdroom ? Number(categoryIdroom) : null,
+      });
+      toast.success(`เพิ่มสถานที่ ${namelocation.trim()} แล้ว`);
+      router.push("/admin");
+    } catch (err) {
+      setErrors({ name: "ชื่อสถานที่นี้ถูกใช้ไปแล้ว ใช้ชื่ออื่นแทน" });
+      toast.error(errorMessage(err, "เพิ่มสถานที่ไม่สำเร็จ"));
+    } finally {
+      setSaving(false);
     }
   };
 
-  // สร้างสถานที่
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    try {
-      const response = await axios.post('/api/location', { namelocation, nameteacher, categoryIdroom: Number(categoryIdroom) })
-      router.push('/admin')
-    } catch (error) {
-      alert('ชื่อห้องถูกตั้งไปแล้ว')
-    }
-  }
-
   return (
-    <div className="max-w-2xl mx-auto m-8 px-4 py-8 bg-white shadow-lg rounded-lg">
-      <h1 className="text-2xl font-semibold mb-6 text-center">เพิ่มสถานที่ใหม่</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Input for location name */}
-        <div>
-          <label htmlFor="namelocation" className="block text-sm font-medium text-gray-700">
-            ชื่อสถานที่
-          </label>
-          <input
-            type="text"
-            name="namelocation"
-            id="namelocation"
+    <PageShell width="form">
+      <PageHeader
+        trail={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "จัดการทะเบียน", href: "/admin" },
+          { label: "เพิ่มสถานที่" },
+        ]}
+        title="เพิ่มสถานที่"
+        meta="ชื่อสถานที่ถูกใช้เป็นรหัสอ้างอิงทั้งระบบ จึงต้องไม่ซ้ำกับห้องอื่น"
+      />
+
+      <form onSubmit={handleSubmit} className="plate px-4 py-5 sm:px-6 sm:py-6" noValidate>
+        <div className="space-y-4">
+          <TextField
+            label="ชื่อสถานที่"
             required
             value={namelocation}
+            error={errors.name}
+            placeholder="เช่น ห้อง 213 หรือ ห้องพักครูวิทยาศาสตร์"
             onChange={(e) => setNamelocation(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3"
           />
-        </div>
-
-        {/* Textarea for teacher name */}
-        <div>
-          <label htmlFor="nameteacher" className="block text-sm font-medium text-gray-700">
-            ชื่อผู้ที่รับผิดชอบสถานที่
-          </label>
-          <textarea
-            name="nameteacher"
-            id="nameteacher"
+          <TextField
+            label="ผู้รับผิดชอบสถานที่"
             required
-            rows={1}
             value={nameteacher}
+            error={errors.teacher}
+            placeholder="ชื่อครูหรือเจ้าหน้าที่ที่ดูแลห้องนี้"
             onChange={(e) => setNameteacher(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3"
-          ></textarea>
-        </div>
-
-        {/* Select category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">ประเภทของสถานที่</label>
-          <select
+          />
+          <SelectField
+            label="ประเภทของสถานที่"
             value={categoryIdroom}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 w-full"
+            hint="เว้นว่างไว้ได้ แล้วมาระบุทีหลัง"
+            onChange={(e) => setCategoryIdroom(e.target.value)}
           >
-            <option value="">เลือกประเภทของสถานที่</option>
-            {listcategory.map((category: any) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
+            <option value="">ยังไม่ระบุประเภท</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
-          </select>
+          </SelectField>
         </div>
 
-        {/* Submit button */}
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            ยืนยัน
-          </button>
+        <div className="mt-6 flex flex-col gap-2 border-t border-edge pt-5 sm:flex-row">
+          <Button type="submit" variant="primary" loading={saving}>
+            เพิ่มสถานที่
+          </Button>
+          <ButtonLink href="/admin">ยกเลิก</ButtonLink>
         </div>
       </form>
-    </div>
-  )
+    </PageShell>
+  );
 }
