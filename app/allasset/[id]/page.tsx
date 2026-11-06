@@ -22,6 +22,7 @@ import { useToast } from "../../component/ui/Toast";
 import { exportSheet } from "@/lib/excel";
 import { errorMessage, formatDate, formatNumber } from "@/lib/format";
 import type { Asset, AssetLocation } from "@/lib/types";
+import { isAdminRole } from "@/lib/types";
 
 type RoomRow = {
   id: number;
@@ -35,7 +36,7 @@ export default function AssetDetail() {
   const { id } = useParams() as { id: string };
   const assetId = decodeURIComponent(id);
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = isAdminRole(session?.user?.role);
   const toast = useToast();
 
   const [asset, setAsset] = useState<Asset | null>(null);

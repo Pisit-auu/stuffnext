@@ -1,9 +1,13 @@
+import { currentUser, unauthorized, forbidden } from "@/lib/authz";
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 // อัพเดตรหัสผ่าน ของuser ตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
   // รอให้ params resolve ก่อนแล้วดึงค่า id
   const { id } = await context.params;
+  if (me.username !== id) return forbidden();
   const { oldPassword, newPassword } = await request.json(); // รับข้อมูลจาก body ของ request
 
   if (typeof id !== 'string') {

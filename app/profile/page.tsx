@@ -1,7 +1,6 @@
 "use client";
 
 import axios from "axios";
-import bcrypt from "bcryptjs";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import { ErrorState, Skeleton, StatusChip } from "../component/ui/Data";
 import { IconEdit, IconLock, IconLogout } from "../component/ui/icons";
 import { useToast } from "../component/ui/Toast";
 import { errorMessage } from "@/lib/format";
-import type { AppUser } from "@/lib/types";
+import { ROLE_LABEL, type AppUser, type Role } from "@/lib/types";
 
 type Draft = Pick<AppUser, "name" | "surname" | "email" | "tel">;
 
@@ -68,14 +67,11 @@ export default function Profile() {
     setSaving(true);
     setFormError("");
     try {
-      const isPasswordCorrect = await bcrypt.compare(password, user.password ?? "");
-      if (!isPasswordCorrect) {
-        setFormError("รหัสผ่านไม่ถูกต้อง");
-        return;
-      }
-
       const payload = { ...user, ...draft };
-      const res = await axios.put(`/api/auth/signup/${session.user.username}`, payload);
+      const res = await axios.put(`/api/auth/signup/${session.user.username}`, {
+        ...draft,
+        currentPassword: password,
+      });
 
       if (res.status === 200) {
         setUser(payload);
@@ -139,7 +135,7 @@ export default function Profile() {
         meta={
           <span className="flex flex-wrap items-center gap-2">
             <StatusChip tone="neutral">
-              {user?.role === "admin" ? "แอดมิน" : "ผู้ใช้ทั่วไป"}
+              {ROLE_LABEL[(user?.role ?? "user") as Role] ?? "ผู้ใช้ทั่วไป"}
             </StatusChip>
             <span>ชื่อจริงจะไปปรากฏบนรายการยืมของคุณ</span>
           </span>

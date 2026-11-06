@@ -20,6 +20,7 @@ export default function SignUpUser() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<"user" | "admin">("user");
   const [errorMsg, setErrorMsg] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -44,11 +45,12 @@ export default function SignUpUser() {
         password,
         name: firstName.trim(),
         surname: lastName.trim(),
+        role,
       });
       toast.success(`สร้างบัญชี ${username.trim()} แล้ว`);
       router.push("/admin/user");
     } catch (err) {
-      setErrorMsg("สร้างบัญชีไม่สำเร็จ ชื่อผู้ใช้นี้อาจถูกใช้ไปแล้ว");
+      setErrorMsg(errorMessage(err, "สร้างบัญชีไม่สำเร็จ ชื่อผู้ใช้นี้อาจถูกใช้ไปแล้ว"));
       toast.error(errorMessage(err, "สร้างบัญชีไม่สำเร็จ"));
     } finally {
       setLoading(false);
@@ -64,7 +66,7 @@ export default function SignUpUser() {
           { label: "เพิ่มผู้ใช้งาน" },
         ]}
         title="เพิ่มผู้ใช้งาน"
-        meta="บัญชีที่สร้างใหม่จะเป็นผู้ใช้ทั่วไป และตั้งชื่อจริงไว้ให้เรียบร้อยเพื่อให้ยืมของได้ทันที"
+        meta="เฉพาะซูเปอร์แอดมินที่สร้างบัญชีได้ ตั้งชื่อจริงไว้ให้เรียบร้อยเพื่อให้ยืมของได้ทันที"
       />
 
       <form onSubmit={handleSubmit} className="plate px-4 py-5 sm:px-6 sm:py-6" noValidate>
@@ -116,6 +118,27 @@ export default function SignUpUser() {
             onChange={(e) => setLastName(e.target.value)}
           />
         </div>
+
+        <fieldset className="mt-5">
+          <legend className="mb-2 text-base font-medium text-ink">บทบาท</legend>
+          <div className="flex flex-wrap gap-4">
+            {([
+              ["user", "ผู้ใช้ทั่วไป"],
+              ["admin", "แอดมิน"],
+            ] as const).map(([value, label]) => (
+              <label key={value} className="flex cursor-pointer items-center gap-2 text-base text-ink">
+                <input
+                  type="radio"
+                  name="role"
+                  value={value}
+                  checked={role === value}
+                  onChange={() => setRole(value)}
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <div className="mt-6 flex flex-col gap-2 border-t border-edge pt-5 sm:flex-row">
           <Button type="submit" variant="primary" loading={loading}>

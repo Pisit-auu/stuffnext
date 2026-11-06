@@ -91,6 +91,7 @@ model borrow {
 enum Role {
   user
   admin
+  superadmin
 }
 
 enum Status {
