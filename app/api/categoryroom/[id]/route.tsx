@@ -1,3 +1,4 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 //ดึงข้อมูลตาม id 
@@ -15,6 +16,9 @@ export async function GET(request: Request, context:
 //อัพเดตข้อมูลตาม id 
 export async function PUT(request: Request, 
   context: { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     const {  name } = await request.json();
 
@@ -36,6 +40,9 @@ export async function PUT(request: Request,
 //ลบข้อมูลตาม id
 export async function DELETE(request: Request, context: 
   { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     const { id } = await context.params;
 

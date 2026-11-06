@@ -1,7 +1,10 @@
+import { currentUser, unauthorized, isAdmin, forbidden, publicUserSelect } from "@/lib/authz";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 //ดึงข้อมูลตาม locationid
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
   try {
     const { id } = await context.params;
 
@@ -9,7 +12,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const borrowList = await prisma.borrow.findMany({
       where: { borrowLocationId: id },
       include: {
-        user: true,
+        user: { select: publicUserSelect },
         asset: true,
         borrowLocation: true,
       },

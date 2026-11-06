@@ -1,3 +1,4 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
 
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest, context:
 //update ครุภัณฑ์ ตาม ตาม id
 export async function PUT(request: NextRequest, context: 
   { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     const { id } = await context.params;  
     const { name, img, assetid, categoryId, 
@@ -60,6 +64,9 @@ export async function PUT(request: NextRequest, context:
 //ลบ ครุภัณฑ์ ตาม id
 export async function DELETE(request: NextRequest, context: 
   { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     const { id } = await context.params;  // ใช้ await ที่นี่
 

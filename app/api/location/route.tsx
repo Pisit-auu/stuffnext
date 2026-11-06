@@ -1,3 +1,4 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 
 import { type NextRequest } from "next/server";
 import prisma from "@/lib/prisma"; 
@@ -40,6 +41,9 @@ export async function GET(request: NextRequest) {
   
 
 export async function POST(request: Request){
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     const { namelocation, nameteacher, 
         categoryIdroom } = await request.json();

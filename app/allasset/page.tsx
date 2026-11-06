@@ -20,6 +20,7 @@ import { useToast } from "../component/ui/Toast";
 import { exportSheet } from "@/lib/excel";
 import { errorMessage } from "@/lib/format";
 import type { Asset, AssetLocation, Category } from "@/lib/types";
+import { isAdminRole } from "@/lib/types";
 
 /** ยอดของครุภัณฑ์หนึ่งชิ้น = ยอดในคลัง + ยอดที่กระจายอยู่ตามห้อง */
 type AssetRow = Asset & {
@@ -40,7 +41,7 @@ export default function AllAsset() {
   const [deleting, setDeleting] = useState(false);
   const toast = useToast();
 
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = isAdminRole(session?.user?.role);
 
   const load = async () => {
     setLoading(true);

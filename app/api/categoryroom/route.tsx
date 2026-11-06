@@ -1,3 +1,4 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
 //ดึงข้อมูลทั้งหมด
@@ -18,6 +19,9 @@ export async function GET(request:NextRequest){
 
 //สร้างข้อมูล
 export async function POST(request: Request){
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
     try{
         const {name} = await request.json()
         const newcategory = await prisma.categoryroom.create({

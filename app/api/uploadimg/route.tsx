@@ -1,7 +1,11 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 import { NextRequest, NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
 
 export async function POST(req: NextRequest) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     // รับข้อมูลจาก formData()
     const formData = await req.formData();

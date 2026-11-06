@@ -1,3 +1,4 @@
+import { currentUser, unauthorized } from "@/lib/authz";
 import prisma from "@/lib/prisma"; 
 import { type NextRequest } from "next/server";
 // ดึงข้อมูล assetlocation
@@ -51,6 +52,8 @@ export async function GET(request: NextRequest) {
 
 //สร้างของในห้อง
 export async function POST(request: Request){
+  const me = await currentUser();
+  if (!me) return unauthorized();
     const {assetId,locationId,inRoomavailableValue,inRoomaunavailableValue,createdAt} = await request.json()
     const intInRoomavailableValue = parseInt(inRoomavailableValue, 10);
     const intUnavailableValueNumber = parseInt(inRoomaunavailableValue, 10);

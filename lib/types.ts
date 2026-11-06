@@ -1,6 +1,15 @@
 /** ชนิดข้อมูลกลางที่ตรงกับ prisma/schema.prisma — ใช้แทน any ในหน้าจอทั้งหมด */
 
-export type Role = "user" | "admin";
+export type Role = "user" | "admin" | "superadmin";
+
+/** admin และ superadmin เข้าหน้าผู้ดูแลได้ */
+export const isAdminRole = (role?: string | null) => role === "admin" || role === "superadmin";
+
+export const ROLE_LABEL: Record<Role, string> = {
+  user: "ผู้ใช้ทั่วไป",
+  admin: "แอดมิน",
+  superadmin: "ซูเปอร์แอดมิน",
+};
 /** w = รอตรวจสอบ, c = ตรวจสอบแล้ว */
 export type Status = "w" | "c";
 

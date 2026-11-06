@@ -14,6 +14,7 @@ import {
   IconClock,
   IconUser,
 } from "../ui/icons";
+import { isAdminRole } from "@/lib/types";
 
 type NavLink = { href: string; label: string; icon: React.ReactNode };
 
@@ -29,7 +30,7 @@ export default function NavbarGlobal() {
   const accountRef = useRef<HTMLDivElement>(null);
 
   const signedIn = status === "authenticated";
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = isAdminRole(session?.user?.role);
   const displayName = session?.user?.name?.trim() || session?.user?.username || "บัญชีของฉัน";
 
   useEffect(() => {

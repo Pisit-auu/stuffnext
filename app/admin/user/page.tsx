@@ -27,13 +27,16 @@ import {
 import { useToast } from "../../component/ui/Toast";
 import { exportSheet } from "@/lib/excel";
 import { errorMessage } from "@/lib/format";
-import type { AppUser } from "@/lib/types";
+import { ROLE_LABEL, type AppUser, type Role } from "@/lib/types";
 
 const PAGE_SIZE = 15;
 
 export default function AdminUsers() {
   const { data: session } = useSession();
   const toast = useToast();
+  const isSuper = session?.user?.role === "superadmin";
+  /** admin จัดการได้เฉพาะผู้ใช้ทั่วไป ส่วน superadmin จัดการได้ทุกบัญชี */
+  const canManage = (u: AppUser) => isSuper || u.role === "user";
 
   const [users, setUsers] = useState<AppUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -200,7 +203,7 @@ export default function AdminUsers() {
       width: "9rem",
       render: (u) => (
         <StatusChip tone="neutral">
-          {u.role === "admin" ? "แอดมิน" : "ผู้ใช้ทั่วไป"}
+          {ROLE_LABEL[(u.role ?? "user") as Role] ?? "ผู้ใช้ทั่วไป"}
         </StatusChip>
       ),
     },
@@ -234,6 +237,7 @@ export default function AdminUsers() {
                 size="sm"
                 icon={<IconEdit size={15} />}
                 onClick={() => startEdit(u)}
+                disabled={!canManage(u)}
                 className="max-md:flex-1"
                 aria-label={`แก้ไขชื่อผู้ใช้ ${u.username}`}
               >
@@ -244,11 +248,13 @@ export default function AdminUsers() {
                 variant="danger"
                 icon={<IconTrash size={15} />}
                 aria-label={`ลบผู้ใช้ ${u.username}`}
-                disabled={session?.user?.username === u.username}
+                disabled={session?.user?.username === u.username || !canManage(u)}
                 title={
                   session?.user?.username === u.username
                     ? "ลบบัญชีของตัวเองไม่ได้"
-                    : undefined
+                    : !canManage(u)
+                      ? "เฉพาะซูเปอร์แอดมินที่จัดการบัญชีนี้ได้"
+                      : undefined
                 }
                 onClick={() => setPendingDelete(u)}
               >
@@ -284,13 +290,15 @@ export default function AdminUsers() {
             >
               ดาวน์โหลด Excel
             </Button>
-            <ButtonLink
-              href="/admin/user/singupuser"
-              variant="primary"
-              icon={<IconPlus size={16} />}
-            >
-              เพิ่มผู้ใช้งาน
-            </ButtonLink>
+            {isSuper && (
+              <ButtonLink
+                href="/admin/user/singupuser"
+                variant="primary"
+                icon={<IconPlus size={16} />}
+              >
+                เพิ่มผู้ใช้งาน
+              </ButtonLink>
+            )}
           </>
         }
       />
@@ -328,9 +336,11 @@ export default function AdminUsers() {
                 <EmptyState
                   title="ยังไม่มีผู้ใช้ในระบบ"
                   action={
-                    <ButtonLink href="/admin/user/singupuser" variant="primary">
-                      เพิ่มผู้ใช้งาน
-                    </ButtonLink>
+                    isSuper ? (
+                      <ButtonLink href="/admin/user/singupuser" variant="primary">
+                        เพิ่มผู้ใช้งาน
+                      </ButtonLink>
+                    ) : undefined
                   }
                 />
               ) : (

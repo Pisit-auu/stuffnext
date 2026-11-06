@@ -12,7 +12,14 @@ export async function middleware(request: NextRequest) {
   const user = token as { role?: string } | null;
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin') && (!user || user.role !== 'admin')) {
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
+  // เพิ่มผู้ใช้ได้เฉพาะ superadmin
+  if (pathname.startsWith('/admin/user/singupuser') && user?.role !== 'superadmin') {
+    return NextResponse.redirect(new URL(isAdmin ? '/admin/user' : '/', request.url));
+  }
+
+  if (pathname.startsWith('/admin') && !isAdmin) {
   //  console.log("Unauthorized User:", user);
     return NextResponse.redirect(new URL('/', request.url));
   }

@@ -1,3 +1,4 @@
+import { currentUser, unauthorized, isAdmin, forbidden } from "@/lib/authz";
 import prisma from "@/lib/prisma";
 
 
@@ -14,6 +15,8 @@ export async function GET(request: Request,
 
 //update ของในห้องตาม id
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
   try {
     const { assetId, locationId, inRoomavailableValue, inRoomaunavailableValue, createdAt } = await request.json();
     const { id } = await context.params;  // ใช้ await ในการเข้าถึง params
@@ -62,6 +65,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
 export async function DELETE(request: Request, 
   context: { params: Promise<{ id: string }> }) {
+  const me = await currentUser();
+  if (!me) return unauthorized();
+  if (!isAdmin(me)) return forbidden();
   try {
     //  ต้อง await ก่อนเข้าถึงค่า params
     const { id } = await context.params;
